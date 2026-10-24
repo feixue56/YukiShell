@@ -140,6 +140,7 @@ Scope {
     // "smart"  = hide while a non-floating window is open on that monitor's workspace
     // "always" = always auto-hide, "never" = always visible and reserves space
     property string hideMode: "smart"
+    property int faceVer: 0               // bumped when ~/.face changes so every picture reloads
     property bool showSettings: true      // the gear button at the end of the Dock that opens the Settings window
     property string fontFamily: "Open Runde"  // bundled in assets/fonts (shell.qml loads it); falls back to the system font if missing
     readonly property string boldFontFamily: hub && hub.boldFontFamily ? hub.boldFontFamily : "Open Runde Semibold"
@@ -703,7 +704,7 @@ Scope {
         }
         onCurChanged: flick.contentY = 0
 
-        Shortcut { sequences: ["Escape", "Ctrl+W"]; onActivated: prefsWindow.visible = false }
+        Shortcut { sequences: ["Escape", "Ctrl+W"]; onActivated: { if (cropSheet.open) cropSheet.open = false; else prefsWindow.visible = false; } }
 
         // Settings always opens as a floating, centred window (no windowrule needed in hyprland.conf)
         onVisibleChanged: if (visible) { showNormal(); applyScaledSize(); floatTries = 0; floatTimer.restart(); if (root.glassState === "idle") root.startGlass(); }
@@ -1136,7 +1137,7 @@ Scope {
                         Item { id: acctMask; anchors.fill: parent; visible: false; layer.enabled: true; Rectangle { anchors.fill: parent; radius: width / 2; color: "black" } }
                         Rectangle { anchors.fill: parent; radius: width / 2; color: pal.ctrl }
                         Image {
-                            anchors.fill: parent; source: "file://" + Quickshell.env("HOME") + "/.face"; sourceSize: Qt.size(96, 96)
+                            anchors.fill: parent; source: "file://" + Quickshell.env("HOME") + "/.face?" + root.faceVer; sourceSize: Qt.size(96, 96)
                             fillMode: Image.PreserveAspectCrop; cache: false
                             layer.enabled: true; layer.effect: MultiEffect { maskEnabled: true; maskSource: acctMask; maskThresholdMin: 0.5; maskSpreadAtMin: 1.0 }
                         }
@@ -1394,6 +1395,140 @@ Scope {
                 color: pal.text3
                 opacity: flick.moving ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 300 } }
+            }
+
+            // ── crop sheet: covers the window while a new profile picture is being framed ──
+            Item {
+                id: cropSheet
+                anchors.fill: parent
+                z: 60
+                visible: opacity > 0.01
+                opacity: open ? 1 : 0
+                Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+
+                property bool open: false
+                property string src: ""
+                property int ver: 0
+                property real zoom: 1
+                property real cx: 0                 // centre of the crop, in source pixels
+                property real cy: 0
+                readonly property real iw: Math.max(1, cimg.implicitWidth)
+                readonly property real ih: Math.max(1, cimg.implicitHeight)
+                readonly property real side: Math.min(iw, ih) / zoom      // edge of the cropped square, in source pixels
+                readonly property real k: cropVp.width / side             // source pixels -> screen pixels
+
+                function begin(path) { src = path; ver++; zoom = 1; open = true; }
+                function clampPos() {
+                    var h = side / 2;
+                    cx = Math.max(h, Math.min(iw - h, cx));
+                    cy = Math.max(h, Math.min(ih - h, cy));
+                }
+                function setZoom(z) { zoom = Math.max(1, Math.min(8, z)); clampPos(); }
+                function save() {
+                    var sd = Math.max(1, Math.round(side));
+                    var x0 = Math.max(0, Math.round(cx - side / 2)), y0 = Math.max(0, Math.round(cy - side / 2));
+                    cropProc.command = ["sh", "-c",
+                        "magick \"$1[0]\" -auto-orient -crop \"${2}x${2}+${3}+${4}\" +repage -resize 512x512^ -gravity center -extent 512x512 png:\"$HOME/.face.new\" "
+                        + "&& mv -f \"$HOME/.face.new\" \"$HOME/.face\" && echo ok", "sh", src, "" + sd, "" + x0, "" + y0];
+                    cropProc.running = true;
+                }
+                Process {
+                    id: cropProc
+                    stdout: StdioCollector { onStreamFinished: if (text.indexOf("ok") >= 0) { root.faceVer++; cropSheet.open = false; } }
+                }
+                Connections { target: prefsWindow; function onVisibleChanged() { if (!prefsWindow.visible) cropSheet.open = false; } }
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 12
+                    color: Qt.rgba(0, 0, 0, 0.5)
+                    MouseArea { anchors.fill: parent; hoverEnabled: true; onWheel: w => w.accepted = true }
+                }
+                Rectangle {
+                    id: cropCard
+                    anchors.centerIn: parent
+                    width: 400; height: 532
+                    radius: 16
+                    color: pal.card
+                    border.width: 1
+                    border.color: pal.windowBorder
+                    MouseArea { anchors.fill: parent }
+                    Text {
+                        y: 20; anchors.horizontalCenter: parent.horizontalCenter
+                        text: I18n.tr("Crop Picture")
+                        color: pal.text
+                        font.family: root.fontForWeight(Font.DemiBold, pal.fam); font.pixelSize: 16; font.weight: Font.DemiBold
+                    }
+                    Item {
+                        id: cropVp
+                        x: 40; y: 60
+                        width: 320; height: 320
+                        clip: true
+                        Rectangle { anchors.fill: parent; color: "black" }
+                        Image {
+                            id: cimg
+                            source: cropSheet.src === "" ? "" : "file://" + cropSheet.src.split("/").map(encodeURIComponent).join("/") + "?v=" + cropSheet.ver
+                            cache: false; asynchronous: true; autoTransform: true; smooth: true; mipmap: true
+                            fillMode: Image.Stretch
+                            width: cropSheet.iw * cropSheet.k; height: cropSheet.ih * cropSheet.k
+                            x: cropVp.width / 2 - cropSheet.cx * cropSheet.k
+                            y: cropVp.height / 2 - cropSheet.cy * cropSheet.k
+                            onStatusChanged: if (status === Image.Ready) { cropSheet.zoom = 1; cropSheet.cx = implicitWidth / 2; cropSheet.cy = implicitHeight / 2; }
+                        }
+                        // everything outside the circle is dimmed: the circle is what the profile picture will show
+                        Item { id: cropHole; anchors.fill: parent; visible: false; layer.enabled: true; Rectangle { anchors.fill: parent; radius: width / 2; color: "black" } }
+                        Rectangle {
+                            anchors.fill: parent
+                            color: Qt.rgba(0, 0, 0, 0.62)
+                            layer.enabled: true
+                            layer.effect: MultiEffect { maskEnabled: true; maskSource: cropHole; maskInverted: true; maskThresholdMin: 0.5; maskSpreadAtMin: 1.0 }
+                        }
+                        Rectangle { anchors.fill: parent; radius: width / 2; color: "transparent"; border.width: 2; border.color: Qt.rgba(1, 1, 1, 0.9) }
+                        MouseArea {
+                            anchors.fill: parent
+                            property real lx: 0
+                            property real ly: 0
+                            cursorShape: pressed ? Qt.ClosedHandCursor : Qt.OpenHandCursor
+                            onPressed: m => { lx = m.x; ly = m.y; }
+                            onPositionChanged: m => {
+                                if (!pressed) return;
+                                cropSheet.cx -= (m.x - lx) / cropSheet.k;
+                                cropSheet.cy -= (m.y - ly) / cropSheet.k;
+                                lx = m.x; ly = m.y;
+                                cropSheet.clampPos();
+                            }
+                            onWheel: w => cropSheet.setZoom(cropSheet.zoom * Math.pow(1.0015, w.angleDelta.y))
+                        }
+                    }
+                    Row {
+                        x: 40; y: 392; spacing: 10
+                        Text { anchors.verticalCenter: parent.verticalCenter; text: I18n.tr("Zoom"); color: pal.text2; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 13 }
+                        SSlider { t: pal; width: 250; from: 1; to: 8; value: cropSheet.zoom; onMoved: v => cropSheet.setZoom(v) }
+                    }
+                    Text {
+                        x: 40; y: 428; width: 320
+                        text: I18n.tr("Drag to move the picture. Scroll or use the slider to zoom.")
+                        color: pal.text3; wrapMode: Text.WordWrap; horizontalAlignment: Text.AlignHCenter
+                        font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12
+                    }
+                    Row {
+                        anchors.right: parent.right; anchors.rightMargin: 24
+                        y: parent.height - 56
+                        spacing: 10
+                        SButton { t: pal; text: I18n.tr("Cancel"); onClicked: cropSheet.open = false }
+                        Rectangle {
+                            width: saveLbl.implicitWidth + 26; height: 24; radius: 6
+                            color: saveMa.pressed ? Qt.darker(pal.accent, 1.2) : pal.accent
+                            Text {
+                                id: saveLbl
+                                anchors.centerIn: parent
+                                text: I18n.tr("Save"); color: "white"
+                                font.family: root.fontForWeight(Font.DemiBold, pal.fam); font.pixelSize: 13; font.weight: Font.DemiBold
+                            }
+                            MouseArea { id: saveMa; anchors.fill: parent; enabled: cimg.status === Image.Ready && !cropProc.running; onClicked: cropSheet.save() }
+                        }
+                    }
+                }
             }
         }
 
@@ -3332,12 +3467,11 @@ Scope {
                         id: upic
                         anchors.horizontalCenter: parent.horizontalCenter
                         width: 84; height: 84
-                        property int ver: 0
                         Item { id: upMask; anchors.fill: parent; visible: false; layer.enabled: true; Rectangle { anchors.fill: parent; radius: width / 2; color: "black" } }
                         Rectangle { anchors.fill: parent; radius: width / 2; color: pal.ctrl }
                         Image {
                             anchors.fill: parent; cache: false; fillMode: Image.PreserveAspectCrop; sourceSize: Qt.size(200, 200)
-                            source: "file://" + Quickshell.env("HOME") + "/.face?" + upic.ver
+                            source: "file://" + Quickshell.env("HOME") + "/.face?" + root.faceVer
                             layer.enabled: true; layer.effect: MultiEffect { maskEnabled: true; maskSource: upMask; maskThresholdMin: 0.5; maskSpreadAtMin: 1.0 }
                         }
                     }
@@ -3359,8 +3493,8 @@ Scope {
                 }
                 Process {
                     id: picProc
-                    command: ["sh", "-c", "f=$(zenity --file-selection --title='Choose a picture' --file-filter='Images | *.png *.jpg *.jpeg *.webp' 2>/dev/null || kdialog --getopenfilename \"$HOME/Pictures\" 'image/png image/jpeg image/webp' 2>/dev/null); [ -n \"$f\" ] && magick \"$f\" -resize 512x512^ -gravity center -extent 512x512 \"$HOME/.face\" && echo ok"]
-                    stdout: StdioCollector { onStreamFinished: if (text.indexOf("ok") >= 0) upic.ver++ }
+                    command: ["sh", "-c", "f=$(zenity --file-selection --title='Choose a picture' --file-filter='Images | *.png *.jpg *.jpeg *.webp *.gif *.bmp' 2>/dev/null || kdialog --getopenfilename \"$HOME/Pictures\" 'image/png image/jpeg image/webp image/gif image/bmp' 2>/dev/null); [ -n \"$f\" ] && printf '%s' \"$f\""]
+                    stdout: StdioCollector { onStreamFinished: { var f = text.replace(/\n+$/, ""); if (f !== "") cropSheet.begin(f); } }
                 }
             }
         }

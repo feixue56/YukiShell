@@ -644,5 +644,7 @@ var strings = {
     "Recording": "Запись",
     "Restore": "Восстановить",
     "Sound effects": "Звуковые эффекты",
-    "Enter your password to unlock": "Введите пароль для разблокировки"
+    "Enter your password to unlock": "Введите пароль для разблокировки",
+    "Crop Picture": "Обрезка фото",
+    "Drag to move the picture. Scroll or use the slider to zoom.": "Перетащите, чтобы сдвинуть фото. Прокрутите колесо или используйте ползунок для масштаба."
 };

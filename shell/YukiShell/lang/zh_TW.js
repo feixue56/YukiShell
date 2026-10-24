@@ -728,5 +728,7 @@ var strings = {
     "Tehran": "德黑蘭",
     "Toronto": "多倫多",
     "Vancouver": "溫哥華",
-    "Vienna": "維也納"
+    "Vienna": "維也納",
+    "Crop Picture": "裁切圖片",
+    "Drag to move the picture. Scroll or use the slider to zoom.": "拖移以移動圖片，捲動或使用滑桿進行縮放。"
 };

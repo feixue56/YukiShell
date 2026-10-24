@@ -728,5 +728,7 @@ var strings = {
     "Tehran": "테헤란",
     "Toronto": "토론토",
     "Vancouver": "밴쿠버",
-    "Vienna": "빈"
+    "Vienna": "빈",
+    "Crop Picture": "사진 자르기",
+    "Drag to move the picture. Scroll or use the slider to zoom.": "드래그하여 사진을 이동하고, 스크롤하거나 슬라이더로 확대/축소하세요."
 };

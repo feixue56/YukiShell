@@ -728,5 +728,7 @@ var strings = {
     "Tehran": "テヘラン",
     "Toronto": "トロント",
     "Vancouver": "バンクーバー",
-    "Vienna": "ウィーン"
+    "Vienna": "ウィーン",
+    "Crop Picture": "写真をトリミング",
+    "Drag to move the picture. Scroll or use the slider to zoom.": "ドラッグして位置を調整します。スクロールまたはスライダで拡大・縮小できます。"
 };

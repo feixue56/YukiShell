@@ -686,5 +686,7 @@ var strings = {
     "Hong Kong": "Hồng Kông",
     "Moscow": "Mát-xcơ-va",
     "Rome": "Roma",
-    "Vienna": "Viên"
+    "Vienna": "Viên",
+    "Crop Picture": "Cắt ảnh",
+    "Drag to move the picture. Scroll or use the slider to zoom.": "Kéo để di chuyển ảnh. Cuộn hoặc dùng thanh trượt để thu phóng."
 };
