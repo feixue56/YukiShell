@@ -2276,14 +2276,34 @@ Scope {
         settleTimer.interval = 1500;
         settleTimer.restart();
     }
-    readonly property bool airplane: !wifiOn && !btOn
+    // Airplane Mode is rfkill's real state: every radio this machine has is blocked. A PC with no radio at all (no Wi-Fi card, no
+    // Bluetooth adapter) has nothing to block, so the mode stays off and its tile is greyed out instead of reading "on".
+    property bool hasRadios: false
+    property bool airplane: false
+    function refreshAirplane() { if (!rfProc.running) rfProc.running = true; }
+    Process {
+        id: rfProc
+        command: ["sh", "-c", "timeout 3 rfkill -n -o SOFT,HARD 2>/dev/null"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var rows = text.split("\n").map(function (r) { return r.trim(); }).filter(function (r) { return r !== ""; });
+                root.hasRadios = rows.length > 0;
+                root.airplane = rows.length > 0 && rows.every(function (r) { return /(^|\s)blocked(\s|$)/.test(r); });
+            }
+        }
+    }
     function toggleAirplane() {
-        sh(airplane ? "rfkill unblock all; sleep 0.5; bluetoothctl power on" : "rfkill block all");
-        wifiOn = airplane; btOn = airplane;
+        if (!hasRadios) return;
+        var turnOn = !airplane;
+        // bluetoothctl waits forever when there is no adapter, so it only runs when rfkill knows a Bluetooth device
+        sh(turnOn ? "rfkill block all"
+                  : "rfkill unblock all; sleep 0.5; rfkill list bluetooth 2>/dev/null | grep -q . && timeout 5 bluetoothctl power on");
+        airplane = turnOn;
+        wifiOn = !turnOn; btOn = !turnOn;
         settleTimer.restart();
     }
-    Timer { id: settleTimer; interval: 900; onTriggered: { root.refreshWifi(); root.refreshBt(); } }
-    Timer { interval: 6000; repeat: true; running: true; triggeredOnStart: true; onTriggered: { root.refreshWifi(); root.refreshBt(); } }
+    Timer { id: settleTimer; interval: 900; onTriggered: { root.refreshWifi(); root.refreshBt(); root.refreshAirplane(); } }
+    Timer { interval: 6000; repeat: true; running: true; triggeredOnStart: true; onTriggered: { root.refreshWifi(); root.refreshBt(); root.refreshAirplane(); } }
 
     // brightness
     property real brightness: 0.5
@@ -7536,7 +7556,8 @@ Scope {
                         id: cAirplane
                         CCTile {
                             id: tl
-                            clickable: true
+                            clickable: root.hasRadios
+                            opacity: root.hasRadios ? 1 : 0.4
                             on: root.airplane
                             onClicked: root.toggleAirplane()
                             t: ccPal; gx: ccg
