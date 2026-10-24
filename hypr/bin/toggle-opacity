@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Super+Shift+Tab: toggle transparency of the window under the mouse pointer (falls back to the focused window).
-Uses Hyprland's per-window opacity override for the active / inactive / fullscreen states; -1 clears it again."""
+
+kitty windows: only the BACKGROUND becomes see-through (kitty's own background_opacity via remote control), so the text
+stays crisp. Everything else: Hyprland can only fade the whole window (text included), so it uses a gentler level."""
 import json, subprocess, sys
 
-LEVEL = "0.65"          # how see-through the window becomes
+KITTY_LEVEL = "0.12"    # kitty background opacity while "transparent" (toggles back to the value in kitty.conf)
+WINDOW_LEVEL = "0.8"    # whole-window opacity for other apps (text fades with it, there is no way around that)
 
 def hc(*a):
     return subprocess.run(["hyprctl", *a], capture_output=True, text=True).stdout
@@ -15,17 +18,32 @@ def target():
            if c["mapped"] and not c["hidden"] and c["workspace"]["id"] in shown
            and c["at"][0] <= cx < c["at"][0] + c["size"][0] and c["at"][1] <= cy < c["at"][1] + c["size"][1]]
     if hit:                                             # floating windows sit above tiled ones; then most recently focused
-        return min(hit, key=lambda c: (not c["floating"], c["focusHistoryID"]))["address"]
-    active = json.loads(hc("-j", "activewindow") or "{}")
-    return active.get("address")
+        return min(hit, key=lambda c: (not c["floating"], c["focusHistoryID"]))
+    return json.loads(hc("-j", "activewindow") or "{}") or None
 
-addr = target()
-if not addr:
+def kitty_toggle(pid):
+    r = subprocess.run(["kitty", "@", "--to", f"unix:@kitty-{pid}", "set-background-opacity", "--all", "--toggle", KITTY_LEVEL],
+                       capture_output=True, text=True)
+    return r.returncode == 0
+
+w = target()
+if not w or not w.get("address"):
     sys.exit(0)
-try:
-    cur = float(hc("getprop", f"address:{addr}", "opacity").strip())
-except ValueError:
-    cur = -1.0
-value = "-1" if 0 < cur < 1 else LEVEL                  # already see-through -> restore, otherwise make it see-through
-for prop in ("opacity", "opacity_inactive", "opacity_fullscreen"):
-    hc("dispatch", f'hl.dsp.window.set_prop({{ prop = "{prop}", value = "{value}", window = "address:{addr}" }})')
+def window_opacity():
+    try:
+        return float(hc("getprop", f"address:{w['address']}", "opacity").strip())
+    except ValueError:
+        return -1.0
+
+def set_window_opacity(value):
+    for prop in ("opacity", "opacity_inactive", "opacity_fullscreen"):
+        hc("dispatch", f'hl.dsp.window.set_prop({{ prop = "{prop}", value = "{value}", window = "address:{w["address"]}" }})')
+
+if w["class"] == "kitty" or w["class"].startswith("dash-"):
+    if 0 < window_opacity() < 1:                        # a whole-window fade (older toggle / fallback) is on: this press undoes it
+        set_window_opacity("-1")
+        sys.exit(0)
+    if kitty_toggle(w["pid"]):
+        sys.exit(0)                                     # background only, text untouched
+# not kitty, or a kitty started before remote control was enabled: fade the whole window
+set_window_opacity("-1" if 0 < window_opacity() < 1 else WINDOW_LEVEL)
