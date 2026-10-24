@@ -2,9 +2,9 @@
 //
 // Part of the combined macbar + macdock shell (see shell.qml). Keep this file, MacBar.qml, shell.qml and
 // liquidglass.frag together in ~/.config/quickshell/macbar/ and run:  qs -c macbar
-// Pins are saved to ~/.config/macdock/pinned.json once you use "Keep in Dock".
+// Pins are saved to ~/.config/yukidock/pinned.json once you use "Keep in Dock".
 //
-// Settings are saved to ~/.config/macdock/settings.json (right-click the dock → Dock Preferences…).
+// Settings are saved to ~/.config/yukidock/settings.json (right-click the dock → Dock Preferences…).
 // The preferences window is frameless; make it float in Hyprland, e.g. (hyprland.conf syntax):
 //   windowrule = float, title:^(Dock Preferences)$
 //   windowrule = center, title:^(Dock Preferences)$
@@ -12,7 +12,7 @@
 // Dock style (Dock Preferences → Appearance):
 //   Normal Blur         – the original translucent tint; blur comes from the Hyprland layer rule below.
 //   Apple Liquid Glass  – real-time refraction shader (liquidglass.frag, next to this file). It is compiled
-//                         with `qsb` (package qt6-shadertools) on first use and cached in ~/.config/macdock/.
+//                         with `qsb` (package qt6-shadertools) on first use and cached in ~/.config/yukidock/.
 //                         The backdrop it refracts is the wallpaper + the live windows behind the Dock;
 //                         set "wallpaperPath" in settings.json if the wallpaper isn't auto-detected.
 //
@@ -657,7 +657,7 @@ Scope {
             { id: "trackpad",   sec: 6, name: "Trackpad",        wg: "trackpad",   c1: "#A7A7AD", c2: "#7C7C82", keys: "tap click natural scroll touchpad gestures" },
             // 7 · Apps & About
             { id: "apps",       sec: 7, name: "Applications",    glyph: "apps",     c1: "#FFB340", c2: "#FF9500", keys: "pinned apps keep remove reset dock" },
-            { id: "about",      sec: 7, name: "About",           glyph: "about",    c1: "#A7A7AD", c2: "#7C7C82", keys: "version reset config folder macdock macbar macshell" }
+            { id: "about",      sec: 7, name: "About",           glyph: "about",    c1: "#A7A7AD", c2: "#7C7C82", keys: "version github profile source author credits config folder yukidock yukishell" }
         ]
 
         // the Trackpad pane only exists when a touchpad is plugged in
@@ -2399,7 +2399,7 @@ Scope {
                         }
                     }
                 }
-                SLabel { t: pal; text: I18n.tr("Drag icons in the Dock to reorder them. Pins are saved to ~/.config/macdock/pinned.json.") }
+                SLabel { t: pal; text: I18n.tr("Drag icons in the Dock to reorder them. Pins are saved to ~/.config/yukidock/pinned.json.") }
 
                 SCard {
                     t: pal
@@ -3855,7 +3855,7 @@ Scope {
                     SRow {
                         t: pal
                         title: I18n.tr("Shell settings")
-                        subtitle: "~/.config/macdock"
+                        subtitle: "~/.config/yukidock"
                         SButton {
                             t: pal
                             text: I18n.tr("Open")
@@ -3932,7 +3932,7 @@ Scope {
     readonly property real magRadius: (iconSize + spacing) * 2.6
     readonly property int menuRoom: 300
     readonly property int windowHeight: Math.ceil(margin + bgHeight + iconSize * (effMag - 1) + 72 + menuRoom)
-    readonly property string configDir: Quickshell.env("HOME") + "/.config/macdock"
+    readonly property string configDir: Quickshell.env("HOME") + "/.config/yukidock"
 
     property var items: []
     property int appCount: 0
@@ -3986,7 +3986,7 @@ Scope {
         rebuild();
     }
 
-    // ── settings persistence (~/.config/macdock/settings.json) ──
+    // ── settings persistence (~/.config/yukidock/settings.json) ──
     readonly property string settingsSig: [dockEnabled, settingsEnabled, iconSize, magnification, magnificationEnabled, spacing, margin,
         cornerRadius, darkMode, appearanceMode, glassOpacity, glassBlur, glassLiquid, dockStyle, wallpaperPath, String(accent), fontFamily, hideMode, hideDelay, monitor,
         showTrash, showLabels, showIndicators, bounceOnLaunch, showThumbs, windowCapture, glassLive, iconTint, iconTintColor, iconTintStrength].join("|")

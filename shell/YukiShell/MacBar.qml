@@ -4,7 +4,7 @@
 // liquidglass.frag and apple-logo-*.svg together in ~/.config/quickshell/macbar/ and run:  qs -c macbar
 //
 // Settings live in ~/.config/macbar/settings.json (Apple menu → System Settings…, or Control Center → Edit Controls).
-// On first run, appearance (dark mode, accent, font, glass tuning, wallpaper) is inherited from macdock's settings.json.
+// On first run, appearance (dark mode, accent, font, glass tuning, wallpaper) is inherited from yukidock's settings.json.
 //
 // Hyprland (hyprland.conf syntax):
 //   windowrule = float, title:^(macbar Settings)$
@@ -477,7 +477,7 @@ Scope {
     }
 
     readonly property string configDir: Quickshell.env("HOME") + "/.config/macbar"
-    readonly property string dockConfigDir: Quickshell.env("HOME") + "/.config/macdock"
+    readonly property string dockConfigDir: Quickshell.env("HOME") + "/.config/yukidock"
     readonly property int popRoom: 900
 
     function sh(cmd) { Quickshell.execDetached(["sh", "-c", cmd]); }
@@ -3774,7 +3774,7 @@ Scope {
             + "  if command -v \"$q\" >/dev/null 2>&1; then \"$q\" --qt6 -o \"$2\" \"$1\" && exit 0; fi; "
             + "done; "
             + "[ -f \"$1.qsb\" ] && cp \"$1.qsb\" \"$2\" && exit 0; "
-            + "[ -f \"$HOME/.config/macdock/liquidglass.frag.qsb\" ] && cp \"$HOME/.config/macdock/liquidglass.frag.qsb\" \"$2\" && exit 0; "
+            + "[ -f \"$HOME/.config/yukidock/liquidglass.frag.qsb\" ] && cp \"$HOME/.config/yukidock/liquidglass.frag.qsb\" \"$2\" && exit 0; "
             + "exit 1",
             "sh", root.glassShaderSrc, root.glassShaderOut]
         stderr: StdioCollector { onStreamFinished: if (text.trim() !== "") console.log("[macbar-glass] qsb:", text.trim()) }

@@ -167,7 +167,7 @@ ShellRoot {
         running: true
         command: ["sh", "-c",
             "p=$(jq -r '.wallpaperPath // empty' \"$HOME/.config/macbar/settings.json\" 2>/dev/null); "
-            + "[ -f \"$p\" ] || p=$(jq -r '.wallpaperPath // empty' \"$HOME/.config/macdock/settings.json\" 2>/dev/null); "
+            + "[ -f \"$p\" ] || p=$(jq -r '.wallpaperPath // empty' \"$HOME/.config/yukidock/settings.json\" 2>/dev/null); "
             + "[ -f \"$p\" ] || p=$(awww query 2>/dev/null | sed -n 's/.*image: //p' | head -n1); "
             + "printf '%s\\n' \"$p\"; "
             + "v=$(cat \"$HOME/.config/macshell/wallpaper-video-play\" 2>/dev/null); [ -f \"$v\" ] || v=$(cat \"$HOME/.config/macshell/wallpaper-video\" 2>/dev/null); "

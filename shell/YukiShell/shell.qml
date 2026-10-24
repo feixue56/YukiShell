@@ -7,7 +7,7 @@
 //   ~/.config/quickshell/macbar/liquidglass.frag
 // Run:  qs -c macbar        (remove your separate `qs -c macdock` autostart)
 //
-// Settings stay where they were: ~/.config/macbar/settings.json and ~/.config/macdock/settings.json (+ pinned.json).
+// Settings stay where they were: ~/.config/macbar/settings.json and ~/.config/yukidock/settings.json (+ pinned.json).
 // Layer namespaces are unchanged ("macbar" / "macdock"), so your existing layerrule / windowrule lines keep working.
 // The Spotlight IPC bind is unchanged:  qs -c macbar ipc call spotlight toggle
 //
@@ -71,7 +71,7 @@ ShellRoot {
         //   stage 2 (captureCut, 0.5 s later): the capture source is released. A short hold never reaches stage 2.
         // The hold starts on every openwindow / closewindow and ends 1.2 s after the last one; the previews then resume.
         // windowCapture = false (Dock Preferences, or  qs -c <config> ipc call glass captures false) switches the window previews off.
-        readonly property bool windowCapture: macDock.windowCapture      // Dock Preferences -> "Live window capture" (saved in macdock/settings.json)
+        readonly property bool windowCapture: macDock.windowCapture      // Dock Preferences -> "Live window capture" (saved in yukidock/settings.json)
         property bool churn: false
         readonly property bool captureHold: churn || !windowCapture || macBar.gaming
         // Liquid Glass: only stage 1, and only while windows open / close. Live capture pauses (the glass keeps its last frame, the capture

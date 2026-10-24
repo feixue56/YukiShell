@@ -77,8 +77,9 @@ was added need a restart.
 The palette lives in `hypr/rice/theme.lua`. Env overrides go in `~/.config/hypr-rice/env`; the shell log is
 `~/.local/state/hypr-rice/YukiShell.log`. Open Settings with `qs -c YukiShell ipc call settings open`.
 
-The shell still reads and writes MacShell's data directories (`~/.config/macbar`, `macdock`, `macshell`), because the QML
-uses those paths. YukiShell never runs MacShell's installer or updater.
+The Dock keeps its settings, pins and shader cache in `~/.config/yukidock`. The bar and a few widgets still use MacShell's
+folder names (`~/.config/macbar`, `macshell`, `maclock`), because the QML uses those paths. YukiShell never runs MacShell's
+installer or updater.
 
 ## Credits and license
 

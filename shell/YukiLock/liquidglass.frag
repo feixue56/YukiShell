@@ -2,7 +2,7 @@
 // Liquid Glass for the macdock Dock.
 //
 // Build:  qsb --qt6 -o liquidglass.frag.qsb liquidglass.frag
-// (shell.qml runs this automatically on first use and caches the result in ~/.config/macdock/)
+// (shell.qml runs this automatically on first use and caches the result in ~/.config/yukidock/)
 //
 // The shader treats the Dock as a slab of curved glass sitting on top of a live backdrop texture:
 //   * a rounded-rect signed distance field gives the distance to the edge and the edge direction

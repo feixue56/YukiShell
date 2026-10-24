@@ -301,7 +301,7 @@ var strings = {
     "Changes apply to the Dock immediately.": "Изменения применяются к Dock сразу.",
 
     // Settings: Applications
-    "Drag icons in the Dock to reorder them. Pins are saved to ~/.config/macdock/pinned.json.": "Перетаскивайте значки в Dock, чтобы поменять порядок. Закрепления хранятся в ~/.config/macdock/pinned.json.",
+    "Drag icons in the Dock to reorder them. Pins are saved to ~/.config/yukidock/pinned.json.": "Перетаскивайте значки в Dock, чтобы поменять порядок. Закрепления хранятся в ~/.config/yukidock/pinned.json.",
     "No apps are kept in the Dock": "В Dock нет закреплённых приложений",
     "Right-click a running app and choose Keep in Dock.": "Щёлкните правой кнопкой по запущенному приложению и выберите «Оставить в Dock».",
     "Reset Dock Items": "Сбросить элементы Dock",
