@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Genius Lyrics Fetcher for MacShell and MacLock
+Genius Lyrics Fetcher for YukiShell and YukiLock
 Fetches lyrics from Genius token-free, caches results in JSON.
 Output format: {"plain": str, "lines": [{"t": -1, "text": str}], "source": "genius"}
 """
@@ -145,7 +145,7 @@ def main():
 
     artist = sys.argv[1].strip()
     title = sys.argv[2].strip()
-    cache_dir = sys.argv[3].strip() if len(sys.argv) > 3 else os.path.expanduser("~/.cache/macshell/lyrics")
+    cache_dir = sys.argv[3].strip() if len(sys.argv) > 3 else os.path.expanduser("~/.cache/yukishell/lyrics")
 
     result = fetch_genius_lyrics(artist, title, cache_dir)
     if result:

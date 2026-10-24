@@ -1,5 +1,5 @@
 #version 440
-// Liquid Glass for the macdock Dock.
+// Liquid Glass for the yukidock Dock.
 //
 // Build:  qsb --qt6 -o liquidglass.frag.qsb liquidglass.frag
 // (shell.qml runs this automatically on first use and caches the result in ~/.config/yukidock/)
@@ -49,7 +49,7 @@ const float GOLDEN = 2.39996323;
 //  * the tap pattern is rotated per pixel (interleaved gradient noise), so any leftover gaps turn into
 //    fine grain instead of repeating ghost lines
 //  * one shared pattern for all three colour channels (dispersion only shifts the centre)
-// Needs `mipmap: true` on the ShaderEffectSource (set in MacBar.qml / MacDock.qml).
+// Needs `mipmap: true` on the ShaderEffectSource (set in YukiBar.qml / YukiDock.qml).
 vec3 backdropLod(vec2 pItem, float lod)
 {
     vec2 uv = (pItem + srcOffset) / srcSize;

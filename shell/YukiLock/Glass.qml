@@ -1,5 +1,5 @@
 // One Liquid Glass slab (pill, card, button) that refracts the shared, pre-blurred lock screen backdrop.
-// Same uniforms / tuning as MacShell's GGlass (MacBar.qml), so it looks like the bar's popovers.
+// Same uniforms / tuning as YukiShell's GGlass (YukiBar.qml), so it looks like the bar's popovers.
 import QtQuick
 
 Item {
@@ -42,7 +42,7 @@ Item {
         width: gg.width + 2 * gg.pad
         height: gg.height + 2 * gg.pad
         fragmentShader: gg.shaderUrl
-        onStatusChanged: if (status === ShaderEffect.Error) console.log("[maclock] glass shader:", log)
+        onStatusChanged: if (status === ShaderEffect.Error) console.log("[yukilock] glass shader:", log)
         property variant src: gg.src
         property vector2d itemSize: Qt.vector2d(width, height)
         property vector2d glassSize: Qt.vector2d(gg.width, gg.height)

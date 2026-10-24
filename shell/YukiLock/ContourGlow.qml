@@ -1,4 +1,4 @@
-// Hover contour glow (same shader as MacShell's Spotlight): a thin light line along the rounded outline + a soft
+// Hover contour glow (same shader as YukiShell's Spotlight): a thin light line along the rounded outline + a soft
 // halo, brightest near the cursor. Put it inside the shape it outlines.
 import QtQuick
 

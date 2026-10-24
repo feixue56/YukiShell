@@ -9,7 +9,7 @@
 //
 // The light and dark cards take their colour from the artwork (a pale / deep version of it). The liquid card never does.
 //
-// This file only draws. MacWidgets.qml owns the MPRIS player and feeds the data properties; the buttons emit
+// This file only draws. YukiWidgets.qml owns the MPRIS player and feeds the data properties; the buttons emit
 // togglePlaying() / nextTrack() / previousTrack().
 import QtQuick
 import QtQuick.Effects
@@ -30,7 +30,7 @@ Item {
     property bool preview: false             // inside the Settings gallery: sample data, no wallpaper, not clickable
     property bool editing: false
 
-    // ── data (from MacWidgets) ──
+    // ── data (from YukiWidgets) ──
     property bool hasPlayer: false
     property string title: ""
     property string artist: ""
@@ -49,7 +49,7 @@ Item {
 
     property bool canSeek: false
 
-    // lyrics (fetched by MacWidgets): [{ t: seconds (-1 = not synced), text: "..." }]
+    // lyrics (fetched by YukiWidgets): [{ t: seconds (-1 = not synced), text: "..." }]
     property var lyrics: []
     property string lyricsState: "idle"      // idle | loading | ok | none
     property bool lyricsSynced: false

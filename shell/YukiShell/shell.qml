@@ -1,15 +1,15 @@
-// macbar + macdock in ONE Quickshell process.
+// yukibar + yukidock in ONE Quickshell process.
 //
 // Install (everything together in one config):
-//   ~/.config/quickshell/macbar/shell.qml       (this file)
-//   ~/.config/quickshell/macbar/MacBar.qml      (the menu bar)
-//   ~/.config/quickshell/macbar/MacDock.qml     (the Dock)
-//   ~/.config/quickshell/macbar/liquidglass.frag
-// Run:  qs -c macbar        (remove your separate `qs -c macdock` autostart)
+//   ~/.config/quickshell/yukibar/shell.qml       (this file)
+//   ~/.config/quickshell/yukibar/YukiBar.qml      (the menu bar)
+//   ~/.config/quickshell/yukibar/YukiDock.qml     (the Dock)
+//   ~/.config/quickshell/yukibar/liquidglass.frag
+// Run:  qs -c YukiShell        (remove your separate `qs -c YukiShell` autostart)
 //
-// Settings stay where they were: ~/.config/macbar/settings.json and ~/.config/yukidock/settings.json (+ pinned.json).
-// Layer namespaces are unchanged ("macbar" / "macdock"), so your existing layerrule / windowrule lines keep working.
-// The Spotlight IPC bind is unchanged:  qs -c macbar ipc call spotlight toggle
+// Settings stay where they were: ~/.config/yukibar/settings.json and ~/.config/yukidock/settings.json (+ pinned.json).
+// Layer namespaces are unchanged ("yukibar" / "yukidock"), so your existing layerrule / windowrule lines keep working.
+// The Spotlight IPC bind is unchanged:  qs -c YukiShell ipc call spotlight toggle
 //
 // What is shared now (this is where the memory saving comes from):
 //   * one Quickshell / Qt process instead of two,
@@ -22,7 +22,7 @@ import Quickshell.Io
 import Quickshell.Hyprland
 
 ShellRoot {
-    // The UI font ("Open Runde") ships with MacShell: registered here, first, so every Text below can use it
+    // The UI font ("Open Runde") ships with YukiShell: registered here, first, so every Text below can use it
     // without installing anything. (The installer also copies it to ~/.local/share/fonts.)
     FontLoader { id: uiFontLoader; source: Qt.resolvedUrl("assets/fonts/OpenRunde-Regular.otf") }
     FontLoader { id: uiBoldFontLoader; source: Qt.resolvedUrl("assets/fonts/OpenRunde-Semibold.otf") }
@@ -35,15 +35,15 @@ ShellRoot {
         property var wallpaperMap: ({})
         readonly property string boldFontFamily: uiBoldFontLoader.status === FontLoader.Ready ? uiBoldFontLoader.name : "Open Runde Semibold"
 
-        // the single settings window lives in MacDock.qml; everything else reaches it through here
-        property var bar: macBar
-        property var dock: macDock
-        property var widgets: macWidgets
+        // the single settings window lives in YukiDock.qml; everything else reaches it through here
+        property var bar: yukiBar
+        property var dock: yukiDock
+        property var widgets: yukiWidgets
         property var clock: clockApp
         property var about: aboutApp
-        function openSettings(pane) { macDock.openPrefs(pane); }
+        function openSettings(pane) { yukiDock.openPrefs(pane); }
 
-        // set by MacBar / MacDock (Binding elements) when their glass needs live data
+        // set by YukiBar / YukiDock (Binding elements) when their glass needs live data
         property bool barWantsGeo: false
         property bool dockWantsGeo: false
         property bool barWantsWallpaper: false
@@ -56,7 +56,7 @@ ShellRoot {
         // crashed. While something records, the glass keeps its last frames (and refreshes slowly, only while a popover is open);
         // live capture resumes 1.5 s after the recording ends, spread over 0.6 s.
         property bool captureQuiet: false
-        readonly property bool wantQuiet: macBar.recording || macBar.recRun || macBar.privacy.share.length > 0
+        readonly property bool wantQuiet: yukiBar.recording || yukiBar.recRun || yukiBar.privacy.share.length > 0
         onWantQuietChanged: { if (wantQuiet) { quietRelease.stop(); captureQuiet = true; } else quietRelease.restart(); }
         Timer { id: quietRelease; interval: 1500; onTriggered: sharedHub.captureQuiet = false }
 
@@ -71,17 +71,17 @@ ShellRoot {
         //   stage 2 (captureCut, 0.5 s later): the capture source is released. A short hold never reaches stage 2.
         // The hold starts on every openwindow / closewindow and ends 1.2 s after the last one; the previews then resume.
         // windowCapture = false (Dock Preferences, or  qs -c <config> ipc call glass captures false) switches the window previews off.
-        readonly property bool windowCapture: macDock.windowCapture      // Dock Preferences -> "Live window capture" (saved in yukidock/settings.json)
+        readonly property bool windowCapture: yukiDock.windowCapture      // Dock Preferences -> "Live window capture" (saved in yukidock/settings.json)
         property bool churn: false
-        readonly property bool captureHold: churn || !windowCapture || macBar.gaming
+        readonly property bool captureHold: churn || !windowCapture || yukiBar.gaming
         // Liquid Glass: only stage 1, and only while windows open / close. Live capture pauses (the glass keeps its last frame, the capture
         // source stays attached, so nothing goes blank), then resumes. Not tied to the previews switch, never cut.
-        readonly property bool glassHold: churn || macBar.gaming
+        readonly property bool glassHold: churn || yukiBar.gaming
         property bool captureCut: false
         // Dock previews no longer pause as a whole while windows open / close (that froze every preview for ~1.5 s):
         // only the CLOSING window's own preview stops its live capture, the moment Hyprland announces the close
         // (before the toplevel is destroyed, so no frame is ever aborted in flight). Everything else keeps running.
-        readonly property bool previewHold: !windowCapture || macBar.gaming
+        readonly property bool previewHold: !windowCapture || yukiBar.gaming
         property var closingWins: ({})
         onCaptureHoldChanged: { if (captureHold) cutDelay.restart(); else { cutDelay.stop(); captureCut = false; } }
         Timer { id: cutDelay; interval: 500; onTriggered: sharedHub.captureCut = true }
@@ -307,26 +307,26 @@ ShellRoot {
         }
     }
 
-    MacBar { id: macBar; hub: sharedHub }
-    MacDock { id: macDock; hub: sharedHub; bar: macBar }
-    MacWidgets { id: macWidgets; hub: sharedHub }
+    YukiBar { id: yukiBar; hub: sharedHub }
+    YukiDock { id: yukiDock; hub: sharedHub; bar: yukiBar }
+    YukiWidgets { id: yukiWidgets; hub: sharedHub }
     ClockApp { id: clockApp; hub: sharedHub }
     AboutApp { id: aboutApp; hub: sharedHub }
 
     Component.onCompleted: {
-        sharedHub.bar = macBar;
-        sharedHub.dock = macDock;
-        sharedHub.widgets = macWidgets;
+        sharedHub.bar = yukiBar;
+        sharedHub.dock = yukiDock;
+        sharedHub.widgets = yukiWidgets;
     }
 
     // reopen settings even when both the Dock and the Menu Bar are disabled:
-    //   qs -c macbar ipc call settings open
+    //   qs -c YukiShell ipc call settings open
     IpcHandler {
         target: "settings"
-        function open(): void { macDock.openPrefs("general"); }
-        function toggle(): void { macDock.togglePrefs("general"); }
+        function open(): void { yukiDock.openPrefs("general"); }
+        function toggle(): void { yukiDock.togglePrefs("general"); }
         // qs -c YukiShell ipc call settings pane wallpaper   (general, dock, menubar, appearance, wallpaper, behavior, apps, about)
-        function pane(id: string): void { macDock.openPrefs(id); }
+        function pane(id: string): void { yukiDock.openPrefs(id); }
     }
     // qs -c YukiShell ipc call clock open | tab alarms | stop | snooze
     IpcHandler {
@@ -345,22 +345,22 @@ ShellRoot {
     }
     IpcHandler {
         target: "notifications"
-        function open(): void { macBar.notifPopRequest(true); }
-        function close(): void { macBar.notifPopRequest(false); }
-        function clear(): void { macBar.notifClearAnimated(); }
+        function open(): void { yukiBar.notifPopRequest(true); }
+        function close(): void { yukiBar.notifPopRequest(false); }
+        function clear(): void { yukiBar.notifClearAnimated(); }
         // the lock screen: a notification swiped away
-        function dismiss(id: int): void { macBar.notifDelete(id); macBar.notifUnread = Math.max(0, macBar.notifUnread - 1); }
+        function dismiss(id: int): void { yukiBar.notifDelete(id); yukiBar.notifUnread = Math.max(0, yukiBar.notifUnread - 1); }
     }
     // qs -c YukiShell ipc call gaming toggle | on | off
     IpcHandler {
         target: "gaming"
-        function toggle(): void { macBar.gamingMode = !macBar.gaming; }
-        function on(): void { macBar.gamingMode = true; }
-        function off(): void { macBar.gamingMode = false; macBar.gamingAutoActive = false; }
+        function toggle(): void { yukiBar.gamingMode = !yukiBar.gaming; }
+        function on(): void { yukiBar.gamingMode = true; }
+        function off(): void { yukiBar.gamingMode = false; yukiBar.gamingAutoActive = false; }
     }
     // qs -c <config> ipc call glass captures false   (true to switch window previews back on)
     IpcHandler {
         target: "glass"
-        function captures(on: bool): void { macDock.windowCapture = on; }
+        function captures(on: bool): void { yukiDock.windowCapture = on; }
     }
 }

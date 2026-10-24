@@ -1,7 +1,7 @@
-// The widgets MacShell adds to the desktop widgets: Batteries, Notes, Photos, Reminders, Alarms and Stocks.
+// The widgets YukiShell adds to the desktop widgets: Batteries, Notes, Photos, Reminders, Alarms and Stocks.
 // Their contents and the data they show live here; each one is drawn on a CardWidget (the same card, styles and
 // Liquid Glass as the Calendar) by WidgetVisual.qml. Notes and reminders are plain files you can edit anywhere:
-// ~/.config/macwidgets/notes.md and reminders.md.
+// ~/.config/yukiwidgets/notes.md and reminders.md.
 import QtQuick
 import QtQuick.Effects
 import Quickshell
@@ -13,13 +13,13 @@ import "Fonts.js" as Fonts
 Item {
     id: root
     visible: false
-    property var host: null                  // the MacWidgets instance
+    property var host: null                  // the YukiWidgets instance
     readonly property var hub: host ? host.hub : null
     readonly property var bar: hub ? hub.bar : null
     readonly property string fam: host ? host.fontFamily : "Open Runde"
     readonly property bool editing: host ? host.editing : false
     readonly property color accent: hub && hub.dock ? hub.dock.accent : "#0A84FF"
-    readonly property string cfgDir: host ? host.configDir : Quickshell.env("HOME") + "/.config/macwidgets"
+    readonly property string cfgDir: host ? host.configDir : Quickshell.env("HOME") + "/.config/yukiwidgets"
     readonly property bool asleep: false
     property var stockSymbols: ["AAPL", "NVDA", "^GSPC", "BTC-USD"]
     // data is only fetched for widgets that are on the desktop
@@ -50,7 +50,7 @@ Item {
     FileView { id: notesFile; path: root.cfgDir + "/notes.md"; watchChanges: true; printErrors: false; onFileChanged: reload()
                onLoadFailed: setText("# Notes\n\nWrite anything here — it shows up on the desktop.\nOpen this file from the Notes widget.\n") }
     FileView { id: remFile; path: root.cfgDir + "/reminders.md"; watchChanges: true; printErrors: false; onFileChanged: reload()
-               onLoadFailed: setText("- [ ] Try the new widgets\n- [x] Install MacShell\n- [ ] Click a circle to tick it off\n") }
+               onLoadFailed: setText("- [ ] Try the new widgets\n- [x] Install YukiShell\n- [ ] Click a circle to tick it off\n") }
     readonly property string notesText: notesFile.loaded ? notesFile.text() : ""
     readonly property var reminders: {
         var t = remFile.loaded ? remFile.text() : "", out = [], l = t.split("\n");

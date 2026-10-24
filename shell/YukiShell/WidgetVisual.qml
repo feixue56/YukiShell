@@ -1,12 +1,12 @@
-// One desktop widget's content (Weather / Calendar / Clock / Player). Used by MacWidgets.qml for the desktop layer and by
-// MacBar.qml to mirror the widgets into the Liquid Glass backdrop, so a menu refracts them together with the live windows.
+// One desktop widget's content (Weather / Calendar / Clock / Player). Used by YukiWidgets.qml for the desktop layer and by
+// YukiBar.qml to mirror the widgets into the Liquid Glass backdrop, so a menu refracts them together with the live windows.
 import QtQuick
 import Quickshell
 import Quickshell.Services.Mpris
 
 Item {
     id: v
-    required property var host           // the MacWidgets instance (data, glass state, wallpaper lookup)
+    required property var host           // the YukiWidgets instance (data, glass state, wallpaper lookup)
 
     // the player's icon: its desktop entry, else its name ("chromium-browser" -> "chromium"); "" when the theme has none
     function playerIcon(p) {

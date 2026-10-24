@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Effects
 
 // Progressive blur feather: a blurred copy of a Flickable's content along one edge, strongest at the very edge and
-// dissolving inwards (the sharp content underneath fades out with it, see the masks of the Flickables in MacDock.qml).
+// dissolving inwards (the sharp content underneath fades out with it, see the masks of the Flickables in YukiDock.qml).
 Item {
     id: eb
     property var target: null           // the Flickable

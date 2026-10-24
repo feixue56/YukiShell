@@ -2,7 +2,7 @@
 // Liquid Glass for the Dock, tuned toward macOS Tahoe.
 //
 // Build:  qsb --qt6 -o dockglass.frag.qsb dockglass.frag
-// (MacDock.qml runs this automatically and caches the result in ~/.config/yukidock/. If the build fails the Dock keeps
+// (YukiDock.qml runs this automatically and caches the result in ~/.config/yukidock/. If the build fails the Dock keeps
 //  using the shared liquidglass.frag, so nothing else in the shell depends on this file.)
 //
 // This is liquidglass.frag's refraction model (rounded-rect SDF -> convex bezel -> Snell's law -> dispersion) with the

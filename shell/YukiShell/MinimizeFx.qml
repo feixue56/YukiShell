@@ -107,7 +107,7 @@ Scope {
             exclusionMode: ExclusionMode.Ignore
             color: "transparent"
             mask: Region {}
-            WlrLayershell.namespace: "macshell-minimize"
+            WlrLayershell.namespace: "yukishell-minimize"
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 

@@ -1,10 +1,10 @@
-// MacLock: a macOS 26/27-style lock screen for Quickshell, matching MacShell's Liquid Glass.
+// YukiLock: a macOS 26/27-style lock screen for Quickshell, matching YukiShell's Liquid Glass.
 //
-//   qs -c YukiLock                         lock now (one-shot; started by hypridle via maclock.sh)
-//   MACLOCK_DAEMON=1 qs -c YukiLock        start unlocked for an IPC-triggered lock
-//   MACLOCK_PREVIEW=1 qs -c YukiLock       draw it as an overlay window instead of a real lock (for tweaking)
+//   qs -c YukiLock                         lock now (one-shot; started by hypridle via lock-via-ipc.sh)
+//   YUKILOCK_DAEMON=1 qs -c YukiLock        start unlocked for an IPC-triggered lock
+//   YUKILOCK_PREVIEW=1 qs -c YukiLock       draw it as an overlay window instead of a real lock (for tweaking)
 //
-// Runs as its own process on purpose: a MacShell crash can never take the lock with it, and maclock.sh
+// Runs as its own process on purpose: a YukiShell crash can never take the lock with it, and lock-via-ipc.sh
 // relaunches this one if it dies (Hyprland's misc:allow_session_lock_restore lets the new instance take over).
 // Password check: PAM, /etc/pam.d/hyprlock (same stack hyprlock uses).
 import QtQuick
@@ -15,15 +15,15 @@ import Quickshell.Hyprland
 import Quickshell.Services.Pam
 
 ShellRoot {
-    // the UI font ("Open Runde") ships with MacLock: registered first, so every Text below can use it
+    // the UI font ("Open Runde") ships with YukiLock: registered first, so every Text below can use it
     FontLoader { id: uiFontLoader; source: Qt.resolvedUrl("fonts/OpenRunde-Regular.otf") }
     FontLoader { id: uiBoldFontLoader; source: Qt.resolvedUrl("fonts/OpenRunde-Semibold.otf") }
 
     // never hot-reload while holding the session lock: a half-edited config must not touch a live lock
     settings.watchFiles: false
     id: root
-    readonly property bool preview: Quickshell.env("MACLOCK_PREVIEW") === "1"
-    readonly property bool daemonMode: Quickshell.env("MACLOCK_DAEMON") === "1"
+    readonly property bool preview: Quickshell.env("YUKILOCK_PREVIEW") === "1"
+    readonly property bool daemonMode: Quickshell.env("YUKILOCK_DAEMON") === "1"
     // Default launch keeps the original behavior and locks immediately. In daemon mode, wait for IPC.
     property bool lockRequested: !daemonMode
     function requestLock() {
@@ -55,7 +55,7 @@ ShellRoot {
         id: lockState
         property var now: new Date()
         property string wallpaper: ""
-        property string wallpaperVideo: ""      // animated wallpaper set in MacShell (~/.config/macshell/wallpaper-video)
+        property string wallpaperVideo: ""      // animated wallpaper set in YukiShell (~/.config/yukishell/wallpaper-video)
         property string userName: Quickshell.env("USER") || ""
         property string avatar: ""
         property int wifiLevel: -1          // -1 unknown/hidden, 0 off, 1..3 bars
@@ -68,21 +68,21 @@ ShellRoot {
         property bool unlocking: false
         property string mediaSlot: "top"    // "top" (under the clock) | "bottom" (above the password field)
         property bool capsLock: false
-        property bool use24h: true          // MacShell → Menu Bar → "24-hour clock"
-        // Settings → Lock Screen → Clock (MACLOCK_CLOCK='{"f":"serif",...}' overrides it, for previews)
-        property var clockCfg: { try { return JSON.parse(Quickshell.env("MACLOCK_CLOCK") || "{}"); } catch (e) { return {}; } }
-        property bool artBg: true           // blurred album art behind everything while the cover is enlarged (MacShell setting)
-        property bool sounds: false         // MacShell's "Play user interface sound effects" (and not in Game Mode)
+        property bool use24h: true          // YukiShell → Menu Bar → "24-hour clock"
+        // Settings → Lock Screen → Clock (YUKILOCK_CLOCK='{"f":"serif",...}' overrides it, for previews)
+        property var clockCfg: { try { return JSON.parse(Quickshell.env("YUKILOCK_CLOCK") || "{}"); } catch (e) { return {}; } }
+        property bool artBg: true           // blurred album art behind everything while the cover is enlarged (YukiShell setting)
+        property bool sounds: false         // YukiShell's "Play user interface sound effects" (and not in Game Mode)
         function sound(name) {
-            if (sounds) Quickshell.execDetached(["pw-play", "--volume=0.7", Quickshell.env("HOME") + "/.local/share/sounds/macshell/" + name + ".wav"]);
+            if (sounds) Quickshell.execDetached(["pw-play", "--volume=0.7", Quickshell.env("HOME") + "/.local/share/sounds/yukishell/" + name + ".wav"]);
         }
         // Now Playing presentation: "" (bubble), "art" (cover floats out, tap the cover) or "lyrics" (lyrics button)
-        property string npMode: Quickshell.env("MACLOCK_NP") || (Quickshell.env("MACLOCK_ART") === "1" ? "art" : "")
+        property string npMode: Quickshell.env("YUKILOCK_NP") || (Quickshell.env("YUKILOCK_ART") === "1" ? "art" : "")
 
         function setMediaSlot(v) {
             if (v === mediaSlot) return;
             mediaSlot = v;
-            saveProc.command = ["sh", "-c", "mkdir -p \"$HOME/.config/maclock\" && printf '{\\n  \"mediaSlot\": \"%s\"\\n}\\n' \"$1\" > \"$HOME/.config/maclock/settings.json\"", "sh", v];
+            saveProc.command = ["sh", "-c", "mkdir -p \"$HOME/.config/yukilock\" && printf '{\\n  \"mediaSlot\": \"%s\"\\n}\\n' \"$1\" > \"$HOME/.config/yukilock/settings.json\"", "sh", v];
             saveProc.running = true;
         }
         function checkCaps() { if (!capsProc.running) capsProc.running = true; }
@@ -124,8 +124,8 @@ ShellRoot {
     Timer { interval: 700; repeat: true; running: true; triggeredOnStart: true; onTriggered: lockState.checkCaps() }
 
     Timer { interval: 1000; running: true; repeat: true; triggeredOnStart: true; onTriggered: lockState.now = new Date() }
-    // preview-only test hook: MACLOCK_TEST_MORPH=1 flips 12/24-hour every 1.5 s so the clock morph can be checked
-    Timer { interval: 1500; repeat: true; running: root.preview && Quickshell.env("MACLOCK_TEST_MORPH") === "1"; onTriggered: lockState.use24h = !lockState.use24h }
+    // preview-only test hook: YUKILOCK_TEST_MORPH=1 flips 12/24-hour every 1.5 s so the clock morph can be checked
+    Timer { interval: 1500; repeat: true; running: root.preview && Quickshell.env("YUKILOCK_TEST_MORPH") === "1"; onTriggered: lockState.use24h = !lockState.use24h }
     Timer { id: idleTimer; interval: 9000; onTriggered: if (lockState.pass.length === 0 && !lockState.busy) lockState.engaged = false }
     Timer { id: msgTimer; interval: 3500; onTriggered: lockState.message = "" }
     // let the exit animation play, then drop the lock and quit
@@ -166,12 +166,12 @@ ShellRoot {
     Process {
         running: true
         command: ["sh", "-c",
-            "p=$(jq -r '.wallpaperPath // empty' \"$HOME/.config/macbar/settings.json\" 2>/dev/null); "
+            "p=$(jq -r '.wallpaperPath // empty' \"$HOME/.config/yukibar/settings.json\" 2>/dev/null); "
             + "[ -f \"$p\" ] || p=$(jq -r '.wallpaperPath // empty' \"$HOME/.config/yukidock/settings.json\" 2>/dev/null); "
             + "[ -f \"$p\" ] || p=$(awww query 2>/dev/null | sed -n 's/.*image: //p' | head -n1); "
             + "printf '%s\\n' \"$p\"; "
-            + "v=$(cat \"$HOME/.config/macshell/wallpaper-video-play\" 2>/dev/null); [ -f \"$v\" ] || v=$(cat \"$HOME/.config/macshell/wallpaper-video\" 2>/dev/null); "
-            + "[ -f \"$HOME/.config/macshell/wallpaper-video\" ] && [ -f \"$v\" ] && printf '%s' \"$v\"; echo"]
+            + "v=$(cat \"$HOME/.config/yukishell/wallpaper-video-play\" 2>/dev/null); [ -f \"$v\" ] || v=$(cat \"$HOME/.config/yukishell/wallpaper-video\" 2>/dev/null); "
+            + "[ -f \"$HOME/.config/yukishell/wallpaper-video\" ] && [ -f \"$v\" ] && printf '%s' \"$v\"; echo"]
         stdout: StdioCollector {
             onStreamFinished: {
                 var l = text.split("\n");
@@ -190,12 +190,12 @@ ShellRoot {
             + "if [ \"$(nmcli radio wifi 2>/dev/null)\" = enabled ]; then s=$(nmcli -t -f ACTIVE,SIGNAL dev wifi 2>/dev/null | grep '^yes' | head -n1 | cut -d: -f2); "
             + "[ -n \"$s\" ] && printf '%s' \"$s\" || printf 0; else printf -- -1; fi; echo; "
             + "nmcli -t -f TYPE,STATE dev 2>/dev/null | grep -q '^ethernet:connected$' && echo eth || echo -; "
-            + "jq -r '.mediaSlot // \"top\"' \"$HOME/.config/maclock/settings.json\" 2>/dev/null || echo top; "
-            + "[ \"$(jq -r '.uiSounds' \"$HOME/.config/macbar/settings.json\" 2>/dev/null)\" != false ] && [ ! -f \"${XDG_RUNTIME_DIR:-/tmp}/macshell-gaming.state\" ] && echo snd || echo -; "
-            + "jq -r '.lockArtBackground' \"$HOME/.config/macbar/settings.json\" 2>/dev/null || echo true; "
-            + "jq -r '.use24h' \"$HOME/.config/macbar/settings.json\" 2>/dev/null || echo true; "
-            + "jq -r '.language // \"auto\"' \"$HOME/.config/macbar/settings.json\" 2>/dev/null || echo auto; "
-            + "jq -c '{f: .lockClockFont, w: .lockClockWeight, m: .lockClockMaterial, d: .lockClockDate, i: .lockClockIntensity, c: .lockClockTint}' \"$HOME/.config/macbar/settings.json\" 2>/dev/null || echo '{}'"]
+            + "jq -r '.mediaSlot // \"top\"' \"$HOME/.config/yukilock/settings.json\" 2>/dev/null || echo top; "
+            + "[ \"$(jq -r '.uiSounds' \"$HOME/.config/yukibar/settings.json\" 2>/dev/null)\" != false ] && [ ! -f \"${XDG_RUNTIME_DIR:-/tmp}/yukishell-gaming.state\" ] && echo snd || echo -; "
+            + "jq -r '.lockArtBackground' \"$HOME/.config/yukibar/settings.json\" 2>/dev/null || echo true; "
+            + "jq -r '.use24h' \"$HOME/.config/yukibar/settings.json\" 2>/dev/null || echo true; "
+            + "jq -r '.language // \"auto\"' \"$HOME/.config/yukibar/settings.json\" 2>/dev/null || echo auto; "
+            + "jq -c '{f: .lockClockFont, w: .lockClockWeight, m: .lockClockMaterial, d: .lockClockDate, i: .lockClockIntensity, c: .lockClockTint}' \"$HOME/.config/yukibar/settings.json\" 2>/dev/null || echo '{}'"]
         stdout: StdioCollector {
             onStreamFinished: {
                 var l = text.split("\n");
@@ -210,7 +210,7 @@ ShellRoot {
                 lockState.use24h = (l[7] || "true").trim() !== "false";
                 var lang = (l[8] || "auto").trim();
                 Qt.uiLanguage = (lang === "auto" || lang === "null") ? "" : lang;
-                if (!Quickshell.env("MACLOCK_CLOCK")) { try { lockState.clockCfg = JSON.parse((l[9] || "{}").trim() || "{}"); } catch (e) { } }
+                if (!Quickshell.env("YUKILOCK_CLOCK")) { try { lockState.clockCfg = JSON.parse((l[9] || "{}").trim() || "{}"); } catch (e) { } }
                 if (!root.preview) lockState.sound("lock");
             }
         }
@@ -221,12 +221,12 @@ ShellRoot {
         id: lock
         locked: root.lockRequested && !root.preview
         // If this instance ever stops holding the lock without unlocking itself (another locker took over, the
-        // compositor ended it, …), quit: a leftover instance keeps maclock.sh's one-locker guard and every later
+        // compositor ended it, …), quit: a leftover instance keeps lock-via-ipc.sh's one-locker guard and every later
         // lock attempt would silently do nothing.
         property bool wasSecure: false
         onSecureChanged: {
             if (secure) { wasSecure = true; return; }
-            if (wasSecure && !root.preview && root.lockRequested) { console.log("[maclock] lost the session lock: quitting"); quitTimer.start(); }
+            if (wasSecure && !root.preview && root.lockRequested) { console.log("[yukilock] lost the session lock: quitting"); quitTimer.start(); }
         }
 
         WlSessionLockSurface {
@@ -252,8 +252,8 @@ ShellRoot {
             exclusionMode: ExclusionMode.Ignore
             color: "transparent"
             WlrLayershell.layer: WlrLayer.Overlay
-            WlrLayershell.namespace: "maclock-preview"
-            WlrLayershell.keyboardFocus: Quickshell.env("MACLOCK_PREVIEW_KB") === "1" && modelData.name === root.primary ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+            WlrLayershell.namespace: "yukilock-preview"
+            WlrLayershell.keyboardFocus: Quickshell.env("YUKILOCK_PREVIEW_KB") === "1" && modelData.name === root.primary ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
             LockScreen {
                 anchors.fill: parent
                 st: lockState

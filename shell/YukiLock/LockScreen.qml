@@ -53,7 +53,7 @@ Item {
             scale: ls.leaving ? 1.06 : (ls.shown ? 1.0 : 1.09)
             Behavior on scale { NumberAnimation { duration: ls.leaving ? 520 : 650; easing.type: Easing.OutQuint } }
         }
-        // animated wallpaper: the same video MacShell plays on the desktop, muted and looping
+        // animated wallpaper: the same video YukiShell plays on the desktop, muted and looping
         Loader {
             id: wallVideo
             anchors.fill: wall
@@ -255,10 +255,10 @@ Item {
 
     // ═════════════ NOTIFICATIONS + LIVE ACTIVITY (top right, under the status) ═════════════
     // Notifications are hidden like macOS ("Show previews: When Unlocked"): app icon, app name, "Notification", time.
-    // Clicking one asks for the password: the field glows and fades (1 s). MacShell writes the list.
+    // Clicking one asks for the password: the field glows and fades (1 s). YukiShell writes the list.
     FileView {
         id: notifFile
-        path: Quickshell.env("HOME") + "/.cache/macshell/lock-notifs.json"
+        path: Quickshell.env("HOME") + "/.cache/yukishell/lock-notifs.json"
         watchChanges: true; printErrors: false
         onFileChanged: reload()
     }
@@ -283,7 +283,7 @@ Item {
     // Clock app state: a running timer / stopwatch, or an alarm ringing
     FileView {
         id: clockFile
-        path: Quickshell.env("HOME") + "/.config/macshell/clock.json"
+        path: Quickshell.env("HOME") + "/.config/yukishell/clock.json"
         watchChanges: true; printErrors: false
         onFileChanged: reload()
     }
@@ -364,7 +364,7 @@ Item {
                     font.features: { "tnum": 1 }
                 }
             }
-            // ringing: Stop / Snooze right here (MacShell does the stopping)
+            // ringing: Stop / Snooze right here (YukiShell does the stopping)
             Row {
                 visible: ls.liveKind === "ring"
                 x: 16 * ls.u; anchors.bottom: parent.bottom; anchors.bottomMargin: 12 * ls.u
@@ -376,7 +376,7 @@ Item {
                         width: (liveCard.width - 40 * ls.u) / (ls.clockSt.ringing.kind === "timer" ? 1 : 2); height: 30 * ls.u; radius: height / 2
                         color: modelData === "Stop" ? "#FF9F0A" : Qt.rgba(1, 1, 1, ringBtn.pressed ? 0.32 : 0.2)
                         Text { anchors.centerIn: parent; text: parent.modelData; color: parent.modelData === "Stop" ? "black" : "white"; font.family: ls.fam; font.pixelSize: 13 * ls.u; font.weight: Font.DemiBold }
-                        MouseArea { id: ringBtn; anchors.fill: parent; onClicked: Quickshell.execDetached(["qs", "-c", "MacShell", "ipc", "call", "clock", parent.modelData === "Stop" ? "stop" : "snooze"]) }
+                        MouseArea { id: ringBtn; anchors.fill: parent; onClicked: Quickshell.execDetached(["qs", "-c", "YukiShell", "ipc", "call", "clock", parent.modelData === "Stop" ? "stop" : "snooze"]) }
                     }
                 }
             }
@@ -400,7 +400,7 @@ Item {
                 Component.onCompleted: appearAnim.start()
                 NumberAnimation { id: appearAnim; target: nc; property: "appear"; from: 0; to: 1; duration: 560; easing.type: Easing.OutQuint }
                 // swipe sideways to clear: the card follows the pointer and fades with distance; past a third of its
-                // width (or flicked) it flies off and MacShell dismisses it, otherwise it springs back
+                // width (or flicked) it flies off and YukiShell dismisses it, otherwise it springs back
                 property real dragX: 0
                 property bool gone: false
                 readonly property real far: Math.min(1, Math.abs(dragX) / (width * 0.75))
@@ -411,7 +411,7 @@ Item {
                     id: flyOff
                     property real to: 0
                     NumberAnimation { target: nc; property: "dragX"; to: flyOff.to; duration: 260; easing.type: Easing.OutCubic }
-                    ScriptAction { script: { nc.gone = true; Quickshell.execDetached(["qs", "-c", "MacShell", "ipc", "call", "notifications", "dismiss", String(nc.nid)]); } }
+                    ScriptAction { script: { nc.gone = true; Quickshell.execDetached(["qs", "-c", "YukiShell", "ipc", "call", "notifications", "dismiss", String(nc.nid)]); } }
                 }
 
                 Glass { anchors.fill: parent; src: glassTex; frame: ls; cornerR: 20 * ls.u; thickness: 20; tint: 0.40; shadowAmt: 0.3 }
@@ -419,7 +419,7 @@ Item {
                 Image {
                     x: 14 * ls.u; anchors.verticalCenter: parent.verticalCenter
                     width: 34 * ls.u; height: width
-                    // apps without an icon (MacShell's own, notify-send…) get the system notifications icon
+                    // apps without an icon (YukiShell's own, notify-send…) get the system notifications icon
                     source: nc.icon && status !== Image.Error ? nc.icon : "image://icon/preferences-system-notifications"
                     sourceSize: Qt.size(96, 96)
                     smooth: true; mipmap: true
@@ -546,7 +546,7 @@ Item {
                 animateWidth: false         // box snaps to the new width; the digits stay centred through the morph
                 stretch: false
                 scaleIn: 1.03; scaleOut: 0.97
-                // 12- or 24-hour, as set in MacShell (no AM/PM, like the macOS / iOS lock screen)
+                // 12- or 24-hour, as set in YukiShell (no AM/PM, like the macOS / iOS lock screen)
                 // (Qt's "h" only goes 12-hour together with AP, so the hour is computed here)
                 text: ls.st.use24h ? Qt.formatTime(ls.st.now, I18n.tr("H:mm")) : ((ls.st.now.getHours() % 12) || 12) + Qt.formatTime(ls.st.now, ":mm")
                 color: "white"
@@ -616,7 +616,7 @@ Item {
                 Behavior on mode { NumberAnimation { duration: 500; easing.type: Easing.OutCubic } }
                 Behavior on intensity { NumberAnimation { duration: 500; easing.type: Easing.OutCubic } }
                 Behavior on tint { ColorAnimation { duration: 500 } }
-                onStatusChanged: if (status === ShaderEffect.Error) console.log("[maclock] clock shader:", log)
+                onStatusChanged: if (status === ShaderEffect.Error) console.log("[yukilock] clock shader:", log)
             }
             // fallback when the shader is missing
             Text {
@@ -1134,7 +1134,7 @@ Item {
         }
     }
 
-    // lyrics for the current track: NetEase, LRCLIB, and Genius, cached in ~/.cache/maclock/lyrics
+    // lyrics for the current track: NetEase, LRCLIB, and Genius, cached in ~/.cache/yukilock/lyrics
     property var lyrLines: []              // [{ t: seconds (-1 = unsynced), text }]
     property string lyrStatus: "idle"      // idle | loading | synced | plain | none
     readonly property string trackKey: media.pl ? (media.pl.trackArtist || "") + "\u0001" + (media.pl.trackTitle || "") : ""
@@ -1150,7 +1150,7 @@ Item {
         lyrProc.running = true;
     }
     readonly property string lyrScript: [
-        'a="$1"; t="$2"; al="$3"; d="${4:-0}"; c="$HOME/.cache/maclock/lyrics"; mkdir -p "$c"',
+        'a="$1"; t="$2"; al="$3"; d="${4:-0}"; c="$HOME/.cache/yukilock/lyrics"; mkdir -p "$c"',
         'k=$(printf "%s|%s" "$a" "$t" | md5sum | cut -c1-16); f="$c/$k.json"',
         '[ -s "$f" ] && { cat "$f"; exit 0; }',
         'tmp=$(mktemp); answered=0; r=""',

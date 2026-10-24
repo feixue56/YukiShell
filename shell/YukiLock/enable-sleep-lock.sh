@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Add MacLock to Hypridle's pre-suspend hook without replacing existing idle settings.
+# Add YukiLock to Hypridle's pre-suspend hook without replacing existing idle settings.
 # Lid-close is covered when logind's lid policy suspends the machine.
 set -eu
 
@@ -68,8 +68,8 @@ else:
     changed = "\n".join(lines).rstrip() + "\n"
 
 if changed != original:
-    if os.path.exists(path) and not os.path.exists(path + ".macshell-backup"):
-        with open(path + ".macshell-backup", "w", encoding="utf-8") as f:
+    if os.path.exists(path) and not os.path.exists(path + ".yukishell-backup"):
+        with open(path + ".yukishell-backup", "w", encoding="utf-8") as f:
             f.write(original)
     fd, tmp = tempfile.mkstemp(prefix=".hypridle.", dir=os.path.dirname(path), text=True)
     try:
@@ -81,7 +81,7 @@ if changed != original:
             os.unlink(tmp)
 PY
 
-# MacShell starts Hypridle itself; restart it so the newly written hook takes effect.
+# YukiShell starts Hypridle itself; restart it so the newly written hook takes effect.
 if command -v hypridle >/dev/null 2>&1; then
     pkill -x hypridle 2>/dev/null || true
     (hypridle >/dev/null 2>&1 &) 

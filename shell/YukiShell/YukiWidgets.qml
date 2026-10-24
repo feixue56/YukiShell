@@ -1,12 +1,12 @@
-// Desktop widgets (macOS Tahoe style) for macshell.
+// Desktop widgets (macOS Tahoe style) for yukishell.
 //
-//   * one full-screen layer window on the first monitor, BELOW normal windows (WlrLayer.Bottom, namespace "macwidgets")
+//   * one full-screen layer window on the first monitor, BELOW normal windows (WlrLayer.Bottom, namespace "yukiwidgets")
 //   * click-through while you are not editing; edit mode shows free grid slots and snaps widget moves / sizes without overlap
 //   * Weather data from Open-Meteo, a local-date Calendar, a live local-time Clock, and a Music player (MPRIS) widget
-//   * settings + placed widgets are saved to ~/.config/macwidgets/settings.json
+//   * settings + placed widgets are saved to ~/.config/yukiwidgets/settings.json
 //
-//   qs -c macbar ipc call widgets refresh        re-fetch the weather now
-//   qs -c macbar ipc call widgets edit true      start / stop editing
+//   qs -c YukiShell ipc call widgets refresh        re-fetch the weather now
+//   qs -c YukiShell ipc call widgets edit true      start / stop editing
 //
 // Hyprland: nothing is required. (No blur layerrule is needed, the Liquid Glass style blurs the wallpaper itself.)
 
@@ -35,7 +35,7 @@ Scope {
 
     readonly property string fontFamily: dock ? dock.fontFamily : "Open Runde"
     readonly property string boldFontFamily: hub && hub.boldFontFamily ? hub.boldFontFamily : "Open Runde Semibold"
-    readonly property string configDir: Quickshell.env("HOME") + "/.config/macwidgets"
+    readonly property string configDir: Quickshell.env("HOME") + "/.config/yukiwidgets"
 
     // Liquid Glass look = the Appearance sliders (Translucency / Blur / Liquid strength) of the Dock + Menu Bar
     readonly property real glassOpacity: dock ? dock.glassOpacity : 0.42
@@ -230,7 +230,7 @@ Scope {
 
     // ───────────── image widgets ─────────────
     // pickImage("", size) adds a new Image widget with the chosen picture; pickImage(id) changes the picture of widget id.
-    // The chosen file is copied into ~/.config/macwidgets/images so the widget keeps working if the original moves.
+    // The chosen file is copied into ~/.config/yukiwidgets/images so the widget keeps working if the original moves.
     property string pickTargetId: ""
     property string pickTargetSize: "small"
     property string pickError: ""
@@ -263,7 +263,7 @@ Scope {
                     else root.setSource(root.pickTargetId, p);
                 } else if (t.indexOf("ERR:") === 0) {
                     root.pickError = t.substring(4);
-                    console.log("[macwidgets] image:", root.pickError);
+                    console.log("[yukiwidgets] image:", root.pickError);
                 }
             }
         }
@@ -415,12 +415,12 @@ Scope {
     Process {
         id: lrcProc
         command: ["sh", "-c",
-            "UA='macshell-widgets (quickshell)'; "
+            "UA='yukishell-widgets (quickshell)'; "
             + "r=$(curl -fsS --max-time 8 -A \"$UA\" -G https://lrclib.net/api/get --data-urlencode \"track_name=$1\" --data-urlencode \"artist_name=$2\" "
             + "--data-urlencode \"album_name=$3\" -d \"duration=$4\" 2>/dev/null "
             + "|| curl -fsS --max-time 8 -A \"$UA\" -G https://lrclib.net/api/search --data-urlencode \"q=$2 $1\" 2>/dev/null || true); "
             + "if printf '%s' \"$r\" | jq -e 'if type == \"array\" then any(.[]; (.syncedLyrics // \"\") != \"\") else (.syncedLyrics // \"\") != \"\" end' >/dev/null 2>&1; then printf '%s' \"$r\"; exit 0; fi; "
-            + "g=$(python3 \"$HOME/.config/quickshell/YukiShell/genius-lyrics.py\" \"$2\" \"$1\" \"$HOME/.cache/macshell/lyrics\" 2>/dev/null || true); "
+            + "g=$(python3 \"$HOME/.config/quickshell/YukiShell/genius-lyrics.py\" \"$2\" \"$1\" \"$HOME/.cache/yukishell/lyrics\" 2>/dev/null || true); "
             + "gp=$(printf '%s' \"$g\" | jq -r '.plain // empty' 2>/dev/null); "
             + "if [ -n \"$gp\" ]; then jq -nc --arg p \"$gp\" '{plainLyrics:$p}'; "
             + "elif [ -n \"$r\" ]; then printf '%s' \"$r\"; else printf '{}'; fi",
@@ -519,7 +519,7 @@ Scope {
                     root.wxPlace = o.city || o.region || o.country || "Current Location";
                     root.wxLocated = true;
                     wxProc.running = true;
-                } catch (err) { root.wxError = "location lookup failed"; console.log("[macwidgets] location:", err, text.substring(0, 120)); }
+                } catch (err) { root.wxError = "location lookup failed"; console.log("[yukiwidgets] location:", err, text.substring(0, 120)); }
             }
         }
     }
@@ -536,7 +536,7 @@ Scope {
                     root.wxPlace = r.name;
                     root.wxLocated = false;
                     wxProc.running = true;
-                } catch (err) { root.wxError = "city not found"; console.log("[macwidgets] geocoding:", err); }
+                } catch (err) { root.wxError = "city not found"; console.log("[yukiwidgets] geocoding:", err); }
             }
         }
     }
@@ -572,13 +572,13 @@ Scope {
                     root.wxCity = root.wxPlace;
                     root.wxReady = true;
                     root.wxError = "";
-                } catch (err) { root.wxError = "weather lookup failed"; console.log("[macwidgets] forecast:", err, text.substring(0, 120)); }
+                } catch (err) { root.wxError = "weather lookup failed"; console.log("[yukiwidgets] forecast:", err, text.substring(0, 120)); }
             }
         }
     }
 
     // ───────────── Liquid Glass backend ─────────────
-    // Same shader as the Dock / Menu Bar (liquidglass.frag), compiled with qsb into ~/.config/macwidgets/.
+    // Same shader as the Dock / Menu Bar (liquidglass.frag), compiled with qsb into ~/.config/yukiwidgets/.
     property string glassState: "idle"                     // idle → building → ready | failed
     readonly property string glassShaderSrc: decodeURIComponent(Qt.resolvedUrl("liquidglass.frag").toString().replace("file://", ""))
     readonly property string glassShaderOut: configDir + "/liquidglass.frag.qsb"
@@ -600,7 +600,7 @@ Scope {
             + "[ -f \"$1.qsb\" ] && cp \"$1.qsb\" \"$2\" && exit 0; "
             + "exit 1",
             "sh", root.glassShaderSrc, root.glassShaderOut]
-        stderr: StdioCollector { onStreamFinished: if (text.trim() !== "") console.log("[macwidgets-glass] qsb:", text.trim()) }
+        stderr: StdioCollector { onStreamFinished: if (text.trim() !== "") console.log("[yukiwidgets-glass] qsb:", text.trim()) }
         onExited: (code, status) => root.glassState = (code === 0 ? "ready" : "failed")
     }
     Binding { target: root.hub; property: "widgetsWantWallpaper"; value: root.anyLiquid }
@@ -640,7 +640,7 @@ Scope {
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
 
-            WlrLayershell.namespace: "macwidgets"
+            WlrLayershell.namespace: "yukiwidgets"
             WlrLayershell.layer: WlrLayer.Bottom
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 

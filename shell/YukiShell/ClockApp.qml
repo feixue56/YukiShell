@@ -1,9 +1,9 @@
-// Clock — the macOS Clock app for MacShell: World Clock, Alarms, Stopwatch, Timers.
+// Clock — the macOS Clock app for YukiShell: World Clock, Alarms, Stopwatch, Timers.
 //
 //   qs -c YukiShell ipc call clock open            (also: clock tab alarms|world|stopwatch|timers, clock stop, clock snooze)
 //
-// Lives inside MacShell (not its own process) so alarms and timers ring even when the window is closed. Everything is
-// saved to ~/.config/macshell/clock.json the moment it changes (survives crashes and restarts); the Clock widget and
+// Lives inside YukiShell (not its own process) so alarms and timers ring even when the window is closed. Everything is
+// saved to ~/.config/yukishell/clock.json the moment it changes (survives crashes and restarts); the Clock widget and
 // the lock screen read the same file, so a running timer / stopwatch shows there too.
 import QtQuick
 import QtQuick.Controls
@@ -26,7 +26,7 @@ Scope {
     readonly property color accent: dock ? dock.accent : "#0A84FF"
     readonly property bool use24h: bar ? bar.use24h : true
     readonly property string home: Quickshell.env("HOME")
-    readonly property string soundDir: home + "/.local/share/sounds/macshell"
+    readonly property string soundDir: home + "/.local/share/sounds/yukishell"
     readonly property color orange: "#FF9F0A"
 
     // ═════════════ STATE (saved) ═════════════
@@ -80,7 +80,7 @@ Scope {
     // ── persistence ──
     FileView {
         id: store
-        path: root.home + "/.config/macshell/clock.json"
+        path: root.home + "/.config/yukishell/clock.json"
         printErrors: false
         onLoaded: {
             try {
@@ -98,14 +98,14 @@ Scope {
         onLoadFailed: { root.loaded = true; root.refreshTz(); }
     }
     FileView {
-        path: root.home + "/.config/macshell/components.json"
+        path: root.home + "/.config/yukishell/components.json"
         printErrors: false
         onLoaded: { try { var o = JSON.parse(text()); if (o.clockEnabled !== undefined) root.appEnabled = !!o.clockEnabled; } catch (e) {} }
     }
     Timer { id: saveLater; interval: 150; onTriggered: root.saveNow() }
     function save() { if (loaded) saveLater.restart(); }
     function saveNow() {
-        Quickshell.execDetached(["sh", "-c", "mkdir -p \"$HOME/.config/macshell\" && printf '%s\\n' \"$1\" > \"$HOME/.config/macshell/clock.json.tmp\" && mv -f \"$HOME/.config/macshell/clock.json.tmp\" \"$HOME/.config/macshell/clock.json\"",
+        Quickshell.execDetached(["sh", "-c", "mkdir -p \"$HOME/.config/yukishell\" && printf '%s\\n' \"$1\" > \"$HOME/.config/yukishell/clock.json.tmp\" && mv -f \"$HOME/.config/yukishell/clock.json.tmp\" \"$HOME/.config/yukishell/clock.json\"",
             "sh", JSON.stringify({ alarms: alarms, cities: cities, timer: timer, sw: sw, recents: recents, snoozes: snoozes, ringing: ringing }, null, 1)]);
     }
 
@@ -289,7 +289,7 @@ Scope {
         exclusionMode: ExclusionMode.Ignore
         color: "transparent"
         WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.namespace: "macshell-clock-alert"
+        WlrLayershell.namespace: "yukishell-clock-alert"
         Rectangle {
             id: bannerCard
             width: 356; height: 80; x: 8; y: 4

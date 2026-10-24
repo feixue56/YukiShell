@@ -1,6 +1,6 @@
 import QtQuick
 
-// Slider that looks and behaves exactly like the Control Center sliders (CCSlider in MacBar.qml): a thin 4 px track with a
+// Slider that looks and behaves exactly like the Control Center sliders (CCSlider in YukiBar.qml): a thin 4 px track with a
 // coloured fill; the small rounded-square knob is always shown, holding it springs the knob bigger and turns it into Liquid
 // Glass (you see the bar through the lens, with the Control Center border), and while the value moves the knob stretches,
 // leans and wobbles with a little spring.

@@ -1,7 +1,7 @@
-// macdock v2 — a macOS-style dock for Hyprland, built on Quickshell. vSuol
+// yukidock v2 — a macOS-style dock for Hyprland, built on Quickshell. vSuol
 //
-// Part of the combined macbar + macdock shell (see shell.qml). Keep this file, MacBar.qml, shell.qml and
-// liquidglass.frag together in ~/.config/quickshell/macbar/ and run:  qs -c macbar
+// Part of the combined yukibar + yukidock shell (see shell.qml). Keep this file, YukiBar.qml, shell.qml and
+// liquidglass.frag together in ~/.config/quickshell/yukibar/ and run:  qs -c YukiShell
 // Pins are saved to ~/.config/yukidock/pinned.json once you use "Keep in Dock".
 //
 // Settings are saved to ~/.config/yukidock/settings.json (right-click the dock → Dock Preferences…).
@@ -17,7 +17,7 @@
 //                         set "wallpaperPath" in settings.json if the wallpaper isn't auto-detected.
 //
 // Hyprland (Lua) layer rule for the glass:
-//   hl.layer_rule({ name = "macdock", match = { namespace = "macdock" },
+//   hl.layer_rule({ name = "yukidock", match = { namespace = "yukidock" },
 //                   blur = true, ignore_alpha = 0.2, no_anim = true })
 
 import QtQuick
@@ -52,11 +52,11 @@ Scope {
     property string userName: Quickshell.env("USER") || ""
 
     // ═════ Displays: which monitor is the main one (resolution / refresh / position live in hypr/rice/monitor.lua) ═════
-    property var displays: ({ primary: "" })                   // the main display, saved in ~/.config/macshell/displays.json
+    property var displays: ({ primary: "" })                   // the main display, saved in ~/.config/yukishell/displays.json
     property var monList: []                                  // hyprctl monitors (live)
     FileView {
         id: dispFile
-        path: Quickshell.env("HOME") + "/.config/macshell/displays.json"
+        path: Quickshell.env("HOME") + "/.config/yukishell/displays.json"
         printErrors: false
         onLoaded: { try { root.displays = JSON.parse(text()); } catch (e) {} root.applySavedPrimary(); }
     }
@@ -583,7 +583,7 @@ Scope {
     // ─────────────────────────── THE WINDOW ───────────────────────────
     Window {
         id: prefsWindow
-        title: "macshell Settings"
+        title: "YukiShell Settings"
         // NOT bindings: a bound size gets re-applied by Qt and snaps the window back while it is being resized by hand.
         // The size is set once when the window opens and again only when the UI scale itself changes (see below).
         width: 800
@@ -729,7 +729,7 @@ Scope {
             if (e & Qt.BottomEdge) nh = height + dy;
             if (e & Qt.TopEdge)    nh = height - dy;
             nw = Math.max(minW, Math.round(nw)); nh = Math.max(minH, Math.round(nh));
-            console.log('[macshell-settings] resize on release:', width + 'x' + height, '->', nw + 'x' + nh);
+            console.log('[yukishell-settings] resize on release:', width + 'x' + height, '->', nw + 'x' + nh);
             if (nw === width && nh === height) return;
             var sel = 'window = "title:^(' + title + ')$"';
             // current position (left / top edges keep the opposite edge fixed by moving the window as well)
@@ -1605,7 +1605,7 @@ Scope {
                     SRow {
                         t: pal
                         title: I18n.tr("Bar background")
-                        subtitle: I18n.tr("A separate layer (macbarbg) so Hyprland can blur it. Needs: layerrule = blur, macbarbg")
+                        subtitle: I18n.tr("A separate layer (yukibarbg) so Hyprland can blur it. Needs: layerrule = blur, yukibarbg")
                         SSlider {
                             t: pal
                             from: 0; to: 0.6; stepSize: 0.01
@@ -1858,7 +1858,7 @@ Scope {
                 }
                 SLabel {
                     t: pal
-                    text: I18n.tr("Bind the Print key:  bind = , Print, exec, qs -c macbar ipc call screenshot region.  Choose\u2026 needs zenity, kdialog or yad; otherwise type the path. Screenshots need grim.")
+                    text: I18n.tr("Bind the Print key:  bind = , Print, exec, qs -c YukiShell ipc call screenshot region.  Choose\u2026 needs zenity, kdialog or yad; otherwise type the path. Screenshots need grim.")
                 }
                 Process {
                     id: shotPick
@@ -1875,7 +1875,7 @@ Scope {
                 }
                 SLabel {
                     t: pal
-                    text: I18n.tr("Accent color, appearance and font are in Appearance. Commands (terminal, launcher, files, clipboard) can be edited in ~/.config/macbar/settings.json.")
+                    text: I18n.tr("Accent color, appearance and font are in Appearance. Commands (terminal, launcher, files, clipboard) can be edited in ~/.config/yukibar/settings.json.")
                 }
             }
         }
@@ -3132,7 +3132,7 @@ Scope {
                 spacing: 10
                 property string slot: "top"
                 Component.onCompleted: slotGet.running = true
-                Process { id: slotGet; command: ["sh", "-c", "jq -r '.mediaSlot // \"top\"' \"$HOME/.config/maclock/settings.json\" 2>/dev/null || echo top"]
+                Process { id: slotGet; command: ["sh", "-c", "jq -r '.mediaSlot // \"top\"' \"$HOME/.config/yukilock/settings.json\" 2>/dev/null || echo top"]
                           stdout: StdioCollector { onStreamFinished: lockPane.slot = text.trim() === "bottom" ? "bottom" : "top" } }
                 SCard {
                     t: pal
@@ -3144,7 +3144,7 @@ Scope {
                             current: lockPane.slot === "bottom" ? 1 : 0
                             onPicked: i => {
                                 lockPane.slot = i === 1 ? "bottom" : "top";
-                                Quickshell.execDetached(["sh", "-c", "mkdir -p \"$HOME/.config/maclock\" && printf '{\\n  \"mediaSlot\": \"%s\"\\n}\\n' \"$1\" > \"$HOME/.config/maclock/settings.json\"", "sh", lockPane.slot]);
+                                Quickshell.execDetached(["sh", "-c", "mkdir -p \"$HOME/.config/yukilock\" && printf '{\\n  \"mediaSlot\": \"%s\"\\n}\\n' \"$1\" > \"$HOME/.config/yukilock/settings.json\"", "sh", lockPane.slot]);
                             }
                         }
                     }
@@ -3284,7 +3284,7 @@ Scope {
                         onClicked: {
                             var b = root.bar;
                             var cfg = JSON.stringify({ f: b.lockClockFont, w: b.lockClockWeight, m: b.lockClockMaterial, i: b.lockClockIntensity, c: b.lockClockTint, d: b.lockClockDate });
-                            Quickshell.execDetached(["sh", "-c", "MACLOCK_PREVIEW=1 MACLOCK_CLOCK=\"$1\" timeout 6 qs -c YukiLock >/dev/null 2>&1", "sh", cfg]);
+                            Quickshell.execDetached(["sh", "-c", "YUKILOCK_PREVIEW=1 YUKILOCK_CLOCK=\"$1\" timeout 6 qs -c YukiLock >/dev/null 2>&1", "sh", cfg]);
                         }
                     }
                     SButton { t: pal; text: I18n.tr("Lock Screen Now"); onClicked: { prefsWindow.visible = false; Quickshell.execDetached(["sh", "-c", "pgrep -f -- \"-c [Y]ukiLock\" >/dev/null 2>&1 || qs -c YukiLock"]); } }
@@ -4035,9 +4035,9 @@ Scope {
     }
     Timer { id: saveTimer; interval: 400; onTriggered: root.saveSettings() }
 
-    // MacShell's own windows (About This Linux, Settings, Finder, Photos ...) all have the app id "org.quickshell":
-    // they show the MacShell logo and name instead of a generic icon
-    readonly property string logoPath: decodeURIComponent(String(Qt.resolvedUrl("assets/macshell-logo.png")).replace(/^file:\/\//, ""))
+    // YukiShell's own windows (About This Linux, Settings, Finder, Photos ...) all have the app id "org.quickshell":
+    // they show the YukiShell logo and name instead of a generic icon
+    readonly property string logoPath: decodeURIComponent(String(Qt.resolvedUrl("assets/yukishell-logo.png")).replace(/^file:\/\//, ""))
     function isShellApp(appId) { return appId === "org.quickshell"; }
 
     function lookup(appId) {
@@ -4138,8 +4138,8 @@ Scope {
         return w.length > 0 ? w[0] : null;
     }
 
-    // MacShell's own windows all have the app id "org.quickshell": the Clock window counts as the Clock app
-    function appOf(tl) { return (tl.appId === "org.quickshell" && tl.title === "Clock") ? "macshell-clock" : tl.appId; }
+    // YukiShell's own windows all have the app id "org.quickshell": the Clock window counts as the Clock app
+    function appOf(tl) { return (tl.appId === "org.quickshell" && tl.title === "Clock") ? "yukishell-clock" : tl.appId; }
     function windowsFor(key) {
         var out = [];
         var tls = ToplevelManager.toplevels.values;
@@ -4181,7 +4181,7 @@ Scope {
             if (ent && typeof ent.execute === "function") { try { ent.execute(); ok = true; } catch (err3) { ok = false; } }
             if (!ok) {
                 var id = rid;
-                console.log("[macdock] launching", id, "via gtk-launch (desktop entry unavailable)");
+                console.log("[yukidock] launching", id, "via gtk-launch (desktop entry unavailable)");
                 Quickshell.execDetached(["sh", "-c", 'gtk-launch "$1" 2>/dev/null || gtk-launch "$1.desktop" 2>/dev/null || exec "$1"', "sh", id]);
             }
             pruneTimer.restart();
@@ -4306,7 +4306,7 @@ Scope {
             var e2 = lookup(extras[x].appId);
             var own = isShellApp(extras[x].appId);
             list.push({ kind: "app", key: extras[x].key, appId: e2 ? e2.id : extras[x].appId,
-                        name: own ? "MacShell" : (e2 ? e2.name : extras[x].appId),
+                        name: own ? "YukiShell" : (e2 ? e2.name : extras[x].appId),
                         icon: own ? logoPath : (e2 ? e2.icon : extras[x].appId.toLowerCase()),
                         entry: e2, running: true, pinned: false });
         }
@@ -4316,7 +4316,7 @@ Scope {
         if (showThumbs) {
             for (var w = 0; w < tls.length; w++) {
                 var tl = tls[w];
-                if (!tl.appId || tl.title === "macshell Settings") continue;
+                if (!tl.appId || tl.title === "YukiShell Settings") continue;
                 // live capture off: a preview cell is only an app icon, so a pinned app (its icon is already in the Dock) gets none; unpinned apps keep theirs
                 if (!windowCapture && seen[keyOf(appOf(tl))]) continue;
                 var e3 = lookup(appOf(tl));
@@ -4325,7 +4325,7 @@ Scope {
                 if (winAge(tl) < 200) { if (!youngWin.running) youngWin.start(); continue; }     // no preview (= no capture) for brand-new windows
                 var own3 = isShellApp(tl.appId);
                 winItems.push({ kind: "win", key: "win:" + wid, tl: tl,
-                                name: own3 ? (tl.title || "MacShell") : (e3 ? e3.name : tl.appId),
+                                name: own3 ? (tl.title || "YukiShell") : (e3 ? e3.name : tl.appId),
                                 icon: own3 ? logoPath : (e3 ? e3.icon : tl.appId.toLowerCase()),
                                 entry: null, running: false, pinned: false });
             }
@@ -4414,7 +4414,7 @@ Scope {
     readonly property url glassShaderUrl: "file://" + glassShaderOut
 
     onDockStyleChanged: if (dockStyle === "liquid") startGlass()
-    onGlassStateChanged: console.log("[macdock-glass] state:", glassState)
+    onGlassStateChanged: console.log("[yukidock-glass] state:", glassState)
     function startGlass() {
         if (dockGlassState === "idle" || dockGlassState === "failed") {
             dockGlassState = "building";
@@ -4436,7 +4436,7 @@ Scope {
             + "[ -f \"$1.qsb\" ] && cp \"$1.qsb\" \"$2\" && exit 0; "
             + "exit 1",
             "sh", root.glassShaderSrc, root.glassShaderOut]
-        stderr: StdioCollector { onStreamFinished: if (text.trim() !== "") console.log("[macdock-glass] qsb:", text.trim()) }
+        stderr: StdioCollector { onStreamFinished: if (text.trim() !== "") console.log("[yukidock-glass] qsb:", text.trim()) }
         onExited: (code, status) => root.glassState = (code === 0 ? "ready" : "failed")
     }
 
@@ -4458,7 +4458,7 @@ Scope {
             + "[ -f \"$1.qsb\" ] && cp \"$1.qsb\" \"$2\" && exit 0; "
             + "exit 1",
             "sh", root.dockGlassSrc, root.dockGlassOut]
-        stderr: StdioCollector { onStreamFinished: if (text.trim() !== "") console.log("[macdock-glass] dockglass qsb:", text.trim()) }
+        stderr: StdioCollector { onStreamFinished: if (text.trim() !== "") console.log("[yukidock-glass] dockglass qsb:", text.trim()) }
         onExited: (code, status) => root.dockGlassState = (code === 0 ? "ready" : "failed")
     }
 
@@ -4466,7 +4466,7 @@ Scope {
     // ([wallpaper.monitors.<name>] → [wallpaper.last] → [wallpaper.default]), then awww/swww/hyprpaper.
     readonly property var wallpaperMap: hub ? hub.wallpaperMap : ({})
     Binding { target: root.hub; property: "dockWantsWallpaper"; value: root.liquidActive }
-    onWallpaperMapChanged: console.log("[macdock-glass] wallpaper sources:", JSON.stringify(wallpaperMap))
+    onWallpaperMapChanged: console.log("[yukidock-glass] wallpaper sources:", JSON.stringify(wallpaperMap))
     function wallpaperFor(screenName) {
         var p = wallpaperPath !== "" ? wallpaperPath
               : (wallpaperMap["wallpaper.monitors." + screenName] || wallpaperMap["wallpaper.last"]
@@ -4588,7 +4588,7 @@ Scope {
             exclusionMode: ExclusionMode.Normal
             exclusiveZone: root.hideMode === "never" ? root.bgHeight + root.margin : 0
 
-            WlrLayershell.namespace: "macdock"
+            WlrLayershell.namespace: "yukidock"
             WlrLayershell.layer: WlrLayer.Top
 
             mask: Region { item: maskItem }
@@ -4603,7 +4603,7 @@ Scope {
                 exclusionMode: ExclusionMode.Ignore
                 color: "transparent"
                 mask: Region {}
-                WlrLayershell.namespace: "macdock-drag"
+                WlrLayershell.namespace: "yukidock-drag"
                 WlrLayershell.layer: WlrLayer.Overlay
                 WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
                 // the window where it WAS: a still copy that takes its place the instant the real window jumps to the
@@ -4960,7 +4960,7 @@ Scope {
                             visible: false
                             width: 1; height: 1
                             onStatusChanged: {
-                                console.log("[macdock-glass] wallpaper image status:", status, "(1 = ready, 2 = loading, 3 = error)", source);
+                                console.log("[yukidock-glass] wallpaper image status:", status, "(1 = ready, 2 = loading, 3 = error)", source);
                                 if (status === Image.Ready) wpShown.source = source;
                             }
                             source: root.fileUrl(root.wallpaperFor(win.modelData.name))
@@ -5175,7 +5175,7 @@ Scope {
                                 height: dock.height + 2 * padPx
                                 fragmentShader: root.dockGlassUrl
                                 onStatusChanged: {
-                                    console.log("[macdock-glass] shader status:", status, "(0 = compiled, 1 = uncompiled, 2 = error)", log);
+                                    console.log("[yukidock-glass] shader status:", status, "(0 = compiled, 1 = uncompiled, 2 = error)", log);
                                     if (status === ShaderEffect.Error) {
                                         // the Dock's own shader failed to load: drop back to the shared one; only if THAT fails too, give up on Liquid Glass
                                         if (root.dockGlassNew) root.dockGlassState = "failed";

@@ -28,14 +28,14 @@ case "$state" in
             tries=$((tries + 1))
         done
         if [ "$state" = "stopping" ]; then
-            printf '%s\n' 'MacLock is still shutting down; try the lock key again in a moment.' >&2
+            printf '%s\n' 'YukiLock is still shutting down; try the lock key again in a moment.' >&2
             exit 1
         fi
         ;;
 esac
 
 # No live IPC endpoint: create a new instance, wait for it, then request the lock.
-MACLOCK_DAEMON=1 qs -c YukiLock >/dev/null 2>&1 &
+YUKILOCK_DAEMON=1 qs -c YukiLock >/dev/null 2>&1 &
 daemon_pid=$!
 tries=0
 while [ "$tries" -lt 60 ]; do
@@ -51,5 +51,5 @@ while [ "$tries" -lt 60 ]; do
     tries=$((tries + 1))
 done
 
-printf '%s\n' 'MacLock IPC did not become ready. Check that Quickshell can load the MacLock config.' >&2
+printf '%s\n' 'YukiLock IPC did not become ready. Check that Quickshell can load the YukiLock config.' >&2
 exit 1

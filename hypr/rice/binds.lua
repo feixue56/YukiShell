@@ -1,4 +1,4 @@
--- MacShell owns: SUPER+Z/V/Space/period/L, ALT+TAB, CTRL+ALT+W, PRINT and the hardware keys. Don't rebind those here.
+-- YukiShell owns: SUPER+Z/V/Space/period/L, ALT+TAB, CTRL+ALT+W, PRINT and the hardware keys. Don't rebind those here.
 local mod = "SUPER"
 
 hl.bind(mod .. " + Return",         hl.dsp.exec_cmd("kitty"))

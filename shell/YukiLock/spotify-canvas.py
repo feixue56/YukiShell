@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Spotify Canvas Fetcher for MacLock Animated Lock Screen
-Downloads looping canvas video for supported Spotify music and caches in ~/.cache/maclock/canvas/
+Spotify Canvas Fetcher for YukiLock Animated Lock Screen
+Downloads looping canvas video for supported Spotify music and caches in ~/.cache/yukilock/canvas/
 Outputs the local .mp4 path to stdout if found.
 """
 
@@ -57,12 +57,12 @@ def log_err(cache_dir, msg):
         pass
 
 def read_sp_dc():
-    """Optional Spotify web-player cookie (sp_dc). Put it in ~/.config/maclock/sp_dc or $SP_DC."""
+    """Optional Spotify web-player cookie (sp_dc). Put it in ~/.config/yukilock/sp_dc or $SP_DC."""
     v = os.environ.get("SP_DC", "").strip()
     if v:
         return v
     try:
-        with open(os.path.expanduser("~/.config/maclock/sp_dc"), "r", encoding="utf-8") as f:
+        with open(os.path.expanduser("~/.config/yukilock/sp_dc"), "r", encoding="utf-8") as f:
             return f.read().strip()
     except OSError:
         return ""
@@ -160,7 +160,7 @@ def main():
     track_id = get_track_id(raw)
     if not track_id:
         track_id = discover_spotify_track_id()
-    cache_dir = sys.argv[2].strip() if len(sys.argv) > 2 else os.path.expanduser("~/.cache/maclock/canvas")
+    cache_dir = sys.argv[2].strip() if len(sys.argv) > 2 else os.path.expanduser("~/.cache/yukilock/canvas")
 
     if not track_id:
         return

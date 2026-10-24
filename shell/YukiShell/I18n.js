@@ -3,7 +3,7 @@
 
 // Interface translations. I18n.tr("English text") returns the text in the chosen language, or the English text
 // itself when there is no translation. The language is Qt.uiLanguage (System Settings → General → Language,
-// set by MacBar), or the system locale (LANG, e.g. ru_RU.UTF-8) when that is empty. Bindings that call tr()
+// set by YukiBar), or the system locale (LANG, e.g. ru_RU.UTF-8) when that is empty. Bindings that call tr()
 // read Qt.uiLanguage, so they update when the language changes.
 // To add a language: copy lang/ru.js to lang/<code>.js, translate the values, and add it to `dicts` below.
 

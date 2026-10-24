@@ -38,7 +38,7 @@ Item {
     // ── desktop edit mode ──
     property bool editing: false
 
-    signal glassFailed()                // the shader did not compile / load → MacWidgets falls back to the frosted card
+    signal glassFailed()                // the shader did not compile / load → YukiWidgets falls back to the frosted card
 
     readonly property bool isSmall: size === "small"
     readonly property bool isMedium: size === "medium"

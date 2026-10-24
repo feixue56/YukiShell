@@ -1,5 +1,5 @@
 #version 440
-// Feathered top and bottom edges (MacLock lyrics): content fades out smoothly instead of being cut off.
+// Feathered top and bottom edges (YukiLock lyrics): content fades out smoothly instead of being cut off.
 // Build:  /usr/lib/qt6/bin/qsb --qt6 -o fade.frag.qsb fade.frag
 layout(location = 0) in vec2 qt_TexCoord0;
 layout(location = 0) out vec4 fragColor;

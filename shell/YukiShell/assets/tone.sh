@@ -1,10 +1,10 @@
 #!/bin/sh
-# Prints "<brightness> <spread>" (both 0..1, perceived/gamma brightness) of a screen area, read by MacBar.qml (auto contrast).
+# Prints "<brightness> <spread>" (both 0..1, perceived/gamma brightness) of a screen area, read by YukiBar.qml (auto contrast).
 #   tone.sh SCALE X Y W H [IX IY IW IH]
 # The area X,Y WxH is grabbed with grim (wallpaper + every window + layers = what is really on screen). With IX IY IW IH given,
 # that inner rectangle (the open panel itself) is left out, so the panel's own glass never feeds back into the measurement.
 # The brightness is taken after a median filter, so thin text (the bar's own labels) does not tilt it.
-t=$(mktemp /tmp/macshell-tone.XXXXXX) || exit 1
+t=$(mktemp /tmp/yukishell-tone.XXXXXX) || exit 1
 trap 'rm -f "$t"' EXIT
 s=${1:-0.1}; X=$2; Y=$3; W=$4; H=$5
 grim -t ppm -s "$s" -g "$X,$Y ${W}x$H" "$t" 2>/dev/null || exit 1

@@ -24,8 +24,8 @@ cd ~/hypr-rice && ./install.sh
 line to `~/.config/hypr/hyprland.lua`, and sets the GTK/Qt/btop themes. Re-run it any time; it is idempotent.
 
 Packages the rice expects: `kitty fish fastfetch btop cava tty-clock fcitx5 fcitx5-bamboo adw-gtk-theme papirus-icon-theme
-plasma-integration ddcutil brightnessctl` and the Bibata cursor and JetBrainsMono Nerd Font. The shell itself uses `nmcli`, `playerctl`,
-`powerprofilesctl`, `grim`, `wl-clipboard` and `hyprsunset` for the matching features; whatever is missing just disables that feature.
+plasma-integration ddcutil brightnessctl python-numpy` and the Bibata cursor and JetBrainsMono Nerd Font. The shell itself uses `nmcli`, `playerctl`,
+`powerprofilesctl`, `grim`, `wl-clipboard` and `hyprsunset` for the matching features; whatever is missing just disables that feature. `python-numpy` is only for generating the UI sound effects.
 
 Before using it, check:
 
@@ -71,15 +71,15 @@ was added need a restart.
 | `hypr/bin/` | `dashboard`, `toggle-opacity` |
 | `shell/YukiShell`, `shell/YukiLock` | the Quickshell shell and lock screen (`qs -c YukiShell`, `qs -c YukiLock`) |
 | `shell/bin/` | `yuki-start` (keeps the shell running), `yuki-brightness` |
+| `shell/scripts/` | helpers the shell calls: wallpaper (`yukishell-setwall.sh`, `-dynwall.sh`, `-wallpause.sh`), Game Mode, UI sound generator |
 | `kitty fish fastfetch btop cava gtk-3.0 gtk-4.0 qt chromium` | app configs and themes |
 | `tools/` | one-off helpers |
 
 The palette lives in `hypr/rice/theme.lua`. Env overrides go in `~/.config/hypr-rice/env`; the shell log is
 `~/.local/state/hypr-rice/YukiShell.log`. Open Settings with `qs -c YukiShell ipc call settings open`.
 
-The Dock keeps its settings, pins and shader cache in `~/.config/yukidock`. The bar and a few widgets still use MacShell's
-folder names (`~/.config/macbar`, `macshell`, `maclock`), because the QML uses those paths. YukiShell never runs MacShell's
-installer or updater.
+The shell keeps its settings in `~/.config/yukibar`, `yukidock`, `yukishell`, `yukilock` and `yukiwidgets`. They are its own
+folders: YukiShell never reads or writes MacShell's, and never runs MacShell's installer or updater.
 
 ## Credits and license
 

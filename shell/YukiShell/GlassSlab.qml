@@ -22,7 +22,7 @@ Item {
     property url shaderUrl: ""
     property bool dark: true
     property real cornerR: height / 2
-    property real thickness: 16         // same meaning as GGlass.thickness in MacBar.qml
+    property real thickness: 16         // same meaning as GGlass.thickness in YukiBar.qml
     property real strengthMul: 1.0
     property real liquid: 1.0           // the global "Liquid strength" setting
     property real rim: 0.1125           // Control Center value: glassRim * 0.25

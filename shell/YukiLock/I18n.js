@@ -1,6 +1,6 @@
 .pragma library
 
-// Lock screen translations (MacLock runs as its own Quickshell config, so it keeps its own small table).
+// Lock screen translations (YukiLock runs as its own Quickshell config, so it keeps its own small table).
 // I18n.tr("English text") returns the text in the chosen language, or the English text.
 
 var dicts = {

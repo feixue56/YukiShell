@@ -23,7 +23,7 @@ Item {
     property real screenX: x
     property real screenY: y
 
-    // ── data (from MacWidgets) ──
+    // ── data (from YukiWidgets) ──
     property string city: "—"
     property bool located: true         // show the little location arrow (automatic location)
     property bool hasData: false
@@ -57,7 +57,7 @@ Item {
     // ── desktop edit mode ──
     property bool editing: false
 
-    signal glassFailed()                // the shader did not compile / load → MacWidgets falls back to the frosted card
+    signal glassFailed()                // the shader did not compile / load → YukiWidgets falls back to the frosted card
 
     readonly property bool isSmall: size === "small"
     readonly property bool isMedium: size === "medium"

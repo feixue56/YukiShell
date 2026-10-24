@@ -22,7 +22,7 @@ hl.window_rule({
     rounding = 20,
 })
 
--- Workspaces 1-10 always exist, so the MacShell bar shows all ten and Super+scroll can reach any of them.
+-- Workspaces 1-10 always exist, so the YukiShell bar shows all ten and Super+scroll can reach any of them.
 for i = 1, 10 do
     hl.workspace_rule({ workspace = tostring(i), persistent = true })
 end
@@ -30,7 +30,7 @@ end
 -- YukiShell Settings: born floating, centred, at its own size (the shell used to float it only after it mapped as a tile).
 hl.window_rule({
     name  = "yukishell-settings",
-    match = { class = "^org\\.quickshell$", title = "^macshell Settings$" },
+    match = { class = "^org\\.quickshell$", title = "^YukiShell Settings$" },
     float = true,
     center = true,
     size = "800 880",

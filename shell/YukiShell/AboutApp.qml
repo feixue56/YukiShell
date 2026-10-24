@@ -1,4 +1,4 @@
-//0.3.9// About This Linux — the "About This Mac" window for MacShell.
+//0.3.9// About This Linux — the "About This Mac" window for YukiShell.
 //
 //   qs -c YukiShell ipc call about open | close | toggle        (the Apple menu's "About This Linux" opens it too)
 //
@@ -251,7 +251,7 @@ Scope {
                     wrapMode: Text.Wrap
                     maximumLineCount: 2
                     elide: Text.ElideRight
-                    text: "MacShell"
+                    text: "YukiShell"
                     color: pal.text
                     font.family: root.fontForWeight(Font.Bold, root.fam); font.pixelSize: 24; font.weight: Font.Bold
                 }
@@ -344,7 +344,7 @@ Scope {
                     width: parent.width
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.Wrap
-                    text: "Linux® is a registered trademark of Linus Torvalds.\nMacShell 0.3.9"
+                    text: "Linux® is a registered trademark of Linus Torvalds.\nYukiShell, based on MacShell 0.3.9"
                     color: pal.text3
                     font.family: root.fontForWeight(Font.Normal, root.fam); font.pixelSize: 10
                     lineHeight: 1.1

@@ -1,6 +1,6 @@
 // Desktop — the files, folders and apps sitting on your desktop, exactly as macOS shows them.
 //
-// Everything in ~/Desktop appears here. Drag an icon to move it (positions live in ~/.config/macshell/desktop.json),
+// Everything in ~/Desktop appears here. Drag an icon to move it (positions live in ~/.config/yukishell/desktop.json),
 // double-click to open, drop one icon onto another to make a folder, right-click for the menu.
 import QtQuick
 import QtQuick.Effects
@@ -54,14 +54,14 @@ Scope {
     }
     FileView {
         id: placeFile
-        path: root.home + "/.config/macshell/desktop.json"
+        path: root.home + "/.config/yukishell/desktop.json"
         watchChanges: true
         printErrors: false
         onFileChanged: reload()
         onLoaded: { try { root.places = JSON.parse(text()); } catch (e) { root.places = ({}); } }
     }
     function savePlaces() {
-        Quickshell.execDetached(["sh", "-c", "mkdir -p \"$HOME/.config/macshell\" && printf '%s' \"$1\" > \"$HOME/.config/macshell/desktop.json\"", "sh", JSON.stringify(places)]);
+        Quickshell.execDetached(["sh", "-c", "mkdir -p \"$HOME/.config/yukishell\" && printf '%s' \"$1\" > \"$HOME/.config/yukishell/desktop.json\"", "sh", JSON.stringify(places)]);
     }
     function placeOf(name, index) {
         var p = places[name];

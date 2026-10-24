@@ -1,22 +1,22 @@
-// macbar — a macOS Tahoe style menu bar for Hyprland, built on Quickshell.
+// yukibar — a macOS Tahoe style menu bar for Hyprland, built on Quickshell.
 //
-// Part of the combined macbar + macdock shell (see shell.qml). Keep this file, MacDock.qml, shell.qml,
-// liquidglass.frag and apple-logo-*.svg together in ~/.config/quickshell/macbar/ and run:  qs -c macbar
+// Part of the combined yukibar + yukidock shell (see shell.qml). Keep this file, YukiDock.qml, shell.qml,
+// liquidglass.frag and apple-logo-*.svg together in ~/.config/quickshell/yukibar/ and run:  qs -c YukiShell
 //
-// Settings live in ~/.config/macbar/settings.json (Apple menu → System Settings…, or Control Center → Edit Controls).
+// Settings live in ~/.config/yukibar/settings.json (Apple menu → System Settings…, or Control Center → Edit Controls).
 // On first run, appearance (dark mode, accent, font, glass tuning, wallpaper) is inherited from yukidock's settings.json.
 //
 // Hyprland (hyprland.conf syntax):
-//   windowrule = float, title:^(macbar Settings)$
-//   windowrule = center, title:^(macbar Settings)$
-//   layerrule  = blur, macspot          (Spotlight is its own layer; the bar itself needs no blur rule)
-//   layerrule  = ignorealpha 0.05, macspot
-//   # the bar's background is its own layer ("macbarbg", under the bar): blur it with Hyprland like this
-//   layerrule  = blur, macbarbg
-//   layerrule  = ignorealpha 0.05, macbarbg
+//   windowrule = float, title:^(yukibar Settings)$
+//   windowrule = center, title:^(yukibar Settings)$
+//   layerrule  = blur, yukispot          (Spotlight is its own layer; the bar itself needs no blur rule)
+//   layerrule  = ignorealpha 0.05, yukispot
+//   # the bar's background is its own layer ("yukibarbg", under the bar): blur it with Hyprland like this
+//   layerrule  = blur, yukibarbg
+//   layerrule  = ignorealpha 0.05, yukibarbg
 // Hyprland (Lua):
-//   hl.layer_rule({ name = "macspot", match = { namespace = "macspot" }, blur = true, ignore_alpha = 0.05, no_anim = true })
-//   hl.layer_rule({ name = "macbarbg", match = { namespace = "macbarbg" }, blur = true, ignore_alpha = 0.05, no_anim = true })
+//   hl.layer_rule({ name = "yukispot", match = { namespace = "yukispot" }, blur = true, ignore_alpha = 0.05, no_anim = true })
+//   hl.layer_rule({ name = "yukibarbg", match = { namespace = "yukibarbg" }, blur = true, ignore_alpha = 0.05, no_anim = true })
 //
 // Optional tools used by the Control Center:
 //   nmcli (Wi-Fi / VPN / Ethernet), pactl (audio device routing), hyprctl (keyboard layouts), pw-dump (privacy dots),
@@ -34,34 +34,34 @@
 // Test with: notify-send "Fitness" "Move goal achieved"
 //
 // Spotlight (the search icon) is built in and drawn in Liquid Glass. Bind it to a key with:
-//   bind = ALT, space, exec, qs -c macbar ipc call spotlight toggle
+//   bind = ALT, space, exec, qs -c YukiShell ipc call spotlight toggle
 // Hyprland (Lua):
-//   hl.bind("ALT + Space", hl.dsp.exec_cmd("qs -c macbar ipc call spotlight toggle"))
-//   Reduced motion: set "reduceMotion": true in ~/.config/macbar/settings.json to turn off Spotlight's pop / stagger / slide animations.
+//   hl.bind("ALT + Space", hl.dsp.exec_cmd("qs -c YukiShell ipc call spotlight toggle"))
+//   Reduced motion: set "reduceMotion": true in ~/.config/yukibar/settings.json to turn off Spotlight's pop / stagger / slide animations.
 // Wallpapers: Ctrl+Alt+W opens the wallpaper picker (Liquid Glass). Bind it with:
-//   hl.bind("CTRL + ALT + W", hl.dsp.exec_cmd("qs -c macbar ipc call wallpapers toggle"))
-//   (hyprlang:  bind = CTRL ALT, W, exec, qs -c macbar ipc call wallpapers toggle)
+//   hl.bind("CTRL + ALT + W", hl.dsp.exec_cmd("qs -c YukiShell ipc call wallpapers toggle"))
+//   (hyprlang:  bind = CTRL ALT, W, exec, qs -c YukiShell ipc call wallpapers toggle)
 // Folder: ~/Pictures/Wallpapers by default (change it inside the picker, or "wallpaperDir" in settings.json).
 // Star a wallpaper to pin it to the top. Applied through Noctalia / awww / swww / hyprpaper, or your own "wallpaperCmd" ({} = image path).
 // Clipboard history + Emoji live inside Spotlight (the clipboard and smiley buttons next to the search field):
 //   needs wl-clipboard + cliphist (this shell starts the `wl-paste --watch cliphist store` watchers itself, unless you already run them).
-//   bind = SUPER, V, exec, qs -c macbar ipc call spotlight clipboard       # Clipboard history (replace any default SUPER+V bind)
-//   bind = SUPER, period, exec, qs -c macbar ipc call spotlight emoji      # Emoji picker
+//   bind = SUPER, V, exec, qs -c YukiShell ipc call spotlight clipboard       # Clipboard history (replace any default SUPER+V bind)
+//   bind = SUPER, period, exec, qs -c YukiShell ipc call spotlight emoji      # Emoji picker
 // Hyprland (Lua):
-//   hl.bind("SUPER + V", hl.dsp.exec_cmd("qs -c macbar ipc call spotlight clipboard"))
-//   hl.bind("SUPER + period", hl.dsp.exec_cmd("qs -c macbar ipc call spotlight emoji"))
+//   hl.bind("SUPER + V", hl.dsp.exec_cmd("qs -c YukiShell ipc call spotlight clipboard"))
+//   hl.bind("SUPER + period", hl.dsp.exec_cmd("qs -c YukiShell ipc call spotlight emoji"))
 //   (use the same `qs -c <name>` prefix you use for the Spotlight bind; `ipc call spotlight apps` opens the Applications panel)
 // Return pastes the entry into the focused app, Shift+Return only copies it, Delete removes it from the history.
 // Files runs filesCmd.
 //
 // Screenshots (Print key): the screen freezes and dims, drag to select an area (a size badge follows the pointer), release to capture.
 // Return/Space = whole screen, Esc or right-click = cancel. Where it is saved (and clipboard / notification) is in System Settings → Menu Bar.
-//   bind = , Print, exec, qs -c macbar ipc call screenshot region
-//   bind = SHIFT, Print, exec, qs -c macbar ipc call screenshot screen
-//   bind = ALT, Print, exec, qs -c macbar ipc call screenshot window
+//   bind = , Print, exec, qs -c YukiShell ipc call screenshot region
+//   bind = SHIFT, Print, exec, qs -c YukiShell ipc call screenshot screen
+//   bind = ALT, Print, exec, qs -c YukiShell ipc call screenshot window
 // Hyprland (Lua):
-//   hl.bind("Print", hl.dsp.exec_cmd("qs -c macbar ipc call screenshot region"))
-// Optional (no fade on the picker):  layerrule = noanim, macshot   (Lua: hl.layer_rule({ name = "macshot", match = { namespace = "macshot" }, no_anim = true }))
+//   hl.bind("Print", hl.dsp.exec_cmd("qs -c YukiShell ipc call screenshot region"))
+// Optional (no fade on the picker):  layerrule = noanim, yukishot   (Lua: hl.layer_rule({ name = "yukishot", match = { namespace = "yukishot" }, no_anim = true }))
 // Needs grim (and wl-clipboard for the clipboard copy).
 
 import QtQuick
@@ -266,7 +266,7 @@ Scope {
         }
     }
     property bool lockArtBackground: true     // lock screen: blurred album art as the background while the cover is enlarged
-    // lock screen clock (Settings → Lock Screen → Clock); MacLock reads these when it starts
+    // lock screen clock (Settings → Lock Screen → Clock); YukiLock reads these when it starts
     property string lockClockStyle: "glass"   // preset last picked: glass | classic | serif | liquid | thin | custom
     property string lockClockFont: "rounded"   // rounded | serif | inter
     property int lockClockWeight: 680
@@ -302,7 +302,7 @@ Scope {
     readonly property bool gaming: gamingMode || gamingAutoActive
     property bool ccMigGame: false            // one-time: add the Game Mode tile to an existing Control Center layout
     property bool barGlass: true              // the bar strip itself is Liquid Glass (needs barStyle "liquid")
-    property real barBgOpacity: 0.10          // fill of the separate "macbarbg" layer (0 = layer hidden). Must stay above the layerrule's ignore_alpha (0.05) for Hyprland to blur it
+    property real barBgOpacity: 0.10          // fill of the separate "yukibarbg" layer (0 = layer hidden). Must stay above the layerrule's ignore_alpha (0.05) for Hyprland to blur it
     property bool glassRealtime: false        // live-capture every window all the time; off by default now that popovers refract a screen snapshot       // keep every window capture live all the time (no wallpaper-first delay when a popover opens)
     // Animated wallpaper inside the Liquid Glass (bar, Dock, widgets, Settings): OFF by default. Off = no video decoder exists at all and the
     // glass refracts a still frame of the wallpaper (the wallpaper itself still plays through mpvpaper). On = the glass plays a small
@@ -476,13 +476,13 @@ Scope {
         ccControls = order;
     }
 
-    readonly property string configDir: Quickshell.env("HOME") + "/.config/macbar"
+    readonly property string configDir: Quickshell.env("HOME") + "/.config/yukibar"
     readonly property string dockConfigDir: Quickshell.env("HOME") + "/.config/yukidock"
     readonly property int popRoom: 900
 
     function sh(cmd) { Quickshell.execDetached(["sh", "-c", cmd]); }
     // Log out of Hyprland. 0.55+ (Lua) takes a Lua expression; UWSM sessions are stopped through uwsm so the session ends cleanly.
-    // Lock Screen: starts MacLock via IPC helper; does nothing if already locked
+    // Lock Screen: starts YukiLock via IPC helper; does nothing if already locked
     function lockScreen() {
         sh('sh ~/.config/quickshell/YukiLock/lock-via-ipc.sh');
     }
@@ -1066,7 +1066,7 @@ Scope {
                     height: g.height + 2 * lg.p
                     fragmentShader: g.shaderUrl
                     onStatusChanged: {
-                        console.log("[macbar-glass] shader status:", status, "(0 = compiled, 1 = uncompiled, 2 = error)", log);
+                        console.log("[yukibar-glass] shader status:", status, "(0 = compiled, 1 = uncompiled, 2 = error)", log);
                         if (status === ShaderEffect.Error) g.shaderError();
                     }
                     property variant src: lg.bn > 1.0 ? bblur2 : bblur
@@ -1816,9 +1816,9 @@ Scope {
     readonly property string activeAppId: activeTl ? (activeTl.appId || "") : ""
     readonly property string appName: {
         if (activeAppId === "") return I18n.tr("Desktop");
-        // MacShell's own windows (all "org.quickshell")
+        // YukiShell's own windows (all "org.quickshell")
         if (activeAppId === "org.quickshell") return (activeTl.title === "Clock" || activeTl.title === "App Store") ? I18n.tr(activeTl.title)
-                                                     : (activeTl.title === "macshell Settings" ? I18n.tr("System Settings") : "MacShell");
+                                                     : (activeTl.title === "YukiShell Settings" ? I18n.tr("System Settings") : "YukiShell");
         var e = lookup(activeAppId);
         return e ? e.name : activeAppId;
     }
@@ -1865,8 +1865,8 @@ Scope {
         if (kind === "brightness") osdQuietBrightUntil = Math.max(osdQuietBrightUntil, t);
         else osdQuietVolUntil = Math.max(osdQuietVolUntil, t);
     }
-    // ── UI sounds (synthesized macOS-style set in ~/.local/share/sounds/macshell, see macshell-make-sounds.py) ──
-    readonly property string soundDir: Quickshell.env("HOME") + "/.local/share/sounds/macshell"
+    // ── UI sounds (synthesized macOS-style set in ~/.local/share/sounds/yukishell, see yukishell-make-sounds.py) ──
+    readonly property string soundDir: Quickshell.env("HOME") + "/.local/share/sounds/yukishell"
     property var soundLast: ({})
     function playSound(name, vol) {
         if (!uiSounds || gaming) return;
@@ -2533,7 +2533,7 @@ Scope {
     Process {
         id: recordProc
         command: ["sh", "-c", [
-            'f="$1"; out="$2"; pf="${XDG_RUNTIME_DIR:-/tmp}/macbar-recorder.pid"; log="${XDG_RUNTIME_DIR:-/tmp}/macbar-recorder.log"',
+            'f="$1"; out="$2"; pf="${XDG_RUNTIME_DIR:-/tmp}/yukibar-recorder.pid"; log="${XDG_RUNTIME_DIR:-/tmp}/yukibar-recorder.log"',
             'mkdir -p "$(dirname "$f")"',
             '# a recorder left behind by an earlier crash would record forever: finish it first',
             'if [ -f "$pf" ]; then op=$(cat "$pf" 2>/dev/null); if [ -n "$op" ] && [ "$(cat /proc/$op/comm 2>/dev/null)" = wf-recorder ]; then kill -INT "$op" 2>/dev/null; sleep 0.6; fi; fi',
@@ -2552,9 +2552,9 @@ Scope {
         onExited: (code, status) => {
             root.recRun = false;
             if (root.recording) root.recording = false;
-            Quickshell.execDetached(["sh", "-c", "rm -f \"${XDG_RUNTIME_DIR:-/tmp}/macbar-recorder.pid\"; if [ -s \"$1\" ]; then notify-send -a macbar 'Screen Recording Saved' \"$1\"; "
-                + "elif ! command -v wf-recorder >/dev/null 2>&1; then notify-send -a macbar 'Screen Recording Failed' 'wf-recorder is not installed'; "
-                + "else notify-send -a macbar 'Screen Recording Failed' \"$(grep -v '^\\s*$' \"${XDG_RUNTIME_DIR:-/tmp}/macbar-recorder.log\" 2>/dev/null | tail -n 2)\"; fi", "sh", root.recordFile]);
+            Quickshell.execDetached(["sh", "-c", "rm -f \"${XDG_RUNTIME_DIR:-/tmp}/yukibar-recorder.pid\"; if [ -s \"$1\" ]; then notify-send -a yukibar 'Screen Recording Saved' \"$1\"; "
+                + "elif ! command -v wf-recorder >/dev/null 2>&1; then notify-send -a yukibar 'Screen Recording Failed' 'wf-recorder is not installed'; "
+                + "else notify-send -a yukibar 'Screen Recording Failed' \"$(grep -v '^\\s*$' \"${XDG_RUNTIME_DIR:-/tmp}/yukibar-recorder.log\" 2>/dev/null | tail -n 2)\"; fi", "sh", root.recordFile]);
         }
     }
     function toggleRecording() {
@@ -2570,7 +2570,7 @@ Scope {
             recording = false;
             if (recRun) {
                 // ask the recorder to finish (SIGINT: it writes the end of the file); recRun goes false when it has exited
-                Quickshell.execDetached(["sh", "-c", "kill -INT \"$(cat \"${XDG_RUNTIME_DIR:-/tmp}/macbar-recorder.pid\" 2>/dev/null)\" 2>/dev/null || pkill -INT -x wf-recorder"]);
+                Quickshell.execDetached(["sh", "-c", "kill -INT \"$(cat \"${XDG_RUNTIME_DIR:-/tmp}/yukibar-recorder.pid\" 2>/dev/null)\" 2>/dev/null || pkill -INT -x wf-recorder"]);
                 recKill.restart();
             }
         }
@@ -2586,7 +2586,7 @@ Scope {
         var m = Math.floor(recSecs / 60), r = recSecs % 60;
         return m + ":" + (r < 10 ? "0" : "") + r;
     }
-    function pickColor() { sh("c=$(hyprpicker -a) && [ -n \"$c\" ] && notify-send -a macbar 'Color copied' \"$c\""); }
+    function pickColor() { sh("c=$(hyprpicker -a) && [ -n \"$c\" ] && notify-send -a yukibar 'Color copied' \"$c\""); }
     Process {
         id: fileSearchProc
         command: ["sh", "-c", "find \"$HOME\" -type f -iname \"*$1*\" -not -path '*/.cache/*' -not -path '*/.local/share/Trash/*' 2>/dev/null | head -n 60", "sh", root.fileQuery]
@@ -2616,7 +2616,7 @@ Scope {
     property bool keepAwake: false
     Process {
         id: awakeProc
-        command: ["systemd-inhibit", "--what=idle:sleep", "--who=macbar", "--why=Keep Awake", "sleep", "infinity"]
+        command: ["systemd-inhibit", "--what=idle:sleep", "--who=yukibar", "--why=Keep Awake", "sleep", "infinity"]
         running: root.keepAwake
     }
 
@@ -2695,7 +2695,7 @@ Scope {
             if (aw.workspace) l.push("Workspace: " + aw.workspace.name);
             if (aw.title) l.push("Title: " + aw.title);
         } else l.push("Class: " + activeAppId);
-        Quickshell.execDetached(["notify-send", "-a", "macbar", "About " + n, l.join("\n")]);
+        Quickshell.execDetached(["notify-send", "-a", "yukibar", "About " + n, l.join("\n")]);
     }
     function forceQuitActive(aw) {
         if (aw && aw.pid > 0) Quickshell.execDetached(["kill", "-9", String(Math.floor(aw.pid))]);
@@ -2733,7 +2733,7 @@ Scope {
         function close(): void { root.ccRequest(false); }
     }
     // Laptop / keyboard hardware keys (volume, mute, brightness). The compositor must bind the keys (the installer's
-    // macshell.lua does); the shell then does the work itself, so the numbers, the on-screen display and the UI sounds
+    // yukishell.lua does); the shell then does the work itself, so the numbers, the on-screen display and the UI sounds
     // all stay in step.   qs -c YukiShell ipc call hardware volumeUp | volumeDown | mute | micMute | brightnessUp | brightnessDown
     IpcHandler {
         target: "hardware"
@@ -2754,11 +2754,11 @@ Scope {
 
     // ═════════════ CLIPBOARD HISTORY + EMOJI (Spotlight panels) ═════════════
     // History comes from cliphist; its `wl-paste --watch` watchers are started here (unless you already run them), and every
-    // new entry also gets a timestamp in ~/.cache/macbar/clip-times so the list can say "Copied 4:11 pm".
+    // new entry also gets a timestamp in ~/.cache/yukibar/clip-times so the list can say "Copied 4:11 pm".
     property string clipState: "unknown"      // unknown | ok | external | missing
     property var clipEntries: []              // newest first
     property bool clipLoading: false
-    readonly property string clipDir: Quickshell.env("HOME") + "/.cache/macbar"
+    readonly property string clipDir: Quickshell.env("HOME") + "/.cache/yukibar"
     // the system's default colour emoji font (asked from fontconfig); Noto Color Emoji until that answers
     property string emojiFont: "Noto Color Emoji"
     Process {
@@ -2772,11 +2772,11 @@ Scope {
         }
     }
 
-    readonly property string clipStoreCmd: "cliphist store; id=$(cliphist list | head -n1 | cut -f1); t=\"$HOME/.cache/macbar/clip-times\"; "
+    readonly property string clipStoreCmd: "cliphist store; id=$(cliphist list | head -n1 | cut -f1); t=\"$HOME/.cache/yukibar/clip-times\"; "
         + "[ -n \"$id\" ] && [ \"$id\" != \"$(tail -n1 \"$t\" 2>/dev/null | cut -f1)\" ] && printf '%s\\t%s\\n' \"$id\" \"$(date +%s)\" >> \"$t\""
     readonly property string clipListCmd: [
         "if ! command -v cliphist >/dev/null 2>&1; then echo '@@MISSING@@'; exit 0; fi",
-        "d=\"$HOME/.cache/macbar\"; mkdir -p \"$d/clip\"; t=\"$d/clip-times\"; touch \"$t\"",
+        "d=\"$HOME/.cache/yukibar\"; mkdir -p \"$d/clip\"; t=\"$d/clip-times\"; touch \"$t\"",
         "l=$(mktemp); cliphist list 2>/dev/null | head -n 300 > \"$l\"",
         "awk -F'\\t' -v now=\"$(date +%s)\" 'FILENAME==ARGV[1]{s[$1]=1;next} !($1 in s){print $1\"\\t\"now}' \"$t\" \"$l\" >> \"$t\"",
         "tail -n 3000 \"$t\" > \"$t.tmp\" && mv \"$t.tmp\" \"$t\"",
@@ -2795,7 +2795,7 @@ Scope {
         id: clipProbe
         command: ["sh", "-c",
             "if ! command -v wl-paste >/dev/null 2>&1 || ! command -v cliphist >/dev/null 2>&1; then echo missing; exit 0; fi; "
-            + "mkdir -p \"$HOME/.cache/macbar/clip\"; "
+            + "mkdir -p \"$HOME/.cache/yukibar/clip\"; "
             // look at real wl-paste processes only (`pgrep -f` also matched this very shell, so it always answered "external"
             // and the watchers below never started)
             + "ext=0; for p in $(pgrep -x wl-paste 2>/dev/null); do "
@@ -2900,7 +2900,7 @@ Scope {
         if (isNaN(id)) return;
         if (en.kind === "url") { Quickshell.execDetached(["xdg-open", /^www\./i.test(en.text) ? "https://" + en.text : en.text]); return; }
         var ext = en.kind === "image" ? (/(png|jpe?g|webp|gif|bmp)/i.exec(en.label) || ["png"])[0].toLowerCase() : "txt";
-        Quickshell.execDetached(["sh", "-c", 'd="${XDG_RUNTIME_DIR:-/tmp}/macshell-clip"; mkdir -p "$d"; f="$d/clip-$1.$2"; cliphist decode "$1" > "$f" && exec xdg-open "$f"',
+        Quickshell.execDetached(["sh", "-c", 'd="${XDG_RUNTIME_DIR:-/tmp}/yukishell-clip"; mkdir -p "$d"; f="$d/clip-$1.$2"; cliphist decode "$1" > "$f" && exec xdg-open "$f"',
                                  "sh", String(id), ext]);
     }
     function clipDelete(en) {
@@ -2908,11 +2908,11 @@ Scope {
         var id = parseInt(en.id);
         if (isNaN(id)) return;
         clipEntries = clipEntries.filter(function (x) { return x.id !== en.id; });
-        sh("printf '%s\\t\\n' " + id + " | cliphist delete; rm -f \"$HOME/.cache/macbar/clip/" + id + ".img\"");
+        sh("printf '%s\\t\\n' " + id + " | cliphist delete; rm -f \"$HOME/.cache/yukibar/clip/" + id + ".img\"");
     }
     function clipClear() {
         clipEntries = [];
-        sh("cliphist wipe; rm -f \"$HOME/.cache/macbar/clip-times\" \"$HOME/.cache/macbar/clip/\"*");
+        sh("cliphist wipe; rm -f \"$HOME/.cache/yukibar/clip-times\" \"$HOME/.cache/yukibar/clip/\"*");
     }
     // paste into the app that had focus before Spotlight (terminals paste with Ctrl+Shift+V)
     property var pasteFn: null
@@ -3019,8 +3019,8 @@ Scope {
         if (clipAutoPaste) pasteSoon();
     }
 
-    // the MacShell logo: the icon of MacShell's own windows in the Alt+Tab switcher
-    readonly property string logoPath: decodeURIComponent(String(Qt.resolvedUrl("assets/macshell-logo.png")).replace(/^file:\/\//, ""))
+    // the YukiShell logo: the icon of YukiShell's own windows in the Alt+Tab switcher
+    readonly property string logoPath: decodeURIComponent(String(Qt.resolvedUrl("assets/yukishell-logo.png")).replace(/^file:\/\//, ""))
     // ── applications for Spotlight ──
     function iconSrc(name) {
         var fb = Quickshell.iconPath("application-x-executable", true);
@@ -3354,14 +3354,14 @@ Scope {
         "  mkdir -p \"$d\" && mv -f \"$tmp\" \"$n\" && f=\"$n\"",
         "fi",
         "[ \"$cl\" = 1 ] && wl-copy --type image/png < \"$f\"",
-        "if [ \"$nt\" = 1 ]; then if [ \"$f\" = \"$tmp\" ]; then notify-send -a macbar 'Screenshot copied' 'Copied to the clipboard'; else notify-send -a macbar 'Screenshot saved' \"$f\"; fi; fi",
+        "if [ \"$nt\" = 1 ]; then if [ \"$f\" = \"$tmp\" ]; then notify-send -a yukibar 'Screenshot copied' 'Copied to the clipboard'; else notify-send -a yukibar 'Screenshot saved' \"$f\"; fi; fi",
         "[ \"$f\" = \"$tmp\" ] && rm -f \"$tmp\"",
         "true"
     ].join("\n")
     // geom: "" = whole screen, "x,y WxH" = that area, "@" = `tmpPath` already holds the finished PNG (from the picker)
     function shotFinish(geom, tmpPath) {
         playSound("shutter", 0.8);
-        var tmp = tmpPath || (shotTmp + "/macshot-out-" + Date.now() + ".png");
+        var tmp = tmpPath || (shotTmp + "/yukishot-out-" + Date.now() + ".png");
         var save = screenshotSave || !screenshotClipboard;          // never end up with nowhere to put it
         Quickshell.execDetached(["sh", "-c", shotFinishScript, "sh", screenshotDir, save ? "1" : "0", screenshotClipboard ? "1" : "0",
                                  screenshotNotify ? "1" : "0", tmp, geom]);
@@ -3375,13 +3375,13 @@ Scope {
         shotBusy = true;
         shotId++;
         shotSnap.command = ["sh", "-c",
-            "d=\"$1\"; i=\"$2\"; shift 2; for n in \"$@\"; do grim -t ppm -o \"$n\" \"$d/macshot-$i-$n.ppm\" & done; wait; "
-            + "for n in \"$@\"; do [ -s \"$d/macshot-$i-$n.ppm\" ] || exit 1; done", "sh", shotTmp, String(shotId)].concat(names);
+            "d=\"$1\"; i=\"$2\"; shift 2; for n in \"$@\"; do grim -t ppm -o \"$n\" \"$d/yukishot-$i-$n.ppm\" & done; wait; "
+            + "for n in \"$@\"; do [ -s \"$d/yukishot-$i-$n.ppm\" ] || exit 1; done", "sh", shotTmp, String(shotId)].concat(names);
         shotSnap.running = true;
     }
     function shotClose() {
         shotOpen = false;
-        Quickshell.execDetached(["sh", "-c", "rm -f \"$1\"/macshot-*.ppm", "sh", shotTmp]);
+        Quickshell.execDetached(["sh", "-c", "rm -f \"$1\"/yukishot-*.ppm", "sh", shotTmp]);
     }
     Process {
         id: shotSnap
@@ -3407,11 +3407,11 @@ Scope {
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
 
-            WlrLayershell.namespace: "macshot"
+            WlrLayershell.namespace: "yukishot"
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
-            readonly property url snap: "file://" + root.shotTmp + "/macshot-" + root.shotId + "-" + modelData.name + ".ppm"
+            readonly property url snap: "file://" + root.shotTmp + "/yukishot-" + root.shotId + "-" + modelData.name + ".ppm"
             readonly property real k: frozen.implicitWidth > 0 ? frozen.implicitWidth / width : 1     // snapshot pixels per logical pixel
             property real ax: 0
             property real ay: 0
@@ -3435,7 +3435,7 @@ Scope {
                 id: grabTimer
                 interval: 40                         // let the cut-out settle at its final size before it is grabbed
                 onTriggered: {
-                    var out = root.shotTmp + "/macshot-out-" + Date.now() + ".png";
+                    var out = root.shotTmp + "/yukishot-out-" + Date.now() + ".png";
                     var kk = shw.k;
                     var ok = cut.grabToImage(function (res) {
                         var saved = res.saveToFile(out);
@@ -3550,7 +3550,7 @@ Scope {
     // output → a window is FULLSCREEN there: only then do the desktop widgets stop drawing (a focused or tiled
     // window that merely covers the desktop keeps them alive)
     property var screenFullscreen: ({})
-    readonly property string wallPauseScript: Quickshell.env("HOME") + "/.config/hypr-macshell/scripts/macshell-wallpause.sh"
+    readonly property string wallPauseScript: Quickshell.env("HOME") + "/.config/hypr-yukishell/scripts/yukishell-wallpause.sh"
     Process {
         id: coverProbe
         command: ["sh", "-c", "printf '{\"m\":'; hyprctl -j monitors; printf ',\"c\":'; hyprctl -j clients; printf '}'"]
@@ -3598,7 +3598,7 @@ Scope {
     // ═════════════ ANIMATED WALLPAPER IN THE GLASS: one small copy, never the full video ═════════════
     // Every glass (bar, Dock, Settings, each desktop widget) runs its own decoder. Decoding the original (often 4K) video that many times is
     // what used to take gigabytes. The glass is blurred and refracted anyway, so it plays a 720 px / 30 fps copy instead (cached in
-    // ~/.cache/macshell/glass, built once with ffmpeg at low priority). Until that copy exists the glass shows the still picture.
+    // ~/.cache/yukishell/glass, built once with ffmpeg at low priority). Until that copy exists the glass shows the still picture.
     // Without ffmpeg (or if the build fails) the original video is used, so the switch still works.
     property var glassProxy: ({})              // video path → small copy, ready
     property var glassProxyFailed: ({})        // video path → true when no copy could be made
@@ -3618,7 +3618,7 @@ Scope {
         glassProxyBuild.command = ["sh", "-c", [
             'v="$1"; w="$2"; f="$3"',
             'command -v ffmpeg >/dev/null 2>&1 || exit 1',
-            'd="$HOME/.cache/macshell/glass"; mkdir -p "$d"',
+            'd="$HOME/.cache/yukishell/glass"; mkdir -p "$d"',
             'find "$d" -name "*.mp4" -mtime +60 -delete 2>/dev/null',
             'k="$(printf "%s:%s:%s:%s" "$v" "$(stat -c %Y "$v" 2>/dev/null)" "$w" "$f" | md5sum | cut -c1-16)"',
             'o="$d/$k.mp4"',
@@ -3652,7 +3652,7 @@ Scope {
     Timer { interval: 2500; running: true; onTriggered: root.glassProxyEnsure() }      // the saved settings are in by now
 
     // ═════════════ GAME MODE ═════════════
-    readonly property string gamingScript: Quickshell.env("HOME") + "/.config/hypr-macshell/scripts/macshell-gaming.sh"
+    readonly property string gamingScript: Quickshell.env("HOME") + "/.config/hypr-yukishell/scripts/yukishell-gaming.sh"
     property bool gamingApplied: false
     onGamingChanged: gamingApply.restart()
     Timer {
@@ -3713,7 +3713,7 @@ Scope {
             try { root[k] = o[k]; } catch (err) { }
         }
     }
-    // inherit look from macdock first, then macbar's own file wins
+    // inherit look from yukidock first, then yukibar's own file wins
     FileView {
         id: dockStore
         path: root.dockConfigDir + "/settings.json"
@@ -3751,7 +3751,7 @@ Scope {
         onLoadFailed: { root.ccMigRec = true; root.settingsReady = true; if (root.barStyle === "liquid") root.startGlass(); }
     }
 
-    // ═════════════ LIQUID GLASS BACKEND (same pipeline as macdock) ═════════════
+    // ═════════════ LIQUID GLASS BACKEND (same pipeline as yukidock) ═════════════
     property string glassState: "idle"       // idle → building → ready | failed
     readonly property bool liquidActive: barStyle === "liquid" && glassState === "ready" && !gaming
     readonly property string glassShaderSrc: decodeURIComponent(Qt.resolvedUrl("liquidglass.frag").toString().replace("file://", ""))
@@ -3759,7 +3759,7 @@ Scope {
     readonly property url glassShaderUrl: "file://" + glassShaderOut
 
     onBarStyleChanged: if (barStyle === "liquid") startGlass()
-    onGlassStateChanged: console.log("[macbar-glass] state:", glassState)
+    onGlassStateChanged: console.log("[yukibar-glass] state:", glassState)
     function startGlass() {
         if (glassState === "ready" || glassState === "building") return;
         glassState = "building";
@@ -3777,7 +3777,7 @@ Scope {
             + "[ -f \"$HOME/.config/yukidock/liquidglass.frag.qsb\" ] && cp \"$HOME/.config/yukidock/liquidglass.frag.qsb\" \"$2\" && exit 0; "
             + "exit 1",
             "sh", root.glassShaderSrc, root.glassShaderOut]
-        stderr: StdioCollector { onStreamFinished: if (text.trim() !== "") console.log("[macbar-glass] qsb:", text.trim()) }
+        stderr: StdioCollector { onStreamFinished: if (text.trim() !== "") console.log("[yukibar-glass] qsb:", text.trim()) }
         onExited: (code, status) => root.glassState = (code === 0 ? "ready" : "failed")
     }
 
@@ -3897,7 +3897,7 @@ Scope {
     }
 
     // ═════════════ SETTINGS ═════════════
-    // The settings window now lives in MacDock.qml (one window for the whole shell).
+    // The settings window now lives in YukiDock.qml (one window for the whole shell).
     function openSettings(pane) { if (hub) hub.openSettings(pane || "menubar"); }
 
     // ═════════════ THE BAR ═════════════
@@ -3931,7 +3931,7 @@ Scope {
         return -1;
     }
     // System notifications get the UI sound; apps (Discord, Spotify, browsers…) play their own, so they stay silent here
-    readonly property var systemNotifApps: ["", "macbar", "macshell", "settings", "system", "notify-send", "networkmanager", "network",
+    readonly property var systemNotifApps: ["", "yukibar", "yukishell", "settings", "system", "notify-send", "networkmanager", "network",
         "power", "upower", "battery", "udiskie", "udisks", "disks", "polkit", "systemd", "screenshot", "grim", "hyprland", "bluetooth", "blueman", "updates", "pacman"]
     function isSystemNotif(n) {
         var app = (n.appName || "").toLowerCase();
@@ -3961,7 +3961,7 @@ Scope {
         }
         if ((!root.notifDnd || urg === 2) && !root.notifOpen) {
             // the screenshot has its own shutter sound
-            if (root.isSystemNotif(n) && !(rec.app === "macbar" && rec.summary.indexOf("Screenshot") === 0)) root.playSound("glass", 0.7);
+            if (root.isSystemNotif(n) && !(rec.app === "yukibar" && rec.summary.indexOf("Screenshot") === 0)) root.playSound("glass", 0.7);
             notifToasts.insert(0, rec);
             while (notifToasts.count > 4) notifToasts.remove(notifToasts.count - 1);
         }
@@ -3977,7 +3977,7 @@ Scope {
         try { n.bodyChanged.connect(function () { upd("body", n.body); }); } catch (e) {}
     }
     // ── lock screen: the unread notifications, privacy-safe (app name, app icon, time — never the text) ──
-    // written to ~/.cache/macshell/lock-notifs.json, which MacLock watches
+    // written to ~/.cache/yukishell/lock-notifs.json, which YukiLock watches
     onNotifUnreadChanged: lockNotifSave.restart()
     Connections { target: notifHist; function onCountChanged() { lockNotifSave.restart(); } }
     Timer { id: lockNotifSave; interval: 300; onTriggered: root.lockNotifWrite() }
@@ -3994,7 +3994,7 @@ Scope {
             var r = notifHist.get(i);
             out.push({ id: r.nid, app: r.app || "Notification", icon: appIconFor(r.app), time: r.time });
         }
-        Quickshell.execDetached(["sh", "-c", "mkdir -p \"$HOME/.cache/macshell\" && printf '%s\\n' \"$1\" > \"$HOME/.cache/macshell/lock-notifs.json.tmp\" && mv -f \"$HOME/.cache/macshell/lock-notifs.json.tmp\" \"$HOME/.cache/macshell/lock-notifs.json\"",
+        Quickshell.execDetached(["sh", "-c", "mkdir -p \"$HOME/.cache/yukishell\" && printf '%s\\n' \"$1\" > \"$HOME/.cache/yukishell/lock-notifs.json.tmp\" && mv -f \"$HOME/.cache/yukishell/lock-notifs.json.tmp\" \"$HOME/.cache/yukishell/lock-notifs.json\"",
             "sh", JSON.stringify(out)]);
     }
 
@@ -4048,7 +4048,7 @@ Scope {
     }
 
     // ═════════════ WALLPAPER PICKER (CTRL + ALT + W) ═════════════
-    //   hl.bind("CTRL + ALT + W", hl.dsp.exec_cmd("qs -c macbar ipc call wallpapers toggle"))
+    //   hl.bind("CTRL + ALT + W", hl.dsp.exec_cmd("qs -c YukiShell ipc call wallpapers toggle"))
     property string wallpaperDir: ""          // "" = ~/Pictures/Wallpapers
     property var wallpaperFavs: []            // favourite image paths, shown first
     property string wallpaperVideo: ""        // animated wallpaper (video) playing right now, "" = a still picture
@@ -4118,12 +4118,12 @@ Scope {
         for (var j = 0; j < dir.length; j++) if (root.wpIsVideo(dir[j])) videos.push(dir[j]);
         if (videos.length && !wpThumbBuild.running) {
             var script = [
-                'tc="$HOME/.cache/macshell/thumbs"; mkdir -p "$tc"',
+                'tc="$HOME/.cache/yukishell/thumbs"; mkdir -p "$tc"',
                 'for v do',
                 '  t="$tc/$(printf "%s:%s" "$v" "$(stat -c %Y "$v" 2>/dev/null)" | md5sum | cut -c1-16).jpg"',
                 '  if [ ! -s "$t" ]; then ffmpeg -loglevel error -y -ss 1 -i "$v" -frames:v 1 -vf "scale=360:-2" "$t" </dev/null >/dev/null 2>&1; fi',
                 '  [ -s "$t" ] && printf "T:%s\\t%s\\n" "$v" "$t"',
-                '  w="${t%.jpg}.webp"; if [ ! -s "$w" ] && [ -x "$HOME/.config/hypr-macshell/scripts/macshell-setwall.sh" ]; then setsid nice -n 15 "$HOME/.config/hypr-macshell/scripts/macshell-setwall.sh" --prepare "$v" >/dev/null 2>&1 </dev/null & fi',
+                '  w="${t%.jpg}.webp"; if [ ! -s "$w" ] && [ -x "$HOME/.config/hypr-yukishell/scripts/yukishell-setwall.sh" ]; then setsid nice -n 15 "$HOME/.config/hypr-yukishell/scripts/yukishell-setwall.sh" --prepare "$v" >/dev/null 2>&1 </dev/null & fi',
                 'done'
             ].join("\n");
             wpThumbBuild.command = ["sh", "-c", script, "sh"].concat(videos);
@@ -4164,13 +4164,13 @@ Scope {
         root.wpRebuild();
     }
     function wpIsVideo(p) { return /[.](mp4|webm|mkv|mov|m4v)$/i.test(p || ""); }
-    readonly property string setwallScript: Quickshell.env("HOME") + "/.config/hypr-macshell/scripts/macshell-setwall.sh"
+    readonly property string setwallScript: Quickshell.env("HOME") + "/.config/hypr-yukishell/scripts/yukishell-setwall.sh"
     // ── light / dark wallpaper pairs (macOS "Automatic / Light / Dark / Dynamic") ──
     property string wallpaperAppearance: "auto"     // auto (follows Dark Mode) | light | dark | dynamic (time of day)
     property string wpPairLight: ""
     property string wpPairDark: ""
     readonly property bool wpHasPair: wpPairLight !== "" && wpPairDark !== ""
-    readonly property string dynwallScript: Quickshell.env("HOME") + "/.config/hypr-macshell/scripts/macshell-dynwall.sh"
+    readonly property string dynwallScript: Quickshell.env("HOME") + "/.config/hypr-yukishell/scripts/yukishell-dynwall.sh"
     // "<name>-Light.ext" ↔ "<name>-Dark.ext" in the same folder (from the folder scan)
     function wpPairOf(path) {
         var m = /^(.*[-_ ])(light|dark)(\.[a-z0-9]+)$/i.exec(path || "");
@@ -4188,9 +4188,9 @@ Scope {
     // $1 = image path. Also stops a running animated wallpaper (mpvpaper) so it does not stay on top of the picture.
     // Clear the watched state before stopping mpvpaper; otherwise the live-wallpaper supervisor respawns it.
     readonly property string stopVideoScript: [
-        'state="$HOME/.config/macshell/wallpaper-video"',
-        'rm -f "$state" "$HOME/.config/macshell/wallpaper-video-play" "$HOME/.config/macshell/wallpaper-video-glass"',
-        'supfile="$HOME/.cache/macshell/wallsup.pid"',
+        'state="$HOME/.config/yukishell/wallpaper-video"',
+        'rm -f "$state" "$HOME/.config/yukishell/wallpaper-video-play" "$HOME/.config/yukishell/wallpaper-video-glass"',
+        'supfile="$HOME/.cache/yukishell/wallsup.pid"',
         'if [ -f "$supfile" ]; then g=$(cat "$supfile" 2>/dev/null); case "$g" in ""|*[!0-9]*) ;; *) kill -TERM -- "-$g" 2>/dev/null ;; esac; rm -f "$supfile"; fi',
         'pkill -CONT -x mpvpaper >/dev/null 2>&1',
         'pkill -TERM -x mpvpaper >/dev/null 2>&1',
@@ -4254,7 +4254,7 @@ Scope {
         var pair = wpPairOf(path);
         if (pair) { wpPairLight = pair.light; wpPairDark = pair.dark; root.wpAppliedPair = ""; wpApplyAppearance(); return; }
         wpPairLight = ""; wpPairDark = ""; root.wpAppliedPair = "";
-        // animated wallpapers go through macshell-setwall.sh (mpvpaper for videos); pictures are always set with awww below
+        // animated wallpapers go through yukishell-setwall.sh (mpvpaper for videos); pictures are always set with awww below
         if (root.wpIsVideo(path)) {
             root.wallpaperVideo = path;
             setwallProc.command = [root.setwallScript, path];
@@ -4394,11 +4394,11 @@ Scope {
 
     // ═════════════ WINDOW SWITCHER (ALT + TAB) ═════════════
     // Hyprland binds (put these in hyprland.conf, and remove any existing ALT+TAB bind):
-    //   bind   = ALT, TAB, exec, qs -c macshell ipc call switcher next
-    //   bind   = ALT SHIFT, TAB, exec, qs -c macshell ipc call switcher prev
-    //   bindrt = ALT, Alt_L, exec, qs -c macshell ipc call switcher commit     # optional safety net: switch on ALT release
+    //   bind   = ALT, TAB, exec, qs -c YukiShell ipc call switcher next
+    //   bind   = ALT SHIFT, TAB, exec, qs -c YukiShell ipc call switcher prev
+    //   bindrt = ALT, Alt_L, exec, qs -c YukiShell ipc call switcher commit     # optional safety net: switch on ALT release
     // (use the same `qs ...` prefix you use for the Spotlight bind). Hold ALT, tap TAB to cycle, release ALT to switch.
-    // Layer namespace: "macswitch" (only needed for a blur layerrule if you are NOT using the Liquid Glass style).
+    // Layer namespace: "yukiswitch" (only needed for a blur layerrule if you are NOT using the Liquid Glass style).
     property real switcherBlur: 15           // blur of the switcher glass (smooth Gaussian; less than Spotlight / notifications)
     property string switcherStyle: "glass"   // glass (Liquid Glass) | frosted | opaque — Settings → Desktop & Dock
     property bool swOpen: false
@@ -4429,14 +4429,14 @@ Scope {
         for (var k = 0; k < order.length; k++) {
             var t = order[k], id = t.appId || "";
             if (id === "") continue;
-            // MacShell's own windows (all "org.quickshell") are separate apps: Clock, System Settings
-            if (id === "org.quickshell") id = t.title === "Clock" ? "macshell-clock"
-                                             : (t.title === "App Store" ? "macshell-appstore"
-                                             : (t.title === "macshell Settings" ? "systemsettings" : id));
+            // YukiShell's own windows (all "org.quickshell") are separate apps: Clock, System Settings
+            if (id === "org.quickshell") id = t.title === "Clock" ? "yukishell-clock"
+                                             : (t.title === "App Store" ? "yukishell-appstore"
+                                             : (t.title === "YukiShell Settings" ? "systemsettings" : id));
             if (seen[id] !== undefined) { apps[seen[id]].count++; continue; }
             var e = root.lookup(id);
             seen[id] = apps.length;
-            apps.push({ appId: id, cls: t.appId, name: id === "systemsettings" ? "System Settings" : (id === "org.quickshell" ? "MacShell" : (e ? e.name : id)),
+            apps.push({ appId: id, cls: t.appId, name: id === "systemsettings" ? "System Settings" : (id === "org.quickshell" ? "YukiShell" : (e ? e.name : id)),
                         icon: id === "systemsettings" ? "preferences-system" : (id === "org.quickshell" ? root.logoPath : (e ? e.icon : "")), win: t, count: 1 });
         }
         return apps;
@@ -4518,10 +4518,10 @@ Scope {
             id: perScreen
             required property var modelData
 
-        // ═════════ the bar's background lives in its OWN layer (namespace "macbarbg") ═════════
+        // ═════════ the bar's background lives in its OWN layer (namespace "yukibarbg") ═════════
         // Hyprland blurs a whole layer or none of it, and the bar window also carries the popovers, so the bar strip is a separate
         // layer just under the bar: it paints a translucent fill (Settings → Menu Bar → Bar background) and takes no input.
-        // Blur it with:  layerrule = blur, macbarbg   +   layerrule = ignorealpha 0.05, macbarbg
+        // Blur it with:  layerrule = blur, yukibarbg   +   layerrule = ignorealpha 0.05, yukibarbg
         PanelWindow {
             id: barBgWin
             screen: perScreen.modelData
@@ -4532,7 +4532,7 @@ Scope {
             exclusionMode: ExclusionMode.Ignore
             mask: Region { }
 
-            WlrLayershell.namespace: "macbarbg"
+            WlrLayershell.namespace: "yukibarbg"
             // Top, not Bottom: on Bottom it sat under the windows, so it only ever blurred the wallpaper — over a
             // window there was nothing behind it to blur. It is declared before the bar itself, so it stacks under it.
             WlrLayershell.layer: WlrLayer.Top
@@ -4556,7 +4556,7 @@ Scope {
             exclusionMode: ExclusionMode.Normal
             exclusiveZone: root.barEnabled ? root.barH : 0
 
-            WlrLayershell.namespace: "macbar"
+            WlrLayershell.namespace: "yukibar"
             WlrLayershell.layer: WlrLayer.Top
             WlrLayershell.keyboardFocus: ((ui.pop === "wifi" || (ui.pop === "cc" && ui.ccPage === "wifi")) && ui.wifiPrompt !== "") ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
@@ -8185,7 +8185,7 @@ Scope {
             }
         }
 
-        // ═════════ Window switcher (ALT + TAB) lives in its OWN layer (namespace "macswitch") ═════════
+        // ═════════ Window switcher (ALT + TAB) lives in its OWN layer (namespace "yukiswitch") ═════════
         PanelWindow {
             id: swWin
             screen: perScreen.modelData
@@ -8195,7 +8195,7 @@ Scope {
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
 
-            WlrLayershell.namespace: "macswitch"
+            WlrLayershell.namespace: "yukiswitch"
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: (root.swOpen && ui.toastScreen) ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
@@ -8359,7 +8359,7 @@ Scope {
             }
         }
 
-        // ═════════ Wallpaper picker (CTRL + ALT + W) lives in its OWN layer (namespace "macwall") ═════════
+        // ═════════ Wallpaper picker (CTRL + ALT + W) lives in its OWN layer (namespace "yukiwall") ═════════
         PanelWindow {
             id: wpWin
             screen: perScreen.modelData
@@ -8369,7 +8369,7 @@ Scope {
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
 
-            WlrLayershell.namespace: "macwall"
+            WlrLayershell.namespace: "yukiwall"
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: (root.wpOpen && ui.toastScreen) ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
@@ -8748,9 +8748,9 @@ Scope {
             }
         }
 
-        // ═════════ Spotlight lives in its OWN layer (namespace "macspot") ═════════
+        // ═════════ Spotlight lives in its OWN layer (namespace "yukispot") ═════════
         // Hyprland blurs a whole layer or none of it, so Spotlight has its own layer: put the blur layerrule on
-        // "macspot" and leave "macbar" without blur.
+        // "yukispot" and leave "yukibar" without blur.
         PanelWindow {
             id: spotWin
             screen: perScreen.modelData
@@ -8782,7 +8782,7 @@ Scope {
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
 
-            WlrLayershell.namespace: "macspot"
+            WlrLayershell.namespace: "yukispot"
             WlrLayershell.layer: WlrLayer.Overlay      // Overlay, not Top: Hyprland draws fullscreen windows above the Top layer, so Spotlight never showed over a fullscreen app
             WlrLayershell.keyboardFocus: ui.pop === "spot" ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 

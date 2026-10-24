@@ -1,8 +1,8 @@
 // WindowBar — the macOS window controls, on every window.
 //
-// Hyprland draws no titlebars, so MacShell draws them: the three lights (and, if you like, the app's icon and name)
+// Hyprland draws no titlebars, so YukiShell draws them: the three lights (and, if you like, the app's icon and name)
 // float at the top-left of whatever window is focused. Only the controls take clicks; the rest of the window is
-// untouched. MacShell's own windows draw their own, so they are skipped.
+// untouched. YukiShell's own windows draw their own, so they are skipped.
 //
 // Settings → Windows: show it at all, always show the symbols, keep the colours until you hover, show the title.
 import QtQuick
@@ -67,7 +67,7 @@ Scope {
             anchors { top: true; bottom: true; left: true; right: true }
             exclusionMode: ExclusionMode.Ignore
             color: "transparent"
-            WlrLayershell.namespace: "macwinbar"
+            WlrLayershell.namespace: "yukiwinbar"
             WlrLayershell.layer: WlrLayer.Top
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
             // only the little control cluster takes clicks; everything else goes to the window underneath
