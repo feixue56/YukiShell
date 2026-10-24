@@ -5,7 +5,7 @@ and a transparent / solid alternative.
 kitty windows: switch between the liquid-glass look (background_opacity from kitty.conf, blurred by Hyprland) and a fully
 solid background. Only the BACKGROUND changes (kitty's own background_opacity via remote control), so the text is never
 touched. Everything else: Hyprland can only fade the whole window (text included), so it uses a gentle level."""
-import json, subprocess, sys
+import json, os, subprocess, sys
 
 KITTY_LEVEL = "1.0"     # kitty background opacity while "solid"; the other state is the liquid-glass value from kitty.conf
 WINDOW_LEVEL = "0.8"    # whole-window opacity for other apps (text fades with it, there is no way around that)
@@ -14,6 +14,8 @@ def hc(*a):
     return subprocess.run(["hyprctl", *a], capture_output=True, text=True).stdout
 
 def target():
+    if len(sys.argv) > 1:                               # toggle-opacity <address>: act on that window
+        return next((c for c in json.loads(hc("-j", "clients")) if c["address"] == sys.argv[1]), None)
     cx, cy = (float(v) for v in hc("cursorpos").replace(" ", "").split(","))
     shown = {m["activeWorkspace"]["id"] for m in json.loads(hc("-j", "monitors"))}
     hit = [c for c in json.loads(hc("-j", "clients"))
@@ -41,11 +43,30 @@ def set_window_opacity(value):
     for prop in ("opacity", "opacity_inactive", "opacity_fullscreen"):
         hc("dispatch", f'hl.dsp.window.set_prop({{ prop = "{prop}", value = "{value}", window = "address:{w["address"]}" }})')
 
+STATE = os.path.join(os.environ.get("XDG_RUNTIME_DIR", "/tmp"), "toggle-opacity.json")
+
+def kitty_shortcut(solid_now):
+    """kitty started without remote control: press its own opacity shortcuts in that window (ctrl+shift+a, then 1 = solid /
+    d = back to the configured glass). Hyprland can't read the result back, so which state we are in is remembered."""
+    addr = w["address"]
+    send = lambda mods, key: hc("dispatch", f'hl.dsp.send_shortcut({{ mods = "{mods}", key = "{key}", window = "address:{addr}" }})')
+    send("CTRL_SHIFT", "a")
+    send("", "d" if solid_now else "1")
+
 if w["class"] == "kitty" or w["class"].startswith("dash-"):
     if 0 < window_opacity() < 1:                        # a whole-window fade (older toggle / fallback) is on: this press undoes it
         set_window_opacity("-1")
         sys.exit(0)
     if kitty_toggle(w["pid"]):
         sys.exit(0)                                     # background only, text untouched
+    try: state = json.load(open(STATE))
+    except (OSError, ValueError): state = {}
+    live = {c["address"] for c in json.loads(hc("-j", "clients"))}
+    state = {a: v for a, v in state.items() if a in live}          # forget windows that are gone
+    solid = state.get(w["address"], False)
+    kitty_shortcut(solid)
+    state[w["address"]] = not solid
+    json.dump(state, open(STATE, "w"))
+    sys.exit(0)
 # not kitty, or a kitty started before remote control was enabled: fade the whole window
 set_window_opacity("-1" if 0 < window_opacity() < 1 else WINDOW_LEVEL)
