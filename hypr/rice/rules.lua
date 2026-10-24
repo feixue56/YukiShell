@@ -34,4 +34,5 @@ hl.window_rule({
     float = true,
     center = true,
     size = "800 880",
+    min_size = "720 480",    -- below this the panes no longer fit their widest controls (the sidebar alone is 232px)
 })

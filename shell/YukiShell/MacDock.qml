@@ -249,7 +249,9 @@ Scope {
         property url iconSource: ""
         default property alias control: slot.data
         width: parent ? parent.width : 0
-        height: Math.max(44, textCol.height + 22, slot.height + 20)
+        // a control that would leave the text less than ~150px (a wide segmented control in a narrow window) goes UNDER the text
+        readonly property bool stacked: slot.width > 0 && (r.width - (r.iconSource != "" ? 54 : 14) - slot.width - 28) < 150
+        height: stacked ? textCol.height + slot.height + 36 : Math.max(44, textCol.height + 22, slot.height + 20)
 
         Rectangle {
             visible: r.y > 0.5
@@ -273,8 +275,8 @@ Scope {
         Column {
             id: textCol
             x: ic.visible ? 54 : 14
-            anchors.verticalCenter: parent.verticalCenter
-            width: Math.max(0, r.width - x - slot.width - 28)
+            y: r.stacked ? 13 : (r.height - height) / 2
+            width: r.stacked ? Math.max(0, r.width - x - 14) : Math.max(0, r.width - x - slot.width - 28)
             spacing: 2
             Text {
                 width: parent.width
@@ -296,11 +298,13 @@ Scope {
         }
         Item {
             id: slot
-            anchors.right: parent.right
-            anchors.rightMargin: 14
-            anchors.verticalCenter: parent.verticalCenter
+            x: r.width - 14 - width
+            y: r.stacked ? textCol.y + textCol.height + 10 : (r.height - height) / 2
             width: childrenRect.width
             height: childrenRect.height
+            // never wider than the row: shrinks to fit instead of spilling out of the card
+            scale: width > 0 ? Math.min(1, (r.width - 28) / width) : 1
+            transformOrigin: Item.TopRight
         }
     }
 
@@ -626,8 +630,9 @@ Scope {
         // The size is set once when the window opens and again only when the UI scale itself changes (see below).
         width: 800
         height: 880
-        minimumWidth: 400
-        minimumHeight: 300
+        // below this the panes no longer fit their widest controls (the sidebar alone takes 232px)
+        minimumWidth: 720
+        minimumHeight: 480
         visible: false
         color: "transparent"
         flags: Qt.Window | Qt.FramelessWindowHint
