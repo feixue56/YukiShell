@@ -26,3 +26,13 @@ hl.window_rule({
 for i = 1, 10 do
     hl.workspace_rule({ workspace = tostring(i), persistent = true })
 end
+
+-- YukiShell Settings: born floating, centred, at its own size (the shell used to float it only after it mapped as a tile).
+hl.window_rule({
+    name  = "yukishell-settings",
+    match = { class = "^org\\.quickshell$", title = "^macshell Settings$" },
+    float = true,
+    center = true,
+    size = "800 880",
+    border_size = 0,
+})
