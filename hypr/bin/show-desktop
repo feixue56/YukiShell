@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+"""Super+Alt+D: toggle 'show desktop'. First press stashes every window on the current workspace in a hidden special
+workspace; the next press puts exactly those windows back where they were (and refocuses the one you had)."""
+import json, os, subprocess, sys
+
+state = os.path.join(os.environ.get("XDG_RUNTIME_DIR", "/tmp"), "show-desktop.json")
+
+def hc(*a):
+    return subprocess.run(["hyprctl", *a], capture_output=True, text=True).stdout
+
+def move(addr, ws):
+    hc("dispatch", f'hl.dsp.window.move({{ workspace = {ws}, follow = false, window = "address:{addr}" }})')
+
+clients = json.loads(hc("-j", "clients"))
+cur = json.loads(hc("-j", "activeworkspace"))["id"]
+saved = json.load(open(state)) if os.path.exists(state) else {}
+
+if cur in map(int, saved) if saved else False:      # second press: restore this workspace's windows
+    info = saved.pop(str(cur))
+    alive = {c["address"] for c in clients}
+    for addr, ws in info["wins"]:
+        if addr in alive: move(addr, json.dumps(ws))
+    if info.get("focus") in alive:
+        hc("dispatch", f'hl.dsp.focus({{ window = "address:{info["focus"]}" }})')
+else:                                               # first press: hide everything here
+    wins = [c for c in clients if c["workspace"]["id"] == cur and c["mapped"] and not c["hidden"]]
+    if not wins: sys.exit(0)
+    focus = next((c["address"] for c in wins if c.get("focusHistoryID") == 0), None)
+    saved[str(cur)] = {"wins": [[c["address"], cur] for c in wins], "focus": focus}
+    for c in wins: move(c["address"], '"special:desk"')
+json.dump(saved, open(state, "w"))

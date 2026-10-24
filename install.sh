@@ -12,6 +12,7 @@ link() {  # link <src> <dst>
 }
 
 link "$here/hypr/rice"                          "$cfg/hypr/rice"
+link "$here/hypr/bin"                           "$cfg/hypr/bin"
 link "$here/kitty/kitty.conf"                   "$cfg/kitty/kitty.conf"
 link "$here/fastfetch/config.jsonc"             "$cfg/fastfetch/config.jsonc"
 link "$here/btop/themes/mocha-glass.theme"      "$cfg/btop/themes/mocha-glass.theme"
