@@ -5303,7 +5303,7 @@ Scope {
                                     return false;
                                 }
                                 // hovering lifts the icon a few pixels, with a little overshoot
-                                readonly property real hoverTarget: (!isSep && !thumbReady && ma.containsMouse && !ui.dragging && !ui.tearing && !ui.menuOpen) ? root.iconSize * 0.09 : 0
+                                readonly property real hoverTarget: (!isSep && ma.containsMouse && !ui.dragging && !ui.tearing && !ui.menuOpen) ? root.iconSize * 0.09 : 0
                                 property real hoverUp: hoverTarget
                                 Behavior on hoverUp { NumberAnimation { duration: 300; easing.type: Easing.OutBack; easing.overshoot: 2.8 } }
                                 readonly property bool torn: ui.tearing && ui.tearItem && !isSep && ui.tearItem.key === modelData.key
@@ -5381,13 +5381,27 @@ Scope {
                                     Connections {
                                         target: ma
                                         function onContainsMouseChanged() {
-                                            if (ma.containsMouse && !cell.isSep && !cell.thumbReady && !ui.dragging && !ui.tearing && !ui.tucked) wiggle.restart();
+                                            if (ma.containsMouse && !cell.isSep && !ui.dragging && !ui.tearing && !ui.tucked) wiggle.restart();
                                         }
+                                    }
+                                    // ── hover plate: a tinted glass tile under the pointer, so the hovered icon is unmistakable ──
+                                    Rectangle {
+                                        id: plate
+                                        opacity: halo.on ? 1 : 0
+                                        visible: opacity > 0.01
+                                        Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                                        x: img.x + (img.width - width) / 2
+                                        y: img.y + (img.height - height) / 2
+                                        width: img.width * 1.16; height: img.height * 1.16
+                                        radius: width * 0.26
+                                        color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.2)
+                                        border.width: 1
+                                        border.color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.55)
                                     }
                                     // ── hover glow: an accent halo blooms behind the icon ──
                                     Item {
                                         id: halo
-                                        readonly property bool on: !cell.isSep && !cell.thumbReady && ma.containsMouse && !ui.dragging && !ui.tearing && !ui.menuOpen
+                                        readonly property bool on: !cell.isSep && ma.containsMouse && !ui.dragging && !ui.tearing && !ui.menuOpen
                                         opacity: on ? 1 : 0
                                         visible: opacity > 0.01
                                         Behavior on opacity { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
@@ -5551,7 +5565,7 @@ Scope {
                                     NumberAnimation { target: img; property: "lift"; to: 0
                                                       duration: 260; easing.type: Easing.OutBounce }
                                 }
-                                function hop() { if (!ui.tucked && !cell.useThumb && !bounceAnim.running && !settleAnim.running && !cell.wantBounce) hopAnim.restart(); }
+                                function hop() { if (!ui.tucked && !bounceAnim.running && !settleAnim.running && !cell.wantBounce) hopAnim.restart(); }
                                 SequentialAnimation {
                                     id: bounceAnim
                                     NumberAnimation { target: img; property: "lift"; to: root.iconSize * 0.42
