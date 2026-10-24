@@ -4,11 +4,12 @@ and a transparent / solid alternative.
 
 kitty windows: switch between the liquid-glass look (background_opacity from kitty.conf, blurred by Hyprland) and a fully
 solid background. Only the BACKGROUND changes (kitty's own background_opacity via remote control), so the text is never
-touched. Everything else: Hyprland can only fade the whole window (text included), so it uses a gentle level."""
+touched. Other apps: not possible (Hyprland can only fade the whole window, text included), see FADE_OTHER_APPS."""
 import json, os, subprocess, sys
 
 KITTY_LEVEL = "1.0"     # kitty background opacity while "solid"; the other state is the liquid-glass value from kitty.conf
-WINDOW_LEVEL = "0.8"    # whole-window opacity for other apps (text fades with it, there is no way around that)
+FADE_OTHER_APPS = False # Other apps: Hyprland can only fade the WHOLE window, text included. Off = say so instead of faking it.
+WINDOW_LEVEL = "0.8"    # whole-window opacity used when FADE_OTHER_APPS is True (text fades with it, no way around that)
 
 def hc(*a):
     return subprocess.run(["hyprctl", *a], capture_output=True, text=True).stdout
@@ -68,5 +69,13 @@ if w["class"] == "kitty" or w["class"].startswith("dash-"):
     state[w["address"]] = not solid
     json.dump(state, open(STATE, "w"))
     sys.exit(0)
-# not kitty, or a kitty started before remote control was enabled: fade the whole window
-set_window_opacity("-1" if 0 < window_opacity() < 1 else WINDOW_LEVEL)
+# Not kitty. No compositor can make only an app's background transparent (it only ever sees the finished window), so
+# fading the window would fade the text too. A leftover fade is always removed; a new one is only applied if enabled.
+if 0 < window_opacity() < 1:
+    set_window_opacity("-1")
+elif FADE_OTHER_APPS:
+    set_window_opacity(WINDOW_LEVEL)
+else:
+    name = w.get("class") or "this app"
+    subprocess.run(["notify-send", "-a", "Transparency", "-t", "2500", "Background-only transparency unavailable",
+                    f"{name} can't make just its background see-through. Terminals (kitty) can."], capture_output=True)
