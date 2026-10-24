@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Open a new Chromium window as a floating, centred one (Super+Shift+W).
+"""Open a new Chromium window that is born floating, centred, 1280x800 (Super+Shift+W).
 
-An exec rule can't do this: when Chromium is already running, the new window is created by that running process,
-so Hyprland never sees the pid it spawned. Instead: remember the Chromium windows, start one, float whichever appears."""
+An exec rule can't do this: when Chromium is already running, the new window is created by that running process, so
+Hyprland never sees the pid it spawned. Instead the window rule `float-chromium-once` (hypr/rice/rules.lua, off by default)
+is switched on for the moment the window is created, then off again, so no other Chromium window is affected.
+If the rule can't be switched on, the window is floated after it appears instead."""
 import json, subprocess, sys, time
 
 W, H = 1280, 800
@@ -14,22 +16,31 @@ def hc(*args):
 
 def chromium_windows():
     try:
-        return {c["address"] for c in json.loads(hc("-j", "clients")) if c["class"].lower() == "chromium"}
+        return {c["address"]: c for c in json.loads(hc("-j", "clients")) if c["class"].lower() == "chromium"}
     except ValueError:
-        return set()
+        return {}
 
 
-before = chromium_windows()
-subprocess.Popen(["chromium", "--new-window", *sys.argv[1:]], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-                 stderr=subprocess.DEVNULL, start_new_session=True)
+def rule(on):
+    hc("eval", f"FLOAT_CHROMIUM_RULE:set_enabled({'true' if on else 'false'})")
 
-deadline = time.time() + 10
-while time.time() < deadline:
-    new = chromium_windows() - before
-    if new:
-        sel = f'window = "address:{sorted(new)[0]}"'
-        hc("dispatch", f"hl.dsp.window.float({{ action = \"enable\", {sel} }})")
-        hc("dispatch", f"hl.dsp.window.resize({{ x = {W}, y = {H}, \"exact\", {sel} }})")
-        hc("dispatch", f"hl.dsp.window.center({{ {sel} }})")
-        break
-    time.sleep(0.1)
+
+before = set(chromium_windows())
+rule(True)
+try:
+    subprocess.Popen(["chromium", "--new-window", *sys.argv[1:]], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                     stderr=subprocess.DEVNULL, start_new_session=True)
+    deadline = time.time() + 10
+    while time.time() < deadline:
+        new = {a: c for a, c in chromium_windows().items() if a not in before}
+        if new:
+            addr, win = sorted(new.items())[0]
+            if not win["floating"]:      # the rule didn't catch it: float it the slow way
+                sel = f'window = "address:{addr}"'
+                hc("dispatch", f"hl.dsp.window.float({{ action = \"enable\", {sel} }})")
+                hc("dispatch", f"hl.dsp.window.resize({{ x = {W}, y = {H}, \"exact\", {sel} }})")
+                hc("dispatch", f"hl.dsp.window.center({{ {sel} }})")
+            break
+        time.sleep(0.02)
+finally:
+    rule(False)

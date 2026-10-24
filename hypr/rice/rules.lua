@@ -36,3 +36,14 @@ hl.window_rule({
     size = "800 880",
     min_size = "720 480",    -- below this the panes no longer fit their widest controls (the sidebar alone is 232px)
 })
+
+-- Super+Shift+W (hypr/bin/float-chromium): a floating Chromium window, born floating. The rule is off by default; the script
+-- switches it on just before it starts the window and off again once the window exists, so other Chromium windows stay tiled.
+FLOAT_CHROMIUM_RULE = hl.window_rule({
+    name  = "float-chromium-once",
+    enabled = false,
+    match = { class = "^[Cc]hromium$" },
+    float = true,
+    center = true,
+    size = "1280 800",
+})
