@@ -4408,6 +4408,16 @@ Scope {
     }
 
     // ═════════════ WORKSPACES (centre of the bar) ═════════════
+    // workspace numbers are shown as Chinese numerals (一 二 三 … 十, then 十一 … 二十 …); the real workspace ids stay numeric
+    function zhNum(n) {
+        var d = ["", "\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u4e03", "\u516b", "\u4e5d"], ten = "\u5341";
+        if (n <= 0) return "" + n;
+        if (n < 10) return d[n];
+        if (n === 10) return ten;
+        if (n < 20) return ten + d[n - 10];
+        if (n < 100) return d[Math.floor(n / 10)] + ten + d[n % 10];
+        return "" + n;
+    }
     function hlWorkspace(sel) {      // Hyprland 0.55+ (Lua) workspace switch
         Quickshell.execDetached(["hyprctl", "dispatch", "hl.dsp.focus({ workspace = \"" + sel + "\" })"]);
     }
@@ -5339,7 +5349,7 @@ Scope {
                                 }
                                 Text {
                                     anchors.centerIn: parent
-                                    text: "" + wsi.modelData
+                                    text: root.zhNum(wsi.modelData)
                                     color: wsi.cur ? bpal.fg : (wsi.busy ? bpal.fg2 : bpal.fg3)
                                     font.family: root.fontForWeight(wsi.cur ? Font.DemiBold : Font.Normal, bpal.fam)
                                     font.pixelSize: 13

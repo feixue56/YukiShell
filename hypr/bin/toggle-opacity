@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+"""Super+Shift+Tab: toggle transparency of the window under the mouse pointer (falls back to the focused window).
+Uses Hyprland's per-window opacity override for the active / inactive / fullscreen states; -1 clears it again."""
+import json, subprocess, sys
+
+LEVEL = "0.65"          # how see-through the window becomes
+
+def hc(*a):
+    return subprocess.run(["hyprctl", *a], capture_output=True, text=True).stdout
+
+def target():
+    cx, cy = (float(v) for v in hc("cursorpos").replace(" ", "").split(","))
+    shown = {m["activeWorkspace"]["id"] for m in json.loads(hc("-j", "monitors"))}
+    hit = [c for c in json.loads(hc("-j", "clients"))
+           if c["mapped"] and not c["hidden"] and c["workspace"]["id"] in shown
+           and c["at"][0] <= cx < c["at"][0] + c["size"][0] and c["at"][1] <= cy < c["at"][1] + c["size"][1]]
+    if hit:                                             # floating windows sit above tiled ones; then most recently focused
+        return min(hit, key=lambda c: (not c["floating"], c["focusHistoryID"]))["address"]
+    active = json.loads(hc("-j", "activewindow") or "{}")
+    return active.get("address")
+
+addr = target()
+if not addr:
+    sys.exit(0)
+try:
+    cur = float(hc("getprop", f"address:{addr}", "opacity").strip())
+except ValueError:
+    cur = -1.0
+value = "-1" if 0 < cur < 1 else LEVEL                  # already see-through -> restore, otherwise make it see-through
+for prop in ("opacity", "opacity_inactive", "opacity_fullscreen"):
+    hc("dispatch", f'hl.dsp.window.set_prop({{ prop = "{prop}", value = "{value}", window = "address:{addr}" }})')
