@@ -52,7 +52,7 @@ for key, dir in pairs({ left = "left", right = "right", up = "up", down = "down"
 end
 
 -- housekeeping: restart the shell cleanly (yuki-restart), reload this Hyprland config
-bind(mod .. " + SHIFT + R", hl.dsp.exec_cmd("yuki-restart"), "Restart YukiShell")
+bind(mod .. " + SHIFT + R", hl.dsp.exec_cmd("sh ~/.local/bin/yuki-restart"), "Restart YukiShell")
 bind(mod .. " + SHIFT + C", hl.dsp.exec_cmd("hyprctl reload"), "Reload Hyprland Config")
 
 -- resize the focused window from the keyboard (hold to keep going); tiled windows move the split, floating ones grow/shrink
