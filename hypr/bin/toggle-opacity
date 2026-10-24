@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Super+Shift+Tab: toggle transparency of the window under the mouse pointer (falls back to the focused window).
+"""Super+Shift+Tab: toggle the window under the mouse pointer (falls back to the focused window) between its normal look
+and a transparent / solid alternative.
 
-kitty windows: only the BACKGROUND becomes see-through (kitty's own background_opacity via remote control), so the text
-stays crisp. Everything else: Hyprland can only fade the whole window (text included), so it uses a gentler level."""
+kitty windows: switch between the liquid-glass look (background_opacity from kitty.conf, blurred by Hyprland) and a fully
+solid background. Only the BACKGROUND changes (kitty's own background_opacity via remote control), so the text is never
+touched. Everything else: Hyprland can only fade the whole window (text included), so it uses a gentle level."""
 import json, subprocess, sys
 
-KITTY_LEVEL = "0.12"    # kitty background opacity while "transparent" (toggles back to the value in kitty.conf)
+KITTY_LEVEL = "1.0"     # kitty background opacity while "solid"; the other state is the liquid-glass value from kitty.conf
 WINDOW_LEVEL = "0.8"    # whole-window opacity for other apps (text fades with it, there is no way around that)
 
 def hc(*a):
