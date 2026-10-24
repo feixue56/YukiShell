@@ -6,3 +6,4 @@ Note: MacShell's matugen templates can overwrite `gtk.css`; re-run `./install.sh
 
 ## MacShell motion
 `macshell/motion.py` retunes the Spotlight pop (spring-like open, softer close). Backs up MacBar.qml once; re-run after macshell-update.
+`macshell/dock.py` makes Dock magnification follow the cursor on a spring. Same backup/re-run rules.
