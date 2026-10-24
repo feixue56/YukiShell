@@ -5295,6 +5295,17 @@ Scope {
                                 readonly property var modelData: root.itemMap[key] || ({ kind: "sep", key: key, nA: 0, nS: 0 })
                                 readonly property bool isSep: modelData.kind === "sep"
                                 readonly property bool canDrag: !isSep && modelData.pinned === true && !modelData.special
+                                // the app has the focused window: its indicator becomes a wide accent pill
+                                readonly property bool isActiveApp: {
+                                    if (isSep || modelData.kind !== "app" || !modelData.running) return false;
+                                    var w = root.windowsFor(modelData.key);
+                                    for (var i = 0; i < w.length; i++) if (w[i].activated) return true;
+                                    return false;
+                                }
+                                // hovering lifts the icon a few pixels, with a little overshoot
+                                readonly property real hoverTarget: (!isSep && !thumbReady && ma.containsMouse && !ui.dragging && !ui.tearing && !ui.menuOpen) ? root.iconSize * 0.09 : 0
+                                property real hoverUp: hoverTarget
+                                Behavior on hoverUp { NumberAnimation { duration: 300; easing.type: Easing.OutBack; easing.overshoot: 2.8 } }
                                 readonly property bool torn: ui.tearing && ui.tearItem && !isSep && ui.tearItem.key === modelData.key
                                 opacity: (torn ? 0.3 : (isDragged ? 0.92 : 1)) * (leavingCell ? appear : 1)
                                 Behavior on opacity { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
@@ -5353,103 +5364,164 @@ Scope {
                                     color: root.dockDark ? Qt.rgba(1, 1, 1, 0.28) : Qt.rgba(0, 0, 0, 0.22)
                                 }
 
-                                Image {
-                                    id: img
-                                    visible: false
-                                    property real lift: 0
-                                    width: root.iconSize * 0.99 * cell.s * cell.appear     // icon art drawn at 99%: the dock and the cells keep their size
-                                    height: width
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    anchors.bottom: parent.bottom
-                                    anchors.bottomMargin: lift
-                                    source: cell.isSep ? "" : root.cellIconSrc(cell.modelData)
-                                    sourceSize: Qt.size(Math.ceil(root.iconSize * root.magnification * 1.25),
-                                                        Math.ceil(root.iconSize * root.magnification * 1.25))
-                                    fillMode: Image.PreserveAspectFit
-                                    smooth: true
-                                    mipmap: true
-                                    asynchronous: true
-                                }
-                                MultiEffect {
-                                    visible: !cell.isSep && !cell.thumbReady
-                                    source: img
-                                    anchors.fill: img
-                                    shadowEnabled: true
-                                    shadowColor: "black"
-                                    shadowOpacity: 0.32
-                                    shadowBlur: 0.55
-                                    shadowVerticalOffset: 3
-                                    // icon tint: desaturate, then colourise (no shader build needed)
-                                    saturation: root.iconTint ? -0.75 * root.iconTintStrength : 0.0
-                                    colorization: root.iconTint ? 1.0 * root.iconTintStrength : 0.0
-                                    brightness: (ma.pressed ? -0.3 : 0.0) + (root.iconTint ? 0.14 * root.iconTintStrength : 0.0)
-                                    contrast: root.iconTint ? 0.04 * root.iconTintStrength : 0.0
-                                    colorizationColor: root.iconTintColor
-                                }
-
-                                // ── window thumbnail (same box as the icon, so magnification just works) ──
+                                // everything the icon is made of lives in `face`, so the press squish and the hover tilt move it as one
                                 Item {
-                                    id: th
-                                    anchors.fill: img
-                                    // kept (almost) opaque while loading so the capture isn't paused by the renderer
-                                    visible: cell.useThumb
-                                    opacity: cell.thumbReady ? 1 : 0.01
-
-                                    Rectangle {      // soft drop shadow
-                                        x: sv.x
-                                        y: sv.y + 3
-                                        width: sv.width
-                                        height: sv.height
-                                        radius: 5
-                                        color: Qt.rgba(0, 0, 0, 0.32)
+                                    id: face
+                                    anchors.fill: parent
+                                    transformOrigin: Item.Bottom
+                                    scale: (ma.pressed && !ui.dragging && !ui.tearing) ? 0.86 : 1
+                                    Behavior on scale { NumberAnimation { duration: 170; easing.type: Easing.OutBack; easing.overshoot: 3.2 } }
+                                    SequentialAnimation {
+                                        id: wiggle
+                                        NumberAnimation { target: face; property: "rotation"; to: -5; duration: 110; easing.type: Easing.OutQuad }
+                                        NumberAnimation { target: face; property: "rotation"; to: 4; duration: 130; easing.type: Easing.InOutQuad }
+                                        NumberAnimation { target: face; property: "rotation"; to: -2; duration: 110; easing.type: Easing.InOutQuad }
+                                        NumberAnimation { target: face; property: "rotation"; to: 0; duration: 120; easing.type: Easing.OutQuad }
                                     }
-                                    ScreencopyView {
-                                        id: sv
-                                        anchors.centerIn: parent
-                                        captureSource: (root.hub && !root.hub.windowCapture) ? null : cell.heldTl
-                                        // live only while the pointer is on the Dock (where you look at them); otherwise one fresh
-                                        // frame every 2 s — live previews of every window were ~8% CPU at idle
-                                        live: !ui.tucked && !root.previewHold && !cell.closingWin && hh.hovered
-                                        Timer {
-                                            interval: 2000; repeat: true; triggeredOnStart: true
-                                            running: !sv.live && !ui.tucked && !root.previewHold && !cell.closingWin && sv.captureSource !== null
-                                            onTriggered: if (typeof sv.captureFrame === "function") sv.captureFrame()
+                                    Connections {
+                                        target: ma
+                                        function onContainsMouseChanged() {
+                                            if (ma.containsMouse && !cell.isSep && !cell.thumbReady && !ui.dragging && !ui.tearing && !ui.tucked) wiggle.restart();
                                         }
-                                        readonly property real ar: (implicitWidth > 0 && implicitHeight > 0)
-                                                                   ? implicitWidth / implicitHeight : 4 / 3
-                                        width: Math.min(th.width, th.height * ar)
-                                        height: width / ar
                                     }
-                                    Rectangle {      // thin frame + pressed dimming
-                                        anchors.fill: sv
-                                        radius: 3
-                                        color: ma.pressed ? Qt.rgba(0, 0, 0, 0.3) : "transparent"
-                                        border.width: 1
-                                        border.color: root.dockDark ? Qt.rgba(1, 1, 1, 0.28) : Qt.rgba(0, 0, 0, 0.28)
+                                    // ── hover glow: an accent halo blooms behind the icon ──
+                                    Item {
+                                        id: halo
+                                        readonly property bool on: !cell.isSep && !cell.thumbReady && ma.containsMouse && !ui.dragging && !ui.tearing && !ui.menuOpen
+                                        opacity: on ? 1 : 0
+                                        visible: opacity > 0.01
+                                        Behavior on opacity { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
+                                        x: img.x + (img.width - width) / 2
+                                        y: img.y + (img.height - height) / 2
+                                        width: img.width * 1.05; height: width
+                                        Rectangle {
+                                            id: haloCore
+                                            anchors.fill: parent
+                                            radius: width / 2
+                                            color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.9)
+                                            visible: false
+                                        }
+                                        MultiEffect {
+                                            anchors.centerIn: haloCore
+                                            width: haloCore.width; height: haloCore.height
+                                            source: haloCore
+                                            blurEnabled: true
+                                            blurMax: 48
+                                            blur: 1.0
+                                        }
                                     }
-                                }
-                                // small app icon in the corner, so you can tell which app the window belongs to
-                                Image {
-                                    id: badge
-                                    visible: cell.thumbReady
-                                    width: img.width * 0.46
-                                    height: width
-                                    x: img.x + img.width - width + 3
-                                    y: img.y + img.height - height + 3
-                                    source: img.source
-                                    sourceSize: Qt.size(Math.ceil(root.iconSize * root.magnification * 0.6),
-                                                        Math.ceil(root.iconSize * root.magnification * 0.6))
-                                    fillMode: Image.PreserveAspectFit
-                                    smooth: true
-                                    mipmap: true
-                                }
 
-                                Rectangle {
-                                    visible: !cell.isSep && cell.modelData.running && root.showIndicators
-                                    width: 4; height: 4; radius: 2
-                                    color: root.dockDark ? Qt.rgba(1, 1, 1, 0.85) : Qt.rgba(0, 0, 0, 0.6)
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    y: cell.height + 3
+                                    Image {
+                                        id: img
+                                        visible: false
+                                        property real lift: 0
+                                        width: root.iconSize * 0.99 * cell.s * cell.appear     // icon art drawn at 99%: the dock and the cells keep their size
+                                        height: width
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        anchors.bottom: parent.bottom
+                                        anchors.bottomMargin: lift + cell.hoverUp
+                                        source: cell.isSep ? "" : root.cellIconSrc(cell.modelData)
+                                        sourceSize: Qt.size(Math.ceil(root.iconSize * root.magnification * 1.25),
+                                                            Math.ceil(root.iconSize * root.magnification * 1.25))
+                                        fillMode: Image.PreserveAspectFit
+                                        smooth: true
+                                        mipmap: true
+                                        asynchronous: true
+                                    }
+                                    MultiEffect {
+                                        visible: !cell.isSep && !cell.thumbReady
+                                        source: img
+                                        anchors.fill: img
+                                        shadowEnabled: true
+                                        shadowColor: "black"
+                                        shadowOpacity: 0.32
+                                        shadowBlur: 0.55
+                                        shadowVerticalOffset: 3
+                                        // icon tint: desaturate, then colourise (no shader build needed)
+                                        saturation: root.iconTint ? -0.75 * root.iconTintStrength : 0.0
+                                        colorization: root.iconTint ? 1.0 * root.iconTintStrength : 0.0
+                                        brightness: (ma.pressed ? -0.3 : 0.0) + (root.iconTint ? 0.14 * root.iconTintStrength : 0.0)
+                                        contrast: root.iconTint ? 0.04 * root.iconTintStrength : 0.0
+                                        colorizationColor: root.iconTintColor
+                                    }
+
+                                    // ── window thumbnail (same box as the icon, so magnification just works) ──
+                                    Item {
+                                        id: th
+                                        anchors.fill: img
+                                        // kept (almost) opaque while loading so the capture isn't paused by the renderer
+                                        visible: cell.useThumb
+                                        opacity: cell.thumbReady ? 1 : 0.01
+
+                                        Rectangle {      // soft drop shadow
+                                            x: sv.x
+                                            y: sv.y + 3
+                                            width: sv.width
+                                            height: sv.height
+                                            radius: 5
+                                            color: Qt.rgba(0, 0, 0, 0.32)
+                                        }
+                                        ScreencopyView {
+                                            id: sv
+                                            anchors.centerIn: parent
+                                            captureSource: (root.hub && !root.hub.windowCapture) ? null : cell.heldTl
+                                            // live only while the pointer is on the Dock (where you look at them); otherwise one fresh
+                                            // frame every 2 s — live previews of every window were ~8% CPU at idle
+                                            live: !ui.tucked && !root.previewHold && !cell.closingWin && hh.hovered
+                                            Timer {
+                                                interval: 2000; repeat: true; triggeredOnStart: true
+                                                running: !sv.live && !ui.tucked && !root.previewHold && !cell.closingWin && sv.captureSource !== null
+                                                onTriggered: if (typeof sv.captureFrame === "function") sv.captureFrame()
+                                            }
+                                            readonly property real ar: (implicitWidth > 0 && implicitHeight > 0)
+                                                                       ? implicitWidth / implicitHeight : 4 / 3
+                                            width: Math.min(th.width, th.height * ar)
+                                            height: width / ar
+                                        }
+                                        Rectangle {      // thin frame + pressed dimming
+                                            anchors.fill: sv
+                                            radius: 3
+                                            color: ma.pressed ? Qt.rgba(0, 0, 0, 0.3) : "transparent"
+                                            border.width: 1
+                                            border.color: root.dockDark ? Qt.rgba(1, 1, 1, 0.28) : Qt.rgba(0, 0, 0, 0.28)
+                                        }
+                                    }
+                                    // small app icon in the corner, so you can tell which app the window belongs to
+                                    Image {
+                                        id: badge
+                                        visible: cell.thumbReady
+                                        width: img.width * 0.46
+                                        height: width
+                                        x: img.x + img.width - width + 3
+                                        y: img.y + img.height - height + 3
+                                        source: img.source
+                                        sourceSize: Qt.size(Math.ceil(root.iconSize * root.magnification * 0.6),
+                                                            Math.ceil(root.iconSize * root.magnification * 0.6))
+                                        fillMode: Image.PreserveAspectFit
+                                        smooth: true
+                                        mipmap: true
+                                    }
+
+                                    // running apps: a pill under the icon; the focused app's pill is wider, in the accent colour, and glows
+                                    Rectangle {
+                                        id: pill
+                                        visible: !cell.isSep && cell.modelData.running && root.showIndicators
+                                        readonly property bool act: cell.isActiveApp
+                                        width: act ? 16 : 5; height: 5; radius: 2.5
+                                        Behavior on width { NumberAnimation { duration: 320; easing.type: Easing.OutBack; easing.overshoot: 2.2 } }
+                                        color: act ? root.accent : (root.dockDark ? Qt.rgba(1, 1, 1, 0.6) : Qt.rgba(0, 0, 0, 0.5))
+                                        Behavior on color { ColorAnimation { duration: 220 } }
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        y: cell.height + 3
+                                        Rectangle {
+                                            z: -1
+                                            anchors.centerIn: parent
+                                            width: parent.width + 8; height: 11; radius: 5.5
+                                            color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.4)
+                                            opacity: pill.act ? 1 : 0
+                                            Behavior on opacity { NumberAnimation { duration: 260 } }
+                                        }
+                                    }
                                 }
 
                                 // ── launch bounce ──
@@ -5467,10 +5539,19 @@ Scope {
                                     target: ui
                                     function onTuckedChanged() {
                                         if (ui.tucked) {                       // dock slid away: drop the bounce, it must not poke out
-                                            bounceAnim.stop(); settleAnim.stop(); img.lift = 0; cell.bounceShown = false;
+                                            bounceAnim.stop(); settleAnim.stop(); hopAnim.stop(); img.lift = 0; cell.bounceShown = false;
                                         } else cell.bounceStep();
                                     }
                                 }
+                                // a quick hop when you click an icon (the launch bounce takes over while an app is starting)
+                                SequentialAnimation {
+                                    id: hopAnim
+                                    NumberAnimation { target: img; property: "lift"; to: root.iconSize * 0.2
+                                                      duration: 130; easing.type: Easing.OutCubic }
+                                    NumberAnimation { target: img; property: "lift"; to: 0
+                                                      duration: 260; easing.type: Easing.OutBounce }
+                                }
+                                function hop() { if (!ui.tucked && !cell.useThumb && !bounceAnim.running && !settleAnim.running && !cell.wantBounce) hopAnim.restart(); }
                                 SequentialAnimation {
                                     id: bounceAnim
                                     NumberAnimation { target: img; property: "lift"; to: root.iconSize * 0.42
@@ -5495,15 +5576,19 @@ Scope {
                                 Rectangle {
                                     id: tip
                                     visible: opacity > 0
-                                    opacity: (root.showLabels && !cell.isSep && ma.containsMouse && !ma.pressed && !ui.menuOpen && !ui.dragging) ? 1 : 0
-                                    Behavior on opacity { NumberAnimation { duration: 120 } }
+                                    readonly property bool shown: root.showLabels && !cell.isSep && ma.containsMouse && !ma.pressed && !ui.menuOpen && !ui.dragging
+                                    opacity: shown ? 1 : 0
+                                    Behavior on opacity { NumberAnimation { duration: 140 } }
+                                    scale: shown ? 1 : 0.78
+                                    transformOrigin: Item.Bottom
+                                    Behavior on scale { NumberAnimation { duration: 240; easing.type: Easing.OutBack; easing.overshoot: 2.6 } }
                                     z: 10
                                     width: label.implicitWidth + 22
                                     height: label.implicitHeight + 10
                                     radius: 9
                                     color: Qt.rgba(0.12, 0.12, 0.13, 0.72)
                                     border.width: 1
-                                    border.color: Qt.rgba(1, 1, 1, 0.14)
+                                    border.color: Qt.rgba(root.accent.r * 0.6 + 0.4, root.accent.g * 0.6 + 0.4, root.accent.b * 0.6 + 0.4, 0.42)
                                     // dark hairline just outside, so the label keeps its edge over a bright window behind it
                                     Rectangle {
                                         anchors.fill: parent
@@ -5515,7 +5600,7 @@ Scope {
                                         border.color: Qt.rgba(0, 0, 0, 0.22)
                                     }
                                     anchors.horizontalCenter: parent.horizontalCenter
-                                    y: cell.height - img.height - img.lift - height - 10
+                                    y: cell.height - img.height - img.lift - cell.hoverUp - height - 10
 
                                     Text {
                                         id: label
@@ -5576,6 +5661,7 @@ Scope {
                                             ui.menuModel = root.menuFor(cell.modelData);
                                             ui.menuItem = cell.modelData;
                                         } else {
+                                            cell.hop();
                                             root.activate(cell.modelData, mouse.button === Qt.MiddleButton);
                                         }
                                     }
