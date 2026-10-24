@@ -80,7 +80,8 @@ Shortcuts** shows the same list, translated and read live from the running Hyprl
 - Hover feedback everywhere: the menu bar and Dock buttons get a frosted-glass tile with a rim light that follows the pointer,
   workspaces that have windows keep a resting glass tile, and the Dock's last button is a gear that opens Settings.
 - **Settings → Users & Groups → Picture** lets you crop your profile picture (drag, scroll to zoom) before it is saved.
-- **Airplane Mode** follows the real radio switches (rfkill); on a PC with no radios it stays off and greyed out.
+- **Hardware that is not there is not offered**: Airplane Mode follows the real radio switches (rfkill), and on a PC with no Wi-Fi or Bluetooth adapter
+  those Control Center tiles are greyed out (N/A), the Bluetooth icon leaves the menu bar and the two Settings panes disappear. Plug an adapter in and they come back.
 - File pickers ("Choose a picture", Open/Save dialogs) float, centred, instead of tiling.
 
 ## Multi-language typing

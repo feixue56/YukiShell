@@ -697,6 +697,8 @@ Scope {
             var out = [];
             for (var i = 0; i < panes.length; i++) {
                 if (panes[i].id === "trackpad" && !hasTouchpad) continue;
+                if (panes[i].id === "wifi" && root.bar && !root.bar.hasWifi) continue;           // no adapter, no pane (the Network pane still lists Ethernet)
+                if (panes[i].id === "bluetooth" && root.bar && !root.bar.hasBt) continue;
                 var hay = (panes[i].name + " " + panes[i].keys).toLowerCase();
                 if (q === "" || hay.indexOf(q) >= 0) out.push(i);
             }

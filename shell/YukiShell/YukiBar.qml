@@ -2012,6 +2012,8 @@ Scope {
 
     // wifi
     property bool wifiOn: true
+    property bool hasWifi: true                 // a Wi-Fi adapter exists (a desktop with only Ethernet has none: the switch and tile are then unavailable)
+    property bool hasBt: true                   // a Bluetooth adapter exists (/sys/class/bluetooth)
     property string wifiSsid: ""
     property int wifiSignal: 0
     property bool ethernetUp: false             // a wired connection is up (shown with Apple's <···> symbol when Wi-Fi isn't in use)
@@ -2020,12 +2022,13 @@ Scope {
     function refreshWifi() { if (!wifiProc.running) wifiProc.running = true; }
     Process {
         id: wifiProc
-        command: ["sh", "-c", "nmcli radio wifi 2>/dev/null; nmcli -t -f ACTIVE,SSID,SIGNAL dev wifi 2>/dev/null | grep '^yes' | head -n1; echo; nmcli -t -f TYPE,STATE dev 2>/dev/null | grep -q '^ethernet:connected$' && echo eth || echo -"]
+        command: ["sh", "-c", "nmcli radio wifi 2>/dev/null; nmcli -t -f ACTIVE,SSID,SIGNAL dev wifi 2>/dev/null | grep '^yes' | head -n1; echo; nmcli -t -f TYPE,STATE dev 2>/dev/null | grep -q '^ethernet:connected$' && echo eth || echo -; { [ -n \"$(ls /sys/class/ieee80211 2>/dev/null)\" ] || nmcli -t -f TYPE dev 2>/dev/null | grep -qx wifi; } && echo hw || echo nohw"]
         stdout: StdioCollector {
             onStreamFinished: {
                 var l = text.split("\n");
                 root.wifiOn = (l[0] || "").trim() === "enabled";
                 root.ethernetUp = l.some(function (x) { return x.trim() === "eth"; });
+                root.hasWifi = !l.some(function (x) { return x.trim() === "nohw"; });
                 var a = (l[1] || "").trim();
                 if (a !== "") {
                     var parts = a.split(":");
@@ -2186,7 +2189,7 @@ Scope {
     Process {
         id: btProc
         command: ["sh", "-c",
-            "[ -n \"$(ls /sys/class/bluetooth 2>/dev/null)\" ] || { echo P:; exit 0; }; "      // no adapter: nothing to ask (bluetoothctl would block for its whole timeout, every poll)
+            "[ -n \"$(ls /sys/class/bluetooth 2>/dev/null)\" ] || { echo A:0; echo P:; exit 0; }; echo A:1; "      // no adapter: nothing to ask (bluetoothctl would block for its whole timeout, every poll)
             + "p=$(timeout 4 bluetoothctl show 2>/dev/null </dev/null | grep -i 'Powered:' | head -n1); echo \"P:$p\"; "
             + "timeout 4 bluetoothctl devices 2>/dev/null </dev/null | while read -r _ mac name; do "
             + "[ -n \"$mac\" ] || continue; "
@@ -2203,6 +2206,7 @@ Scope {
                 for (i = 0; i < lines.length; i++) {
                     var l = lines[i].replace(/\r$/, "");
                     if (!l) continue;
+                    if (l === "A:0" || l === "A:1") { root.hasBt = l === "A:1"; continue; }
                     if (l.indexOf("P:") === 0) { on = l.toLowerCase().indexOf("yes") >= 0; continue; }
                     if (l.indexOf("D:") !== 0) continue;
                     var f = l.substring(2).split("\t");
@@ -5387,8 +5391,8 @@ Scope {
                         // Bluetooth has its own optional widget; it remains visible when the radio is off.
                         Item {
                             id: btBtn
-                            visible: root.barWidgetEnabled("bluetooth")
-                            width: root.barWidgetEnabled("bluetooth") ? 26 : 0; height: 28
+                            visible: root.barWidgetEnabled("bluetooth") && root.hasBt
+                            width: (root.barWidgetEnabled("bluetooth") && root.hasBt) ? 26 : 0; height: 28
                             BarHover { id: btHl; dark: bpal.dark; area: btMa; hot: btMa.containsMouse; pressed: btMa.pressed; open: ui.pop === "bt" }
                             Glyph { anchors.centerIn: parent; scale: btHl.lift; width: 15; height: 15; kind: "bluetooth"; color: root.btOn && root.btConnected > 0 ? bpal.fg : bpal.fg2 }
                             MouseArea { id: btMa; anchors.fill: parent; hoverEnabled: true; onClicked: ui.openPop("bt", btBtn.mapToItem(ui, 0, 0).x) }
@@ -7497,8 +7501,9 @@ Scope {
                         id: cWifi
                         CCTile {
                             id: tl
-                            clickable: true
-                            on: root.wifiOn
+                            clickable: root.hasWifi
+                            opacity: root.hasWifi ? 1 : 0.4
+                            on: root.wifiOn && root.hasWifi
                             onClicked: root.toggleWifi()
                             t: ccPal; gx: ccg
                             CCBtn {
@@ -7521,7 +7526,7 @@ Scope {
                                 MorphText {
                                     animateWidth: false; duration: 420
                                     width: parent.width; elide: Text.ElideRight
-                                    text: !root.wifiOn ? I18n.tr("Off") : (root.wifiSsid !== "" ? root.wifiSsid : I18n.tr("Not Connected"))
+                                    text: !root.hasWifi ? "N/A" : (!root.wifiOn ? I18n.tr("Off") : (root.wifiSsid !== "" ? root.wifiSsid : I18n.tr("Not Connected")))
                                     color: tl.fg2; font.family: root.fontForWeight(Font.Normal, ccPal.fam); font.pixelSize: 12
                                 }
                             }
@@ -7530,8 +7535,9 @@ Scope {
                     Component {
                         id: cBt
                         CCTile {
-                            clickable: true
-                            on: root.btOn
+                            clickable: root.hasBt
+                            opacity: root.hasBt ? 1 : 0.4
+                            on: root.btOn && root.hasBt
                             onClicked: root.toggleBt()
                             id: btTile
                             t: ccPal; gx: ccg
@@ -7560,7 +7566,7 @@ Scope {
                                 MorphText {
                                     animateWidth: false; duration: 420
                                     width: parent.width; elide: Text.ElideRight
-                                    text: !root.btOn ? I18n.tr("Off") : (root.btConnected > 0 ? (root.btConnectedName || (root.btConnected + I18n.tr(" Connected"))) : I18n.tr("Not Connected"))
+                                    text: !root.hasBt ? "N/A" : !root.btOn ? I18n.tr("Off") : (root.btConnected > 0 ? (root.btConnectedName || (root.btConnected + I18n.tr(" Connected"))) : I18n.tr("Not Connected"))
                                     color: btTile.fg2; font.family: root.fontForWeight(Font.Normal, ccPal.fam); font.pixelSize: 12
                                 }
                             }
