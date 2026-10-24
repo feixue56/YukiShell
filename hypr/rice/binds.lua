@@ -7,6 +7,7 @@ hl.bind(mod .. " + W",              hl.dsp.exec_cmd("chromium"))
 hl.bind(mod .. " + Q",              hl.dsp.window.close())
 hl.bind(mod .. " + F",              hl.dsp.window.fullscreen())
 hl.bind(mod .. " + T",              hl.dsp.window.float({ action = "toggle" }))
+hl.bind(mod .. " + ALT + space",  hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mod .. " + P",              hl.dsp.window.pseudo())
 hl.bind(mod .. " + J",              hl.dsp.layout("togglesplit"))
 
@@ -22,6 +23,7 @@ for i = 1, 10 do
     local key = i % 10
     hl.bind(mod .. " + " .. key,         hl.dsp.focus({ workspace = i }))
     hl.bind(mod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }))
+    hl.bind(mod .. " + ALT + " .. key,   hl.dsp.window.move({ workspace = i }))
 end
 
 hl.bind(mod .. " + S",         hl.dsp.workspace.toggle_special("magic"))

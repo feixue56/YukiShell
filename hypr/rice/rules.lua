@@ -21,3 +21,8 @@ hl.window_rule({
     xray     = false,
     rounding = 20,
 })
+
+-- Workspaces 1-10 always exist, so the MacShell bar shows all ten and Super+scroll can reach any of them.
+for i = 1, 10 do
+    hl.workspace_rule({ workspace = tostring(i), persistent = true })
+end
