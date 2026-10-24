@@ -4,12 +4,11 @@ and a transparent / solid alternative.
 
 kitty windows: switch between the liquid-glass look (background_opacity from kitty.conf, blurred by Hyprland) and a fully
 solid background. Only the BACKGROUND changes (kitty's own background_opacity via remote control), so the text is never
-touched. Other apps: not possible (Hyprland can only fade the whole window, text included), see FADE_OTHER_APPS."""
+touched. Other apps: a per-app window rule fades the whole window (text included; nothing can avoid that) and is toggled."""
 import json, os, subprocess, sys
 
 KITTY_LEVEL = "1.0"     # kitty background opacity while "solid"; the other state is the liquid-glass value from kitty.conf
-FADE_OTHER_APPS = False # Other apps: Hyprland can only fade the WHOLE window, text included. Off = say so instead of faking it.
-WINDOW_LEVEL = "0.8"    # whole-window opacity used when FADE_OTHER_APPS is True (text fades with it, no way around that)
+WINDOW_LEVEL = "0.8"    # other apps: whole-window opacity (the text fades with it, there is no way around that)
 
 def hc(*a):
     return subprocess.run(["hyprctl", *a], capture_output=True, text=True).stdout
@@ -69,13 +68,29 @@ if w["class"] == "kitty" or w["class"].startswith("dash-"):
     state[w["address"]] = not solid
     json.dump(state, open(STATE, "w"))
     sys.exit(0)
-# Not kitty. No compositor can make only an app's background transparent (it only ever sees the finished window), so
-# fading the window would fade the text too. A leftover fade is always removed; a new one is only applied if enabled.
-if 0 < window_opacity() < 1:
-    set_window_opacity("-1")
-elif FADE_OTHER_APPS:
-    set_window_opacity(WINDOW_LEVEL)
-else:
-    name = w.get("class") or "this app"
-    subprocess.run(["notify-send", "-a", "Transparency", "-t", "2500", "Background-only transparency unavailable",
-                    f"{name} can't make just its background see-through. Terminals (kitty) can."], capture_output=True)
+# Not kitty. No compositor can make only an app's background transparent (it only ever sees the finished window), so this
+# fades the WHOLE window, text included. It is done with a per-app window rule: pressing the key on an app adds a rule for
+# its class (every window of that app, survives reloads and restarts); pressing it again removes the rule.
+import re, string
+APPS = os.path.expanduser("~/.config/hypr-rice/transparent-apps.txt")
+cls = w["class"]
+if not cls:
+    sys.exit(0)
+try: apps = [l.strip() for l in open(APPS) if l.strip()]
+except OSError: apps = []
+on = cls not in apps
+if on: apps.append(cls)
+else: apps.remove(cls)
+os.makedirs(os.path.dirname(APPS), exist_ok=True)
+open(APPS, "w").write("".join(a + "\n" for a in apps))
+
+# The rule only reaches windows opened from now on (and after reloads / restarts); the windows already open get the value
+# set directly. An explicit per-window value also beats any leftover fade from an older version of this script.
+for c in json.loads(hc("-j", "clients")):
+    if c["class"] == cls:
+        for prop in ("opacity", "opacity_inactive", "opacity_fullscreen"):
+            hc("dispatch", f'hl.dsp.window.set_prop({{ prop = "{prop}", value = "{WINDOW_LEVEL if on else "-1"}", window = "address:{c["address"]}" }})')
+rx = "^" + "".join("\\" + ch if ch in string.punctuation else ch for ch in cls) + "$"
+rule = ('hl.window_rule({ name = %s, match = { class = %s }, opacity = "%s %s", enabled = %s })'
+        % (json.dumps("yuki-transparent-" + cls), json.dumps(rx), WINDOW_LEVEL, WINDOW_LEVEL, "true" if on else "false"))
+hc("eval", rule)
