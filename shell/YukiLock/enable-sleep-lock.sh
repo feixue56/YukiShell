@@ -6,7 +6,7 @@ set -eu
 cfg_home="${XDG_CONFIG_HOME:-$HOME/.config}"
 hypr_dir="$cfg_home/hypr"
 config="$hypr_dir/hypridle.conf"
-lock_cmd="sh $cfg_home/quickshell/RiceLock/lock-via-ipc.sh"
+lock_cmd="sh $cfg_home/quickshell/YukiLock/lock-via-ipc.sh"
 mkdir -p "$hypr_dir"
 
 python3 - "$config" "$lock_cmd" <<'PY'

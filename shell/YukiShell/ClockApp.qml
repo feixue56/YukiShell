@@ -1,6 +1,6 @@
 // Clock — the macOS Clock app for MacShell: World Clock, Alarms, Stopwatch, Timers.
 //
-//   qs -c RiceShell ipc call clock open            (also: clock tab alarms|world|stopwatch|timers, clock stop, clock snooze)
+//   qs -c YukiShell ipc call clock open            (also: clock tab alarms|world|stopwatch|timers, clock stop, clock snooze)
 //
 // Lives inside MacShell (not its own process) so alarms and timers ring even when the window is closed. Everything is
 // saved to ~/.config/macshell/clock.json the moment it changes (survives crashes and restarts); the Clock widget and

@@ -1,8 +1,8 @@
 // MacLock: a macOS 26/27-style lock screen for Quickshell, matching MacShell's Liquid Glass.
 //
-//   qs -c RiceLock                         lock now (one-shot; started by hypridle via maclock.sh)
-//   MACLOCK_DAEMON=1 qs -c RiceLock        start unlocked for an IPC-triggered lock
-//   MACLOCK_PREVIEW=1 qs -c RiceLock       draw it as an overlay window instead of a real lock (for tweaking)
+//   qs -c YukiLock                         lock now (one-shot; started by hypridle via maclock.sh)
+//   MACLOCK_DAEMON=1 qs -c YukiLock        start unlocked for an IPC-triggered lock
+//   MACLOCK_PREVIEW=1 qs -c YukiLock       draw it as an overlay window instead of a real lock (for tweaking)
 //
 // Runs as its own process on purpose: a MacShell crash can never take the lock with it, and maclock.sh
 // relaunches this one if it dies (Hyprland's misc:allow_session_lock_restore lets the new instance take over).

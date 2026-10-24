@@ -4,13 +4,13 @@
 hl.on("hyprland.start", function()
     hl.exec_cmd("awww-daemon")
     -- Install/update Hypridle's before_sleep_cmd hook (lid close is covered when it suspends).
-    hl.exec_cmd("sh ~/.config/quickshell/RiceLock/enable-sleep-lock.sh")
+    hl.exec_cmd("sh ~/.config/quickshell/YukiLock/enable-sleep-lock.sh")
     hl.exec_cmd("sh ~/.local/bin/macshell-start")
 end)
 -- The Settings window floats and centres itself when it opens, so it needs no window rule.
 
 -- keybinds (the name after -c is the config folder name, case-sensitive)
-local qs = "qs -c RiceShell ipc call "
+local qs = "qs -c YukiShell ipc call "
 
 hl.bind("SUPER + Z",          hl.dsp.exec_cmd(qs .. "settings toggle"))
 hl.bind("SUPER + V",          hl.dsp.exec_cmd(qs .. "spotlight clipboard"))
@@ -46,5 +46,5 @@ for _, k in ipairs(hwkeys) do
 end
 
 -- MacLock (lock screen)
-hl.bind("SUPER + L",          hl.dsp.exec_cmd("sh ~/.config/quickshell/RiceLock/lock-via-ipc.sh"))
+hl.bind("SUPER + L",          hl.dsp.exec_cmd("sh ~/.config/quickshell/YukiLock/lock-via-ipc.sh"))
 -- <<< MacShell module <<<

@@ -4,9 +4,9 @@ Covers Hyprland (look, input, binds, rules), kitty (glass), fastfetch, btop, cav
 Palette lives in `hypr/rice/theme.lua`. Install with `./install.sh`.
 Note: MacShell's matugen templates can overwrite `gtk.css`; re-run `./install.sh` to restore.
 
-## RiceShell (standalone fork)
-`shell/RiceShell` and `shell/RiceLock` are this repo's own copy of MacShell and MacLock, with the motion/dock/menu-bar
-tweaks already applied. They run as `qs -c RiceShell` / `qs -c RiceLock`, started by `shell/bin/rice-start` from
+## YukiShell (standalone fork)
+`shell/YukiShell` and `shell/YukiLock` are this repo's own copy of MacShell and MacLock, with the motion/dock/menu-bar
+tweaks already applied. They run as `qs -c YukiShell` / `qs -c YukiLock`, started by `shell/bin/yuki-start` from
 `hypr/rice/shell.lua`. Nothing here depends on MacShell's `install.sh` or `macshell-update`, and they never touch it.
 MacShell's data files (`~/.config/macbar`, `macdock`, `macshell`) are still shared, since the QML reads those paths.
-Env overrides: `~/.config/hypr-rice/env`. Log: `~/.local/state/hypr-rice/RiceShell.log`.
+Env overrides: `~/.config/hypr-rice/env`. Log: `~/.local/state/hypr-rice/YukiShell.log`.

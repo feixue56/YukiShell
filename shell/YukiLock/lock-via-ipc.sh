@@ -3,11 +3,11 @@
 set -u
 
 get_state() {
-    qs -c RiceLock ipc call lockscreen state 2>/dev/null || true
+    qs -c YukiLock ipc call lockscreen state 2>/dev/null || true
 }
 
 lock_now() {
-    exec qs -c RiceLock ipc call lockscreen lock
+    exec qs -c YukiLock ipc call lockscreen lock
 }
 
 state=$(get_state)
@@ -35,7 +35,7 @@ case "$state" in
 esac
 
 # No live IPC endpoint: create a new instance, wait for it, then request the lock.
-MACLOCK_DAEMON=1 qs -c RiceLock >/dev/null 2>&1 &
+MACLOCK_DAEMON=1 qs -c YukiLock >/dev/null 2>&1 &
 daemon_pid=$!
 tries=0
 while [ "$tries" -lt 60 ]; do

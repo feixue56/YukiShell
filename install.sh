@@ -22,9 +22,9 @@ for v in 3 4; do
     link "$here/gtk-$v.0/gtk.css"      "$cfg/gtk-$v.0/gtk.css"
     link "$here/gtk-$v.0/settings.ini" "$cfg/gtk-$v.0/settings.ini"
 done
-link "$here/shell/RiceShell"                   "$cfg/quickshell/RiceShell"
-link "$here/shell/RiceLock"                    "$cfg/quickshell/RiceLock"
-link "$here/shell/bin/rice-start"              "$HOME/.local/bin/rice-start"
+link "$here/shell/YukiShell"                   "$cfg/quickshell/YukiShell"
+link "$here/shell/YukiLock"                    "$cfg/quickshell/YukiLock"
+link "$here/shell/bin/yuki-start"              "$HOME/.local/bin/yuki-start"
 [ -f "$cfg/hypr-rice/env" ] || { mkdir -p "$cfg/hypr-rice"; cp "$here/shell/env.example" "$cfg/hypr-rice/env"; }
 link "$here/qt/CatppuccinMauve.colors" "$HOME/.local/share/color-schemes/CatppuccinMauve.colors"
 
@@ -43,7 +43,7 @@ LUA
       cat "$lua.pre-rice"; } > "$lua"
 fi
 
-# Drop MacShell's own block from hyprland.lua; RiceShell is wired in rice/shell.lua instead.
+# Drop MacShell's own block from hyprland.lua; YukiShell is wired in rice/shell.lua instead.
 if [ -f "$lua" ] && grep -q '>>> MacShell module' "$lua"; then
     cp "$lua" "$lua.pre-fork"
     python3 - "$lua" <<'PY'

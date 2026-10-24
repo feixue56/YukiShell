@@ -3,7 +3,7 @@
 // already have is replaced or partially upgraded); packages are installed through pkexec, so MacShell's own password
 // sheet (Polkit.qml) asks for your password.
 //
-//   qs -c RiceShell ipc call deps open
+//   qs -c YukiShell ipc call deps open
 import QtQuick
 import QtQuick.Effects
 import Quickshell

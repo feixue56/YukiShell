@@ -1524,7 +1524,7 @@ Scope {
                 }
                 SLabel {
                     t: pal
-                    text: I18n.tr("If you turn both off, reopen this window with:  qs -c RiceShell ipc call settings open")
+                    text: I18n.tr("If you turn both off, reopen this window with:  qs -c YukiShell ipc call settings open")
                 }
 
                 SCard {
@@ -3471,10 +3471,10 @@ Scope {
                         onClicked: {
                             var b = root.bar;
                             var cfg = JSON.stringify({ f: b.lockClockFont, w: b.lockClockWeight, m: b.lockClockMaterial, i: b.lockClockIntensity, c: b.lockClockTint, d: b.lockClockDate });
-                            Quickshell.execDetached(["sh", "-c", "MACLOCK_PREVIEW=1 MACLOCK_CLOCK=\"$1\" timeout 6 qs -c RiceLock >/dev/null 2>&1", "sh", cfg]);
+                            Quickshell.execDetached(["sh", "-c", "MACLOCK_PREVIEW=1 MACLOCK_CLOCK=\"$1\" timeout 6 qs -c YukiLock >/dev/null 2>&1", "sh", cfg]);
                         }
                     }
-                    SButton { t: pal; text: I18n.tr("Lock Screen Now"); onClicked: { prefsWindow.visible = false; Quickshell.execDetached(["sh", "-c", "pgrep -f -- \"-c [R]iceLock\" >/dev/null 2>&1 || qs -c RiceLock"]); } }
+                    SButton { t: pal; text: I18n.tr("Lock Screen Now"); onClicked: { prefsWindow.visible = false; Quickshell.execDetached(["sh", "-c", "pgrep -f -- \"-c [Y]ukiLock\" >/dev/null 2>&1 || qs -c YukiLock"]); } }
                 }
             }
         }

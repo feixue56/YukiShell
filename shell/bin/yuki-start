@@ -1,9 +1,9 @@
 #!/bin/sh
-# rice-start: starts RiceShell (this repo's fork of MacShell) for the Hyprland session.
-#   rice-start [ConfigName]      default: RiceShell
+# yuki-start: starts YukiShell (this repo's fork of MacShell) for the Hyprland session.
+#   yuki-start [ConfigName]      default: YukiShell
 # Your own environment variables go in ~/.config/hypr-rice/env
 # Log: ~/.local/state/hypr-rice/<ConfigName>.log
-NAME="${1:-RiceShell}"
+NAME="${1:-YukiShell}"
 CONF="${XDG_CONFIG_HOME:-$HOME/.config}"
 STATE="${XDG_STATE_HOME:-$HOME/.local/state}/hypr-rice"
 LOG="$STATE/$NAME.log"
@@ -13,9 +13,9 @@ PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin:$PATH"; export PATH
 mkdir -p "$STATE" 2>/dev/null
 # keep the log small
 if [ -f "$LOG" ] && [ "$(wc -c < "$LOG" 2>/dev/null | tr -d ' ')" -gt 1048576 ] 2>/dev/null; then mv -f "$LOG" "$LOG.old" 2>/dev/null; fi
-log() { printf '%s rice-start: %s\n' "$(date '+%F %T')" "$*" >> "$LOG" 2>/dev/null; }
+log() { printf '%s yuki-start: %s\n' "$(date '+%F %T')" "$*" >> "$LOG" 2>/dev/null; }
 
-command -v qs >/dev/null 2>&1 || { echo "rice-start: qs (quickshell) not found in PATH" >&2; log "qs (quickshell) not found in PATH"; exit 1; }
+command -v qs >/dev/null 2>&1 || { echo "yuki-start: qs (quickshell) not found in PATH" >&2; log "qs (quickshell) not found in PATH"; exit 1; }
 
 # wait (up to 20 s) until the Wayland socket exists
 i=0
@@ -97,10 +97,10 @@ while :; do
     log "qs exited with code $rc after $((now - start)) s"
     if [ $((now - start)) -lt 5 ]; then fast=$((fast + 1)); else fast=0; fi
     if [ "$fast" -ge 6 ]; then
-        msg="RiceShell keeps crashing right after it starts. See $LOG   (or run:  qs -c $NAME   and  bash install.sh --doctor)"
-        echo "rice-start: $msg" >&2
+        msg="YukiShell keeps crashing right after it starts. See $LOG   (or run:  qs -c $NAME   and  bash install.sh --doctor)"
+        echo "yuki-start: $msg" >&2
         log "giving up: $msg"
-        command -v notify-send >/dev/null 2>&1 && notify-send -u critical "RiceShell" "$msg"
+        command -v notify-send >/dev/null 2>&1 && notify-send -u critical "YukiShell" "$msg"
         exit 1
     fi
     sleep 1

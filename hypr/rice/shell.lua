@@ -1,15 +1,15 @@
--- RiceShell: this repo's own fork of MacShell (independent of MacShell's install.sh / updates).
--- autostart: rice-start waits for the compositor and restarts the shell if it crashes.
+-- YukiShell: this repo's own fork of MacShell (independent of MacShell's install.sh / updates).
+-- autostart: yuki-start waits for the compositor and restarts the shell if it crashes.
 hl.on("hyprland.start", function()
     hl.exec_cmd("awww-daemon")
     -- Install/update Hypridle's before_sleep_cmd hook (lid close is covered when it suspends).
-    hl.exec_cmd("sh ~/.config/quickshell/RiceLock/enable-sleep-lock.sh")
-    hl.exec_cmd("sh ~/.local/bin/rice-start")
+    hl.exec_cmd("sh ~/.config/quickshell/YukiLock/enable-sleep-lock.sh")
+    hl.exec_cmd("sh ~/.local/bin/yuki-start")
 end)
 -- The Settings window floats and centres itself when it opens, so it needs no window rule.
 
 -- keybinds (the name after -c is the config folder name, case-sensitive)
-local qs = "qs -c RiceShell ipc call "
+local qs = "qs -c YukiShell ipc call "
 
 hl.bind("SUPER + Z",          hl.dsp.exec_cmd(qs .. "settings toggle"))
 hl.bind("SUPER + V",          hl.dsp.exec_cmd(qs .. "spotlight clipboard"))
@@ -44,5 +44,5 @@ for _, k in ipairs(hwkeys) do
     hl.bind(k[1], hl.dsp.exec_cmd(k[2]), { locked = true, repeating = k[3] })
 end
 
--- RiceLock (lock screen)
-hl.bind("SUPER + L",          hl.dsp.exec_cmd("sh ~/.config/quickshell/RiceLock/lock-via-ipc.sh"))
+-- YukiLock (lock screen)
+hl.bind("SUPER + L",          hl.dsp.exec_cmd("sh ~/.config/quickshell/YukiLock/lock-via-ipc.sh"))

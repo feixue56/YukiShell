@@ -325,10 +325,10 @@ ShellRoot {
         target: "settings"
         function open(): void { macDock.openPrefs("general"); }
         function toggle(): void { macDock.togglePrefs("general"); }
-        // qs -c RiceShell ipc call settings pane wallpaper   (general, dock, menubar, appearance, wallpaper, behavior, apps, about)
+        // qs -c YukiShell ipc call settings pane wallpaper   (general, dock, menubar, appearance, wallpaper, behavior, apps, about)
         function pane(id: string): void { macDock.openPrefs(id); }
     }
-    // qs -c RiceShell ipc call clock open | tab alarms | stop | snooze
+    // qs -c YukiShell ipc call clock open | tab alarms | stop | snooze
     IpcHandler {
         target: "clock"
         function open(): void { clockApp.open(); }
@@ -336,7 +336,7 @@ ShellRoot {
         function stop(): void { clockApp.stopRing(); }
         function snooze(): void { clockApp.snooze(); }
     }
-    // qs -c RiceShell ipc call about open | close | toggle      (the Apple menu's "About This Linux")
+    // qs -c YukiShell ipc call about open | close | toggle      (the Apple menu's "About This Linux")
     IpcHandler {
         target: "about"
         function open(): void { aboutApp.open(); }
@@ -351,7 +351,7 @@ ShellRoot {
         // the lock screen: a notification swiped away
         function dismiss(id: int): void { macBar.notifDelete(id); macBar.notifUnread = Math.max(0, macBar.notifUnread - 1); }
     }
-    // qs -c RiceShell ipc call gaming toggle | on | off
+    // qs -c YukiShell ipc call gaming toggle | on | off
     IpcHandler {
         target: "gaming"
         function toggle(): void { macBar.gamingMode = !macBar.gaming; }

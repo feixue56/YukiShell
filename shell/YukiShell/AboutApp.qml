@@ -1,6 +1,6 @@
 //0.3.9// About This Linux — the "About This Mac" window for MacShell.
 //
-//   qs -c RiceShell ipc call about open | close | toggle        (the Apple menu's "About This Linux" opens it too)
+//   qs -c YukiShell ipc call about open | close | toggle        (the Apple menu's "About This Linux" opens it too)
 //
 // Everything shown comes from the running system (assets/about-info.sh): the computer's model from the firmware (DMI),
 // the processor, graphics cards, memory, the size of the disk holding "/", the kernel and the distribution.

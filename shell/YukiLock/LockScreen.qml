@@ -1119,7 +1119,7 @@ Item {
             if (media.pl && (ls.spotifyTrackId !== "" || (media.pl.identity || "").toLowerCase().indexOf("spotify") >= 0)) {
                 canvasProc.running = false;
                 var arg = ls.spotifyTrackId !== "" ? ls.spotifyTrackId : ((media.pl.trackArtist || "") + " " + (media.pl.trackTitle || ""));
-                canvasProc.command = ["python3", Quickshell.env("HOME") + "/.config/quickshell/RiceLock/spotify-canvas.py", arg];
+                canvasProc.command = ["python3", Quickshell.env("HOME") + "/.config/quickshell/YukiLock/spotify-canvas.py", arg];
                 canvasProc.running = true;
             }
         }
@@ -1175,7 +1175,7 @@ Item {
         'rm -f "$tmp"',
         // ── 3. Genius: token-free, rich lyrics source
         'if [ -z "$r" ] || [ "$(printf "%s" "$r" | jq -r ".syncedLyrics // empty" 2>/dev/null)" = "" ]; then',
-        '  g=$(python3 "$HOME/.config/quickshell/RiceLock/genius-lyrics.py" "$a" "$bare" "$c" 2>/dev/null || true)',
+        '  g=$(python3 "$HOME/.config/quickshell/YukiLock/genius-lyrics.py" "$a" "$bare" "$c" 2>/dev/null || true)',
         '  if [ -n "$g" ] && [ "$g" != "{}" ]; then',
         '    gp=$(printf "%s" "$g" | jq -r ".plain // empty" 2>/dev/null)',
         '    if [ -n "$gp" ]; then r=$(jq -nc --arg p "$gp" "{plainLyrics: \\$p}"); answered=1; fi',

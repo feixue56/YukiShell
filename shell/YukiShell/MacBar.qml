@@ -525,10 +525,10 @@ Scope {
     // Log out of Hyprland. 0.55+ (Lua) takes a Lua expression; UWSM sessions are stopped through uwsm so the session ends cleanly.
     // Lock Screen: starts MacLock via IPC helper; does nothing if already locked
     function lockScreen() {
-        sh('sh ~/.config/quickshell/RiceLock/lock-via-ipc.sh');
+        sh('sh ~/.config/quickshell/YukiLock/lock-via-ipc.sh');
     }
     function sleepMachine() {
-        sh('sh ~/.config/quickshell/RiceLock/lock-via-ipc.sh; sleep 0.5; systemctl suspend');
+        sh('sh ~/.config/quickshell/YukiLock/lock-via-ipc.sh; sleep 0.5; systemctl suspend');
     }
     function logOut() {
         sh('if command -v uwsm >/dev/null 2>&1 && uwsm check is-active >/dev/null 2>&1; then uwsm stop; '
@@ -2742,7 +2742,7 @@ Scope {
         else spotRequest++;                       // every bar window listens and the focused screen opens Spotlight
     }
     function spotOpen(mode) { if (!spotlightEnabled) return; spotWant = mode; spotRequest++; }
-    // qs -c RiceShell ipc call controlcenter toggle | open | close   (works with the menu bar switched off too)
+    // qs -c YukiShell ipc call controlcenter toggle | open | close   (works with the menu bar switched off too)
     signal ccRequest(bool open)
     IpcHandler {
         target: "controlcenter"
@@ -2752,7 +2752,7 @@ Scope {
     }
     // Laptop / keyboard hardware keys (volume, mute, brightness). The compositor must bind the keys (the installer's
     // macshell.lua does); the shell then does the work itself, so the numbers, the on-screen display and the UI sounds
-    // all stay in step.   qs -c RiceShell ipc call hardware volumeUp | volumeDown | mute | micMute | brightnessUp | brightnessDown
+    // all stay in step.   qs -c YukiShell ipc call hardware volumeUp | volumeDown | mute | micMute | brightnessUp | brightnessDown
     IpcHandler {
         target: "hardware"
         function volumeUp(): void { root.hwVolume(0.05); }
@@ -3933,7 +3933,7 @@ Scope {
     // ═════════════ THE BAR ═════════════
     // ═════════════ NOTIFICATIONS ═════════════
     // Receives org.freedesktop.Notifications on D-Bus (stop dunst / mako / swaync first — only one daemon can own the name).
-    // IPC: qs -c RiceShell ipc call notifications open | close | clear   (opens on the focused screen)
+    // IPC: qs -c YukiShell ipc call notifications open | close | clear   (opens on the focused screen)
     signal notifPopRequest(bool open)
     property bool notifDnd: false            // Do Not Disturb: still stored in the centre, but no popups
     property real notifBlur: 14              // blur of the notification glass (smooth two-pass Gaussian, same method as the Blur slider)
@@ -4371,7 +4371,7 @@ Scope {
     IpcHandler {
         target: "wallpapers"
         function toggle(): void { root.wpToggle(); }
-        // qs -c RiceShell ipc call wallpapers appearance auto|light|dark|dynamic
+        // qs -c YukiShell ipc call wallpapers appearance auto|light|dark|dynamic
         function set(path: string): void { root.wpApply(path); }
         function appearance(mode: string): void { if (["auto", "light", "dark", "dynamic"].indexOf(mode) >= 0) root.wallpaperAppearance = mode; }
         function open(): void { if (!root.wpOpen) root.wpToggle(); }
