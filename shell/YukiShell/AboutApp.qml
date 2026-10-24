@@ -5,8 +5,8 @@
 // Everything shown comes from the running system (assets/about-info.sh): the computer's model from the firmware (DMI),
 // the processor, graphics cards, memory, the size of the disk holding "/", the kernel and the distribution.
 //
-// Logo: your distribution's own logo (os-release LOGO=, found through the icon theme). To show a Linux logo of your own,
-// put it at  assets/linux-logo.svg  (or .png)  and it is used instead.
+// Logo: the YukiShell logo (assets/yukishell-logo.png). To show a Linux logo of your own instead, for example your
+// distribution's, put it at  assets/linux-logo.svg  (or .png).
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Effects
@@ -77,17 +77,7 @@ Scope {
         return r;
     }
 
-    // the logo: a file the user supplied > the distribution's icon > a plain drawn fallback
-    readonly property string distroLogo: {
-        var names = [info.logo, (info.osid || "") + "-logo", info.osid, "distributor-logo", "start-here"];
-        for (var i = 0; i < names.length; i++) {
-            if (!names[i]) continue;
-            var p = Quickshell.iconPath(names[i], true);
-            if (p) return p;
-        }
-        return "";
-    }
-
+    // the logo: a file the user supplied > the YukiShell logo
     Window {
         id: win
         title: "About This Linux"
@@ -217,29 +207,10 @@ Scope {
                         anchors.centerIn: parent
                         width: 112; height: 112
                         visible: status === Image.Ready
-                        source: root.info.userlogo ? "file://" + root.info.userlogo : ""
+                        source: root.info.userlogo ? "file://" + root.info.userlogo : Qt.resolvedUrl("assets/yukishell-logo.png")
                         sourceSize.width: 224; sourceSize.height: 224
                         fillMode: Image.PreserveAspectFit
                         smooth: true; mipmap: true
-                    }
-                    Image {
-                        id: distroImg
-                        anchors.centerIn: parent
-                        width: 112; height: 112
-                        visible: !userLogo.visible && status === Image.Ready
-                        source: userLogo.visible ? "" : root.distroLogo
-                        sourceSize.width: 224; sourceSize.height: 224
-                        fillMode: Image.PreserveAspectFit
-                        smooth: true; mipmap: true
-                    }
-                    // last resort: a plain terminal window
-                    Rectangle {
-                        anchors.centerIn: parent
-                        visible: !userLogo.visible && !distroImg.visible
-                        width: 108; height: 78; radius: 9
-                        color: "transparent"
-                        border.width: 4; border.color: pal.text2
-                        Text { anchors.centerIn: parent; text: ">_"; font.family: Fonts.forWeight(Font.Bold, root.fam); font.pixelSize: 30; font.bold: true; color: pal.text2 }
                     }
                 }
                 Item { width: 1; height: 20 }
