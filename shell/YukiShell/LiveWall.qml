@@ -3,7 +3,9 @@
 // picture, so the glass shows the wallpaper moving in real time.
 // `video` is what the shell hands in as bar.glassVideo: "" while "Animated wallpaper in glass" is off (the default), otherwise a small
 // 720 px / 30 fps copy of the wallpaper. With `video` empty, `live` false, or the wallpaper a still picture again, the Loader is inactive
-// and no decoder exists at all. `paused` keeps the decoder idle (desktop covered by windows, Game Mode) without tearing it down.
+// and no decoder exists at all. While `paused` (desktop covered by windows, Game Mode) the decoder is torn down as well: a paused
+// QMediaPlayer still costs about as much as a playing one (measured: ~7% of a core and ~400 MB of GPU memory per shell), a missing one
+// costs nothing, and the still picture underneath is what shows until the video is back.
 import QtQuick
 import QtMultimedia
 
@@ -12,21 +14,19 @@ Item {
     property string video: ""        // absolute path of the video wallpaper, "" = a still picture
     property bool live: false        // real-time glass switched on
     property bool paused: false      // e.g. the desktop is completely covered by windows
-    readonly property bool active: live && video !== ""
+    readonly property bool active: live && video !== "" && !paused
 
     Loader {
         anchors.fill: parent
         active: lw.active
         sourceComponent: Item {
             id: box
-            readonly property bool run: !lw.paused
-            onRunChanged: { if (run) mp.play(); else mp.pause(); }
             MediaPlayer {
                 id: mp
                 source: "file://" + lw.video
                 loops: MediaPlayer.Infinite
                 videoOutput: vo
-                Component.onCompleted: { if (box.run) play(); }
+                Component.onCompleted: play()
             }
             VideoOutput {
                 id: vo
