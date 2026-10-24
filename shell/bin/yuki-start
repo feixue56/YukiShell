@@ -24,6 +24,14 @@ while [ "$i" -lt 100 ]; do
     i=$((i + 1)); sleep 0.2
 done
 
+# one supervisor per shell: the lock is held for as long as this script lives. Everything this script starts in the background
+# gets `9>&-` so that a long-lived child (awww-daemon, ...) cannot keep the lock alive after the script is gone.
+LOCK="$STATE/$NAME.lock"
+if command -v flock >/dev/null 2>&1; then
+    exec 9>"$LOCK" || true
+    flock -n 9 || exit 0
+fi
+
 # already running for this user? then there is nothing to do
 if pgrep -u "$(id -u)" -f "(^|/)(qs|quickshell)( .*)? (-c|--config) $NAME( |\$)" >/dev/null 2>&1; then exit 0; fi
 
@@ -64,7 +72,7 @@ if command -v awww-daemon >/dev/null 2>&1 && [ -n "$(ls -A "${XDG_CACHE_HOME:-$H
         awww query >/dev/null 2>&1 || setsid awww-daemon >/dev/null 2>&1 &
         n=0; while [ "$n" -lt 20 ]; do awww query >/dev/null 2>&1 && break; n=$((n + 1)); sleep 0.25; done
         awww restore >/dev/null 2>&1
-    ) &
+    ) 9>&- &
 fi
 
 # ── run the shell; restart it when it crashes. After repeated quick crashes, try simpler graphics settings (only the
@@ -84,11 +92,11 @@ while :; do
     rung "$fast"
     log "starting qs -c $NAME (attempt $((fast + 1)))${applied:+, fallback settings:$applied}$([ "$soft" = 1 ] && printf ' QT_QUICK_BACKEND=software')"
     start=$(date +%s)
-    qs -c "$NAME" >>"$LOG" 2>&1 &
+    qs -c "$NAME" >>"$LOG" 2>&1 9>&- &
     pid=$!
     if [ -n "$applied" ] && [ "$soft" = 0 ] && [ ! -s "$AUTO" ]; then
         keep="$applied"
-        ( sleep 10; if kill -0 "$pid" 2>/dev/null; then for kv in $keep; do printf '%s\n' "$kv"; done > "$AUTO"; log "remembered:$keep"; fi ) &
+        ( sleep 10; if kill -0 "$pid" 2>/dev/null; then for kv in $keep; do printf '%s\n' "$kv"; done > "$AUTO"; log "remembered:$keep"; fi ) 9>&- &
     fi
     wait "$pid"
     rc=$?

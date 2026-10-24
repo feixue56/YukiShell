@@ -27,6 +27,7 @@ done
 link "$here/shell/YukiShell"                   "$cfg/quickshell/YukiShell"
 link "$here/shell/YukiLock"                    "$cfg/quickshell/YukiLock"
 link "$here/shell/bin/yuki-start"              "$HOME/.local/bin/yuki-start"
+link "$here/shell/bin/yuki-restart"            "$HOME/.local/bin/yuki-restart"
 link "$here/shell/bin/yuki-brightness"         "$HOME/.local/bin/yuki-brightness"
 link "$here/shell/scripts"                     "$cfg/hypr-yukishell/scripts"   # wallpaper, Game Mode, wallpaper pause, dynamic wallpaper
 [ -f "$cfg/hypr-rice/env" ] || { mkdir -p "$cfg/hypr-rice"; cp "$here/shell/env.example" "$cfg/hypr-rice/env"; }

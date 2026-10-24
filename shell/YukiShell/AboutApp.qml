@@ -83,9 +83,10 @@ Scope {
         title: "About This Linux"
         readonly property real uiS: root.bar ? root.bar.uiScale : 1      // UI scale (Settings → Menu Bar)
         readonly property int wantH: Math.round((Math.ceil(content.implicitHeight) + 40 + 26) * uiS)
-        width: Math.round(300 * uiS)
+        readonly property int wantW: Math.round(300 * uiS)
+        width: wantW
         height: wantH
-        minimumWidth: width; maximumWidth: width
+        minimumWidth: wantW; maximumWidth: wantW      // not `width`: the window feeds its own limits back into its width (binding loop)
         minimumHeight: wantH; maximumHeight: wantH
         visible: false
         color: "transparent"

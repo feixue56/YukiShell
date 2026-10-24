@@ -85,7 +85,7 @@ method (`fcitx5-mozc`, `fcitx5-hangul`, `fcitx5-chewing`); the profile only ship
 | `hypr/rice/` | Hyprland Lua modules: `theme monitor look input ime binds rules shell` |
 | `hypr/bin/` | `dashboard`, `toggle-opacity` |
 | `shell/YukiShell`, `shell/YukiLock` | the Quickshell shell and lock screen (`qs -c YukiShell`, `qs -c YukiLock`) |
-| `shell/bin/` | `yuki-start` (keeps the shell running), `yuki-brightness` |
+| `shell/bin/` | `yuki-start` (keeps the shell running), `yuki-restart` (restarts it cleanly), `yuki-brightness` |
 | `shell/scripts/` | helpers the shell calls: wallpaper (`yukishell-setwall.sh`, `-dynwall.sh`, `-wallpause.sh`), Game Mode, UI sound generator |
 | `kitty fish fastfetch btop cava gtk-3.0 gtk-4.0 qt chromium` | app configs and themes |
 | `tools/` | one-off helpers |
