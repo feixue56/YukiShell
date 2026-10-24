@@ -787,15 +787,13 @@ Scope {
             onTriggered: {
                 // the compositor maps the window a moment after it becomes visible: send the dispatches a few times
                 var sel = 'window = "title:^(' + prefsWindow.title + ')$"';
-                Hyprland.dispatch('hl.dsp.window.float({ action = "enable", ' + sel + ' })');
-                Hyprland.dispatch('hl.dsp.window.fullscreen({ mode = "maximized", action = "unset", ' + sel + ' })');
+                // float / centre / size are handled by the "yukishell-settings" window rule (hypr/rice/rules.lua): the window is born floating
                 // Hyprland draws the focus border (active/inactive colours, like every other window); its rounding (used for its
                 // shadow and the blur behind the sidebar) matches the window's own corner radius
                 Hyprland.dispatch('hl.dsp.window.set_prop({ prop = "rounding", value = "' + Math.round(frame.radius * root.uiS) + '", ' + sel + ' })');
                 // Hyprland can remember an older floating size; reapply the compact size after mapping.
                 if (prefsWindow.floatTries >= 2) {
                     Hyprland.dispatch('hl.dsp.window.resize({ x = ' + prefsWindow.preferredWidth + ', y = ' + prefsWindow.preferredHeight + ', "exact", ' + sel + ' })');
-                    Hyprland.dispatch('hl.dsp.window.center({ ' + sel + ' })');
                 }
                 if (++prefsWindow.floatTries >= 12) stop();
             }
