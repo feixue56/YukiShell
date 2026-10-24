@@ -243,8 +243,13 @@ Scope {
         barToneProc.command = ["sh", toneScript, "0.25", String(Math.round(sc.x)), String(Math.round(sc.y)), String(Math.max(8, Math.round(sc.width))), String(Math.max(8, Math.round(barH)))];
         barToneProc.running = true;
     }
-    Timer { id: barToneT; interval: 350; onTriggered: root.measureBar() }          // debounce: after a resize / wallpaper / window change settles
-    Timer { interval: 1200; repeat: true; running: root.autoContrast && root.barEnabled && !root.gaming; onTriggered: root.measureBar() }
+    Timer { id: barToneT; interval: 350; onTriggered: { root.toneStable = 0; root.measureBar(); } }   // debounce: after a resize / wallpaper / window change settles
+    // Poll every 1.2 s while the backdrop is changing (live wallpaper, windows moving under the bar); once it has read the same for
+    // a few rounds, back off to 2.4 s and then 4.8 s. Any change, or one of the events above, drops it straight back to 1.2 s.
+    property int toneStable: 0
+    property real toneLastV: -1
+    property real toneLastSd: -1
+    Timer { interval: root.toneStable > 10 ? 4800 : (root.toneStable > 4 ? 2400 : 1200); repeat: true; running: root.autoContrast && root.barEnabled && !root.gaming; onTriggered: root.measureBar() }
     Connections {
         target: root
         function onBarHeightChanged() { barToneT.restart(); }
@@ -261,7 +266,10 @@ Scope {
                 var p = text.trim().split(/\s+/);
                 var v = parseFloat(p[0]), sd = parseFloat(p[1]);
                 if (isNaN(v)) return;
-                root.barTone = root.pickTone(root.barTone, v, isNaN(sd) ? 0 : sd, false);
+                var s2 = isNaN(sd) ? 0 : sd;
+                root.toneStable = (Math.abs(v - root.toneLastV) < 0.015 && Math.abs(s2 - root.toneLastSd) < 0.02) ? root.toneStable + 1 : 0;
+                root.toneLastV = v; root.toneLastSd = s2;
+                root.barTone = root.pickTone(root.barTone, v, s2, false);
             }
         }
     }

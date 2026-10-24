@@ -10,8 +10,10 @@ s=${1:-0.1}; X=$2; Y=$3; W=$4; H=$5
 grim -t ppm -s "$s" -g "$X,$Y ${W}x$H" "$t" 2>/dev/null || exit 1
 L='0.299*mean.r+0.587*mean.g+0.114*mean.b'
 D='0.299*standard_deviation.r+0.587*standard_deviation.g+0.114*standard_deviation.b'
-mo=$(magick "$t" -statistic Median 3x3 -format "%[fx:$L]" info: 2>/dev/null) || exit 1
-sd=$(magick "$t" -format "%[fx:$D]" info: 2>/dev/null) || exit 1
+# one magick run for both numbers (a process start costs more than the measuring itself): the median-filtered brightness, then the spread
+ms=$(magick "$t" \( +clone -statistic Median 3x3 -format "%[fx:$L] " -write info: +delete \) -format "%[fx:$D]" info: 2>/dev/null) || exit 1
+mo=${ms% *}; sd=${ms#* }
+[ -n "$mo" ] && [ -n "$sd" ] || exit 1
 if [ -n "$9" ] && [ "$8" -gt 0 ] 2>/dev/null; then
   iw=$(magick "$t" -format '%w %h' info: 2>/dev/null)
   geo=$(awk -v iw="$iw" -v X="$X" -v Y="$Y" -v W="$W" -v H="$H" -v ix="$6" -v iy="$7" -v w="$8" -v h="$9" 'BEGIN {
