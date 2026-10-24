@@ -2337,7 +2337,7 @@ Scope {
     function refreshBrightness() { if (!brightProc.running) brightProc.running = true; }
     Process {
         id: brightProc
-        command: ["sh", "-c", "brightnessctl -m 2>/dev/null | head -n1"]
+        command: ["sh", "-c", "yuki-brightness getm 2>/dev/null || brightnessctl -c backlight -m 2>/dev/null | head -n1"]
         stdout: StdioCollector {
             onStreamFinished: {
                 var f = text.trim().split(",");
@@ -2347,8 +2347,8 @@ Scope {
     }
     Timer {
         id: brightApply
-        interval: 40
-        onTriggered: Quickshell.execDetached(["brightnessctl", "-q", "set", Math.max(1, Math.round(root.brightness * 100)) + "%"])
+        interval: 140          // DDC/CI writes are slow: let a drag settle before sending
+        onTriggered: Quickshell.execDetached(["yuki-brightness", "set", String(Math.max(1, Math.round(root.brightness * 100)))])
     }
     function setBrightness(v) { osdQuiet("brightness", 1800); brightness = Math.max(0.01, Math.min(1, v)); brightApply.restart(); }
     onBrightnessChanged: showOsd("brightness", brightness)

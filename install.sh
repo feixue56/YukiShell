@@ -27,6 +27,7 @@ done
 link "$here/shell/YukiShell"                   "$cfg/quickshell/YukiShell"
 link "$here/shell/YukiLock"                    "$cfg/quickshell/YukiLock"
 link "$here/shell/bin/yuki-start"              "$HOME/.local/bin/yuki-start"
+link "$here/shell/bin/yuki-brightness"         "$HOME/.local/bin/yuki-brightness"
 [ -f "$cfg/hypr-rice/env" ] || { mkdir -p "$cfg/hypr-rice"; cp "$here/shell/env.example" "$cfg/hypr-rice/env"; }
 link "$here/qt/CatppuccinMauve.colors" "$HOME/.local/share/color-schemes/CatppuccinMauve.colors"
 
