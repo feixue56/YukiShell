@@ -4881,7 +4881,6 @@ Scope {
         glassState = "building";
         qsbProc.running = true;
         hub.refreshWallpaper();
-        refreshBusy();                 // monitor geometry for the window compositor
     }
     Process {
         id: qsbProc
@@ -4939,25 +4938,21 @@ Scope {
 
     // live window geometry for the backdrop compositor (polled only while Liquid Glass is on)
     readonly property var glassClients: hub ? hub.glassClients : []
-    Binding { target: root.hub; property: "dockWantsGeo"; value: root.liquidActive && (root.dockEnabled || prefsWindow.visible) }
+    // the hub's window / monitor snapshot also drives smart hide, so it is polled whenever the Dock is on, not only for Liquid Glass
+    Binding { target: root.hub; property: "dockWantsGeo"; value: root.dockEnabled || prefsWindow.visible }
     // window captures are admitted by the shared gate in shell.qml (hub.tlFor): 0.2 s after a window appears, one every 110 ms
 
     // ── smart hide: which monitors have a non-floating window on their active workspace ──
-    property var busyMonitors: ({})
-    property var monData: []
-    property bool refreshPending: false
-
-    function refreshBusy() {
-        if (monProc.running || clientProc.running) { refreshPending = true; return; }
-        monProc.running = true;
-    }
-
-    // Match the 0.3.0 method: recompute directly from hyprctl's monitor/client snapshot after each compositor event.
-    function computeBusy(clients) {
-        if (!Array.isArray(clients)) clients = [];
+    // Computed from the hub's monitor + window snapshot (the same one the glass uses): it is refreshed within a frame of a
+    // workspace switch / window event, with no process spawned and no debounce. It used to run `hyprctl -j monitors/clients`
+    // 120 ms after the LAST raw event (every title change and every capture of the shell's own restarted that timer), so the Dock
+    // slid in / out a quarter of a second after the workspace had already changed, or not at all while events kept coming.
+    readonly property var monData: hub ? hub.monData : []
+    function computeBusy(mons, clients) {
         var busy = {};
-        for (var m = 0; m < monData.length; m++) {
-            var mon = monData[m];
+        if (!Array.isArray(mons) || !Array.isArray(clients)) return busy;
+        for (var m = 0; m < mons.length; m++) {
+            var mon = mons[m];
             if (!mon || mon.id === undefined || !mon.name) continue;
             var ids = [mon.activeWorkspace && mon.activeWorkspace.id !== undefined ? mon.activeWorkspace.id : -999];
             if (mon.specialWorkspace && mon.specialWorkspace.id !== undefined && mon.specialWorkspace.id !== 0) ids.push(mon.specialWorkspace.id);
@@ -4969,39 +4964,17 @@ Scope {
                 if (ids.indexOf(cl.workspace.id) >= 0) { busy[mon.name] = true; break; }
             }
         }
-        busyMonitors = busy;
+        return busy;
     }
-
-    Process {
-        id: monProc
-        command: ["hyprctl", "-j", "monitors"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try { root.monData = JSON.parse(text); } catch (err) { root.monData = []; }
-                clientProc.running = true;
-            }
-        }
-    }
-    Process {
-        id: clientProc
-        command: ["hyprctl", "-j", "clients"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try { root.computeBusy(JSON.parse(text)); } catch (err) { root.computeBusy([]); }
-                if (root.refreshPending) { root.refreshPending = false; monProc.running = true; }
-            }
-        }
-    }
+    readonly property var busyMonitors: computeBusy(hub ? hub.monData : [], hub ? hub.glassClients : [])
     Connections {
         target: Hyprland
-        function onRawEvent(event) { busyDebounce.restart(); tickDebounce.restart(); }
+        function onRawEvent(event) { tickDebounce.restart(); }
     }
-    Timer { id: busyDebounce; interval: 120; onTriggered: root.refreshBusy() }
 
     Component.onCompleted: {
         Quickshell.execDetached(["mkdir", "-p", configDir]);
         rebuild();
-        refreshBusy();
     }
 
     FileView {
@@ -5133,7 +5106,12 @@ Scope {
                         visible: tearGhost.isWin
                         anchors.fill: parent
                         captureSource: tearGhost.isWin && tearWin.visible ? ui.tearItem.tl : null
-                        live: tearGhost.isWin && tearWin.visible && tearGhost.visible
+                        // paced (30 fps) instead of live, like every other window capture (see YukiBar.qml)
+                        Timer {
+                            interval: 33; repeat: true; triggeredOnStart: true
+                            running: tearGhost.isWin && tearWin.visible && tearGhost.visible && gsv.captureSource !== null
+                            onTriggered: if (typeof gsv.captureFrame === "function") gsv.captureFrame()
+                        }
                         layer.enabled: true
                         layer.effect: MultiEffect { maskEnabled: true; maskSource: gsvMask; maskThresholdMin: 0.5; maskSpreadAtMin: 1.0 }
                     }
@@ -5451,6 +5429,13 @@ Scope {
                                 property bool released: false
                                 onGoneChanged: { if (gone) relTimer.restart(); else { relTimer.stop(); released = false; } }
                                 Timer { id: relTimer; interval: 300; onTriggered: gw.released = true }
+                                // the window moved / resized a moment ago: its glass streams at full rate for half a second
+                                property bool burst: false
+                                onXChanged: { burst = true; burstT.restart(); }
+                                onYChanged: { burst = true; burstT.restart(); }
+                                onWidthChanged: { burst = true; burstT.restart(); }
+                                onHeightChanged: { burst = true; burstT.restart(); }
+                                Timer { id: burstT; interval: 500; onTriggered: gw.burst = false }
                                 // the closing window's own capture stops the moment Hyprland announces the close
                                 readonly property bool closing: !!root.hub && root.hub.closingWins[String(addr).replace(/^0x/, "")] === true
                                 readonly property var tl: { if (!root.hub || released || closing) return null; var t = root.hub.tlTick; return root.hub.tlFor(addr); }
@@ -5484,18 +5469,24 @@ Scope {
                                         readonly property bool canRun: root.glassRT
                                             ? !(root.hub && root.hub.captureQuiet) && !(root.bar && root.bar.gaming) && !gw.gone && !gw.closing
                                             : (!root.glassHold && !ui.tucked)
-                                        live: root.glassRT && canRun && gw.overlap && !ui.tucked
+                                        // ON DEMAND, never live (see the same note in YukiBar.qml): a window that reaches the visible Dock streams at 30 fps while
+                                        // it moves / resizes or the pointer is on the Dock, and refreshes 4 times a second otherwise (the blurred glass hardly shows
+                                        // the difference). Any other window, or every window while the Dock is tucked away, is left alone (nothing shows it) and
+                                        // gets a frame the moment it starts to matter. A live capture kept a frame in flight ~90 % of the time and Hyprland drops
+                                        // the frames of a window that closes, so the shell's destroy() of one killed the Wayland connection ("invalid object NNN").
+                                        readonly property bool wanted: sc.canRun && gw.overlap && !ui.tucked
+                                        onWantedChanged: { if (wanted && captureSource !== null && typeof captureFrame === "function") captureFrame(); }
                                         Timer {
-                                            interval: root.glassRT ? (gw.overlap ? 33 : 200) : 66
+                                            interval: root.glassRT ? ((gw.burst || hh.hovered) ? 33 : 250) : 66
                                             repeat: true
-                                            running: sc.canRun && !sc.live && sc.captureSource !== null
+                                            running: sc.wanted && sc.captureSource !== null
                                             onTriggered: if (typeof sc.captureFrame === "function") sc.captureFrame()
                                         }
-                                        onCaptureSourceChanged: { if (captureSource !== null && sc.canRun) firstShot.restart(); }
+                                        onCaptureSourceChanged: { if (captureSource !== null && sc.wanted) firstShot.restart(); }
                                         Timer {
                                             id: firstShot
                                             interval: 60
-                                            onTriggered: { if (sc.captureSource !== null && !sc.live && sc.canRun && typeof sc.captureFrame === "function") sc.captureFrame(); }
+                                            onTriggered: { if (sc.captureSource !== null && sc.wanted && typeof sc.captureFrame === "function") sc.captureFrame(); }
                                         }
                                     }
                                 }
@@ -5912,13 +5903,23 @@ Scope {
                                             id: sv
                                             anchors.centerIn: parent
                                             captureSource: (root.hub && !root.hub.windowCapture) ? null : cell.heldTl
-                                            // live only while the pointer is on the Dock (where you look at them); otherwise one fresh
-                                            // frame every 2 s — live previews of every window were ~8% CPU at idle
-                                            live: !ui.tucked && !root.previewHold && !cell.closingWin && hh.hovered
+                                            // 10 fps while the pointer is on the Dock (where you look at them), otherwise one fresh frame every 6 s.
+                                            // Paced rather than live: a live capture keeps a frame in flight almost all the time (see YukiBar.qml).
                                             Timer {
-                                                interval: 2000; repeat: true; triggeredOnStart: true
-                                                running: !sv.live && !ui.tucked && !root.previewHold && !cell.closingWin && sv.captureSource !== null
+                                                interval: hh.hovered ? 100 : 6000; repeat: true
+                                                running: !ui.tucked && !root.previewHold && !cell.closingWin && sv.captureSource !== null
                                                 onTriggered: if (typeof sv.captureFrame === "function") sv.captureFrame()
+                                            }
+                                            // the Dock slides back in: a fresh frame, but only once it has stayed for a moment (workspaces flipped quickly
+                                            // would otherwise ask for one every time the Dock appears)
+                                            Timer {
+                                                id: settleShot
+                                                interval: 450
+                                                onTriggered: if (!ui.tucked && !cell.closingWin && sv.captureSource !== null && typeof sv.captureFrame === "function") sv.captureFrame()
+                                            }
+                                            Connections {
+                                                target: ui
+                                                function onTuckedChanged() { if (ui.tucked) settleShot.stop(); else settleShot.restart(); }
                                             }
                                             readonly property real ar: (implicitWidth > 0 && implicitHeight > 0)
                                                                        ? implicitWidth / implicitHeight : 4 / 3

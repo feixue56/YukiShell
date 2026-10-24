@@ -5082,7 +5082,10 @@ Scope {
                                 required property bool gone      // window closed: capture is released first, the item is swept shortly after
                                 property alias cap: sv
                                 x: wx; y: wy; width: ww; height: wh; z: wz
-                                readonly property var tl: { if (!root.hub || gone) return null; var t = root.hub.tlTick; return root.hub.tlFor(addr); }
+                                // The capture source survives the window leaving the visible workspace (the item itself is swept 0.6 s later): flipping
+                                // between workspaces used to destroy and re-create it every time, and every new source asks the compositor for a frame at
+                                // once, a burst of requests exactly when windows come and go. It is released when the window is really gone (tlFor: null).
+                                readonly property var tl: { if (!root.hub) return null; var t = root.hub.tlTick; return root.hub.tlFor(addr); }
                                 // behind the glass that is on screen right now (popover / panel + refraction margin)?
                                 readonly property bool onGlass: bd.region.width > 0 && x < bd.region.x + bd.region.width && x + width > bd.region.x
                                                                 && y < bd.region.y + bd.region.height && y + height > bd.region.y
@@ -5099,29 +5102,34 @@ Scope {
                                         function onCaptureQuietChanged() { hushT.interval = 20 + Math.random() * 600; hushT.restart(); }
                                     }
                                     Timer { id: hushT; onTriggered: sv.hush = root.captureQuiet }
-                                    // REAL-TIME: with glassRealtime every capture stays live all the time, so a popover opens on
-                                    // frames that are already current and nothing is torn down / restarted when it opens (the restart
-                                    // is what used to show the bare wallpaper first). Backdrops that live in a window which is
-                                    // hidden right now (Spotlight, switcher, ...) are only kept warm with slow single captures.
-                                    // While recording only the windows behind visible glass stay live (so the glass is real-time exactly where you see it,
-                                    // e.g. a video behind the Control Center), every other window sits out.
-                                    live: !gw.gone && !root.captureHeld && bd.hostShown && (!sv.hush || gw.onGlass) && (root.glassRealtime || ui.anyVisible || levelOsd.visible || spotWin.openish || swWin.visible || wpWin.visible)
+                                    // ON DEMAND, never live and never "just to keep it warm". A window is only asked for frames while glass that can show it is on
+                                    // screen: a popover / Spotlight / the switcher (every window), or the bar strip itself (a window that reaches it). The backdrop
+                                    // keeps the last frame otherwise, and the first frame is requested the moment a window becomes needed.
+                                    // Why: Hyprland throws away a frame that is still in flight when its window closes, and the shell's own destroy() of that
+                                    // frame then hits a dead object ("wl_display error 0: invalid object NNN"): the whole Wayland connection is cut and the shell
+                                    // restarts (seen while switching workspaces and closing windows). A frame is in flight for ~10 ms, so the fewer requests are
+                                    // made (live mode kept one in flight ~90 % of the time) the less likely a close lands in the middle of one.
+                                    // While recording only the windows behind visible glass refresh, slowly.
+                                    readonly property bool glassUp: ui.anyVisible || levelOsd.visible || spotWin.openish || swWin.visible || wpWin.visible
+                                    // a window that really reaches the bar strip (floating / fullscreen); tiled ones start below it (bar + gap)
+                                    readonly property bool onBar: root.barGlass && root.liquidActive && gw.y < root.barH + 4
+                                    readonly property bool need: !gw.gone && !root.captureHeld && bd.hostShown && (!sv.hush || gw.onGlass) && (glassUp || onBar)
+                                    onNeedChanged: { if (need && captureSource !== null && typeof captureFrame === "function") captureFrame(); }
                                     onCaptureSourceChanged: {
-                                        // a brand-new capture grabs its first frame immediately instead of waiting for the timer
-                                        // (a short delay: asking before the capture context exists only logged "no recording context is ready")
-                                        if (captureSource !== null && !live && !sv.hush && !root.captureHeld) firstShot.restart();
+                                        // a window that appears while it is needed grabs its first frame at once (a short delay: asking before the capture
+                                        // context exists only logged "no recording context is ready")
+                                        if (captureSource !== null && need) firstShot.restart();
                                     }
                                     Timer {
                                         id: firstShot
                                         interval: 90
-                                        onTriggered: { if (sv.captureSource !== null && !sv.live && typeof sv.captureFrame === "function") sv.captureFrame(); }
+                                        onTriggered: { if (sv.need && sv.captureSource !== null && typeof sv.captureFrame === "function") sv.captureFrame(); }
                                     }
-                                    // single captures: hidden backdrops stay warm once a second (their window goes live the moment it opens);
-                                    // while recording only a backdrop that is actually on screen refreshes, slowly
                                     Timer {
-                                        interval: sv.hush ? 1500 : (bd.hostShown ? 250 : 1000); repeat: true
-                                        running: !root.captureHeld && !sv.live && sv.captureSource !== null
-                                                 && (!sv.hush || (bd.hostShown && (ui.anyVisible || spotWin.openish || swWin.visible || wpWin.visible)))
+                                        // glass is open over the windows: full rate (Real-time glass; 4 per second with it off); only the bar strip
+                                        // sees this window: 4 per second
+                                        interval: sv.hush ? 150 : ((sv.glassUp && root.glassRealtime) ? 33 : 250); repeat: true
+                                        running: sv.need && sv.captureSource !== null
                                         onTriggered: { if (typeof sv.captureFrame === "function") sv.captureFrame(); }
                                     }
                                 }
