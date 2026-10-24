@@ -5279,7 +5279,7 @@ Scope {
                                 readonly property bool cur: wsRow.activeId === modelData
                                 readonly property bool busy: root.wsOccupied(modelData)
                                 width: 22; height: 28
-                                BarHover { id: wsHl; dark: bpal.dark; area: wsMa; hot: wsMa.containsMouse; pressed: wsMa.pressed; open: wsi.cur }
+                                BarHover { id: wsHl; dark: bpal.dark; area: wsMa; hot: wsMa.containsMouse; pressed: wsMa.pressed; open: wsi.cur; filled: wsi.busy }
                                 Text {
                                     anchors.centerIn: parent
                                     scale: wsi.cur ? 1 : wsHl.lift

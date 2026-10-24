@@ -10,6 +10,7 @@ Rectangle {
     property bool hot: false        // the pointer is over it
     property bool pressed: false
     property bool open: false       // it is the active one (its popover is open, or it is the current workspace)
+    property bool filled: false     // resting glass for something that is in use (a workspace that has windows)
     property bool dark: true
     property Item area: null
 
@@ -17,11 +18,11 @@ Rectangle {
     property real lift: pressed ? 0.92 : (hot ? 1.16 : 1)
     Behavior on lift { NumberAnimation { duration: 240; easing.type: Easing.OutBack; easing.overshoot: 2.6 } }
 
-    property real amt: pressed ? 1.0 : (open ? 0.85 : (hot ? 0.7 : 0))
+    property real amt: pressed ? 1.0 : (open ? 0.85 : (hot ? 0.7 : (filled ? 0.42 : 0)))
     Behavior on amt { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
 
     visible: amt > 0.005
-    scale: (hot || open) ? 1 : 0.86
+    scale: (hot || open || filled) ? 1 : 0.86
     Behavior on scale { NumberAnimation { duration: 260; easing.type: Easing.OutBack; easing.overshoot: 2.2 } }
 
     gradient: Gradient {
@@ -51,9 +52,9 @@ Rectangle {
         visible: amount > 0.005
         fragmentShader: Qt.resolvedUrl("contourglow.frag.qsb")
         property vector2d itemSize: Qt.vector2d(width, height)
-        property vector2d mouse: g.area ? Qt.vector2d(g.area.mouseX - g.x, g.area.mouseY - g.y) : Qt.vector2d(g.width / 2, g.height / 2)
+        property vector2d mouse: (g.area && (g.hot || g.pressed)) ? Qt.vector2d(g.area.mouseX - g.x, g.area.mouseY - g.y) : Qt.vector2d(g.width / 2, g.height / 2)
         property real cornerR: g.radius
-        property real amount: (g.hot || g.pressed) ? 1 : (g.open ? 0.45 : 0)
+        property real amount: (g.hot || g.pressed) ? 1 : (g.open ? 0.45 : (g.filled ? 0.3 : 0))
         Behavior on amount { NumberAnimation { duration: 280; easing.type: Easing.OutCubic } }
         property real spread: Math.max(14, Math.min(g.width, g.height) * 0.9)
         property vector4d tint: Qt.vector4d(1, 1, 1, 1)
