@@ -35,21 +35,3 @@ hl.window_rule({
     center = true,
     size = "800 880",
 })
-
--- Apps made see-through with Super+Shift+Tab (hypr/bin/toggle-opacity keeps this list, one window class per line).
--- Hyprland can only fade a whole window, text included: kitty is handled separately and never ends up here.
-do
-    local f = io.open(os.getenv("HOME") .. "/.config/hypr-rice/transparent-apps.txt")
-    if f then
-        for cls in f:lines() do
-            if cls ~= "" then
-                hl.window_rule({
-                    name    = "yuki-transparent-" .. cls,
-                    match   = { class = "^" .. cls:gsub("%p", "\\%0") .. "$" },
-                    opacity = "0.92 0.92",
-                })
-            end
-        end
-        f:close()
-    end
-end
