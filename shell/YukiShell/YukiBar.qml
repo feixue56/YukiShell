@@ -5195,16 +5195,11 @@ Scope {
                                 readonly property bool activeApp: modelData.id === "app"
                                 width: modelData.id === "apple" ? 30 : tl.implicitWidth + 20
                                 height: 28
-                                Rectangle {
-                                    anchors.centerIn: parent
-                                    width: parent.width - 2
-                                    height: parent.height - 6
-                                    radius: 6
-                                    color: mt.open ? bpal.hover : "transparent"
-                                }
+                                BarHover { id: mtHl; accent: bpal.accent; hot: mtMa.containsMouse; pressed: mtMa.pressed; open: mt.open }
                                 Glyph {
                                     visible: mt.modelData.id === "apple" && root.barLogoMode === "arch"
                                     anchors.centerIn: parent
+                                    scale: mtHl.lift
                                     width: 15; height: 15
                                     kind: "arch"
                                     color: bpal.fg
@@ -5212,6 +5207,7 @@ Scope {
                                 Image {
                                     visible: mt.modelData.id === "apple" && root.barLogoMode === "apple"
                                     anchors.centerIn: parent
+                                    scale: mtHl.lift
                                     width: 15; height: 15
                                     source: !root.barTextDark ? Qt.resolvedUrl("apple-logo-white.svg") : Qt.resolvedUrl("apple-logo-black.svg")
                                     sourceSize: Qt.size(128, 160)
@@ -5223,6 +5219,7 @@ Scope {
                                     id: customBarLogo
                                     visible: mt.modelData.id === "apple" && root.barLogoMode === "custom" && root.barCustomLogoUrl !== ""
                                     anchors.centerIn: parent
+                                    scale: mtHl.lift
                                     width: 17; height: 17
                                     source: root.barCustomLogoUrl
                                     sourceSize: Qt.size(64, 64)
@@ -5234,6 +5231,7 @@ Scope {
                                     visible: mt.modelData.id === "apple" && root.barLogoMode === "custom"
                                              && (root.barCustomLogoUrl === "" || customBarLogo.status === Image.Error)
                                     anchors.centerIn: parent
+                                    scale: mtHl.lift
                                     width: 15; height: 15
                                     kind: "arch"
                                     color: bpal.fg
@@ -5242,6 +5240,7 @@ Scope {
                                     id: tl
                                     visible: mt.modelData.id !== "apple"
                                     anchors.centerIn: parent
+                                    scale: 1 + (mtHl.lift - 1) * 0.4
                                     text: I18n.tr(mt.modelData.label)
                                     color: bpal.fg
                                     font.family: mt.activeApp ? Fonts.forWeight(mt.activeApp ? Font.DemiBold : Font.Normal, root.boldFontFamily)
@@ -5250,6 +5249,7 @@ Scope {
                                     font.weight: mt.activeApp ? Font.DemiBold : Font.Normal
                                 }
                                 MouseArea {
+                                    id: mtMa
                                     anchors.fill: parent
                                     hoverEnabled: true
                                     onClicked: ui.openPop(mt.modelData.id, mt.mapToItem(ui, 0, 0).x)
@@ -5279,17 +5279,10 @@ Scope {
                                 readonly property bool cur: wsRow.activeId === modelData
                                 readonly property bool busy: root.wsOccupied(modelData)
                                 width: 22; height: 28
-                                Rectangle {
-                                    anchors.centerIn: parent
-                                    width: parent.width - 2
-                                    height: parent.height - 6
-                                    radius: 6
-                                    color: wsi.cur ? bpal.hover : "transparent"
-                                    opacity: wsi.cur || wsMa.containsMouse ? 1 : 0
-                                    Behavior on opacity { NumberAnimation { duration: 140 } }
-                                }
+                                BarHover { id: wsHl; accent: bpal.accent; hot: wsMa.containsMouse; pressed: wsMa.pressed; open: wsi.cur }
                                 Text {
                                     anchors.centerIn: parent
+                                    scale: wsi.cur ? 1 : wsHl.lift
                                     text: root.zhNum(wsi.modelData)
                                     color: wsi.cur ? bpal.fg : (wsi.busy ? bpal.fg2 : bpal.fg3)
                                     font.family: root.fontForWeight(wsi.cur ? Font.DemiBold : Font.Normal, bpal.fam)
@@ -5329,15 +5322,10 @@ Scope {
                                 id: tray
                                 required property var modelData
                                 width: 26; height: 28
-                                Rectangle {
-                                    anchors.centerIn: parent
-                                    width: parent.width - 2
-                                    height: parent.height - 6
-                                    radius: 6
-                                    color: (ui.pop === "tray" && ui.trayItem === tray.modelData) ? bpal.hover : "transparent"
-                                }
+                                BarHover { id: trHl; accent: bpal.accent; hot: trMa.containsMouse; pressed: trMa.pressed; open: ui.pop === "tray" && ui.trayItem === tray.modelData }
                                 Image {
                                     anchors.centerIn: parent
+                                    scale: trHl.lift
                                     width: 16; height: 16
                                     source: tray.modelData.icon
                                     sourceSize: Qt.size(32, 32)
@@ -5345,7 +5333,9 @@ Scope {
                                     smooth: true
                                 }
                                 MouseArea {
+                                    id: trMa
                                     anchors.fill: parent
+                                    hoverEnabled: true
                                     acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
                                     onClicked: mouse => {
                                         var p = tray.mapToItem(ui, 0, 0);
@@ -5365,27 +5355,21 @@ Scope {
                             id: btBtn
                             visible: root.barWidgetEnabled("bluetooth")
                             width: root.barWidgetEnabled("bluetooth") ? 26 : 0; height: 28
-                            Rectangle {
-                                anchors.centerIn: parent
-                                width: parent.width - 2; height: parent.height - 6; radius: 6
-                                color: ui.pop === "bt" ? bpal.hover : "transparent"
-                            }
-                            Glyph { anchors.centerIn: parent; width: 15; height: 15; kind: "bluetooth"; color: root.btOn && root.btConnected > 0 ? bpal.fg : bpal.fg2 }
-                            MouseArea { anchors.fill: parent; onClicked: ui.openPop("bt", btBtn.mapToItem(ui, 0, 0).x) }
+                            BarHover { id: btHl; accent: bpal.accent; hot: btMa.containsMouse; pressed: btMa.pressed; open: ui.pop === "bt" }
+                            Glyph { anchors.centerIn: parent; scale: btHl.lift; width: 15; height: 15; kind: "bluetooth"; color: root.btOn && root.btConnected > 0 ? bpal.fg : bpal.fg2 }
+                            MouseArea { id: btMa; anchors.fill: parent; hoverEnabled: true; onClicked: ui.openPop("bt", btBtn.mapToItem(ui, 0, 0).x) }
                         }
                         // volume (opens a popover with just the volume slider)
                         Item {
                             id: volBtn
                             visible: root.barWidgetEnabled("volume")
                             width: root.barWidgetEnabled("volume") ? 28 : 0; height: 28
-                            Rectangle {
-                                anchors.centerIn: parent
-                                width: parent.width - 2; height: parent.height - 6; radius: 6
-                                color: ui.pop === "vol" ? bpal.hover : "transparent"
-                            }
-                            Glyph { anchors.centerIn: parent; width: 16; height: 16; kind: "speaker"; level: root.volLevel; color: bpal.fg }
+                            BarHover { id: volHl; accent: bpal.accent; hot: volMa.containsMouse; pressed: volMa.pressed; open: ui.pop === "vol" }
+                            Glyph { anchors.centerIn: parent; scale: volHl.lift; width: 16; height: 16; kind: "speaker"; level: root.volLevel; color: bpal.fg }
                             MouseArea {
+                                id: volMa
                                 anchors.fill: parent
+                                hoverEnabled: true
                                 onClicked: ui.openPop("vol", volBtn.mapToItem(ui, 0, 0).x + volBtn.width / 2)
                                 onWheel: wheel => root.setVolume(root.volume + (wheel.angleDelta.y > 0 ? 0.03 : -0.03))
                             }
@@ -5395,13 +5379,10 @@ Scope {
                             id: kbBtn
                             visible: root.barWidgetEnabled("keyboard") && root.kbLayouts.length !== 1
                             width: root.barWidgetEnabled("keyboard") && root.kbLayouts.length !== 1 ? 34 : 0; height: 28
-                            Rectangle {
-                                anchors.centerIn: parent
-                                width: parent.width - 2; height: parent.height - 6; radius: 6
-                                color: (ui.pop === "kb" || kbMouse.containsMouse) ? bpal.hover : "transparent"
-                            }
+                            BarHover { id: kbHl; accent: bpal.accent; hot: kbMouse.containsMouse; pressed: kbMouse.pressed; open: ui.pop === "kb" }
                             Text {
                                 anchors.centerIn: parent
+                                scale: kbHl.lift
                                 text: root.keyboardLayout
                                 color: bpal.fg
                                 font.family: root.fontForWeight(Font.DemiBold, bpal.fam); font.pixelSize: 12; font.weight: Font.DemiBold
@@ -5422,9 +5403,11 @@ Scope {
                         Item {
                             visible: root.hasBattery
                             width: root.hasBattery ? batRow.width + 14 : 0; height: 28
+                            BarHover { id: batHl; accent: bpal.accent; hot: batMa.containsMouse; pressed: batMa.pressed; open: ui.pop === "cc" }
                             Row {
                                 id: batRow
                                 anchors.centerIn: parent
+                                scale: 1 + (batHl.lift - 1) * 0.5
                                 spacing: 5
                                 Text {
                                     visible: root.showBatteryPercent
@@ -5460,46 +5443,39 @@ Scope {
                                     }
                                 }
                             }
-                            MouseArea { anchors.fill: parent; onClicked: ui.openPop("cc", 0) }
+                            MouseArea { id: batMa; anchors.fill: parent; hoverEnabled: true; onClicked: ui.openPop("cc", 0) }
                         }
                         // notification system (bell)
                         Item {
                             id: bellBtn
                             visible: root.barWidgetEnabled("notifications")
                             width: root.barWidgetEnabled("notifications") ? 28 : 0; height: 28
-                            Rectangle {
-                                anchors.centerIn: parent
-                                width: parent.width - 2; height: parent.height - 6; radius: 6
-                                color: ui.pop === "notif" ? bpal.hover : "transparent"
-                            }
-                            Glyph { anchors.centerIn: parent; width: 16; height: 16; kind: "bell"; color: root.notifDnd ? bpal.fg2 : bpal.fg }
+                            BarHover { id: bellHl; accent: bpal.accent; hot: bellMa.containsMouse; pressed: bellMa.pressed; open: ui.pop === "notif" }
+                            Glyph { anchors.centerIn: parent; scale: bellHl.lift; width: 16; height: 16; kind: "bell"; color: root.notifDnd ? bpal.fg2 : bpal.fg }
                             Rectangle {
                                 visible: root.notifUnread > 0 && !root.notifDnd
                                 x: parent.width / 2 + 2; y: parent.height / 2 - 8
                                 width: 7; height: 7; radius: 3.5
                                 color: "#FF453A"
                             }
-                            MouseArea { anchors.fill: parent; onClicked: ui.openPop("notif", bellBtn.mapToItem(ui, 0, 0).x) }
+                            MouseArea { id: bellMa; anchors.fill: parent; hoverEnabled: true; onClicked: ui.openPop("notif", bellBtn.mapToItem(ui, 0, 0).x) }
                         }
                         // wifi
                         Item {
                             id: wifiBtn
                             visible: root.barWidgetEnabled("wifi")
                             width: root.barWidgetEnabled("wifi") ? 28 : 0; height: 28
-                            Rectangle {
-                                anchors.centerIn: parent
-                                width: parent.width - 2; height: parent.height - 6; radius: 6
-                                color: ui.pop === "wifi" ? bpal.hover : "transparent"
-                            }
-                            Glyph { anchors.centerIn: parent; width: 16; height: 16; kind: root.showEthernet ? "ethernet" : "wifi"; level: root.wifiOn ? (root.wifiLevel || 1) : 3; flag: !root.wifiOn && !root.showEthernet; color: (root.wifiOn || root.showEthernet) ? bpal.fg : bpal.fg2 }
-                            MouseArea { anchors.fill: parent; onClicked: ui.openPop("wifi", wifiBtn.mapToItem(ui, 0, 0).x) }
+                            BarHover { id: wifiHl; accent: bpal.accent; hot: wifiMa.containsMouse; pressed: wifiMa.pressed; open: ui.pop === "wifi" }
+                            Glyph { anchors.centerIn: parent; scale: wifiHl.lift; width: 16; height: 16; kind: root.showEthernet ? "ethernet" : "wifi"; level: root.wifiOn ? (root.wifiLevel || 1) : 3; flag: !root.wifiOn && !root.showEthernet; color: (root.wifiOn || root.showEthernet) ? bpal.fg : bpal.fg2 }
+                            MouseArea { id: wifiMa; anchors.fill: parent; hoverEnabled: true; onClicked: ui.openPop("wifi", wifiBtn.mapToItem(ui, 0, 0).x) }
                         }
                         // search
                         Item {
                             visible: root.showSearch
                             width: root.showSearch ? 28 : 0; height: 28
-                            Glyph { anchors.centerIn: parent; width: 15; height: 15; kind: "search"; color: bpal.fg }
-                            MouseArea { anchors.fill: parent; onClicked: { if (root.launcher !== "") { ui.pop = ""; root.search(); } else ui.openPop("spot", 0); } }
+                            BarHover { id: srchHl; accent: bpal.accent; hot: srchMa.containsMouse; pressed: srchMa.pressed; open: ui.pop === "spot" }
+                            Glyph { anchors.centerIn: parent; scale: srchHl.lift; width: 15; height: 15; kind: "search"; color: bpal.fg }
+                            MouseArea { id: srchMa; anchors.fill: parent; hoverEnabled: true; onClicked: { if (root.launcher !== "") { ui.pop = ""; root.search(); } else ui.openPop("spot", 0); } }
                         }
                         // control center
                         Item {
@@ -5509,12 +5485,8 @@ Scope {
                             readonly property bool dotsOn: root.privacyAny && root.barWidgetEnabled("privacy")
                             width: (root.ccEnabled && root.barWidgetEnabled("controlCenter")) ? 30 + (dotsOn ? ccDots.width + 2 : 0) : 0; height: 28
                             Behavior on width { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
-                            Rectangle {
-                                anchors.centerIn: parent
-                                width: parent.width - 2; height: parent.height - 6; radius: 6
-                                color: ui.pop === "cc" ? bpal.hover : "transparent"
-                            }
-                            Glyph { x: 7; anchors.verticalCenter: parent.verticalCenter; width: 16; height: 16; kind: "cc"; color: bpal.fg }
+                            BarHover { id: ccHl; accent: bpal.accent; hot: ccMa.containsMouse; pressed: ccMa.pressed; open: ui.pop === "cc" }
+                            Glyph { x: 7; anchors.verticalCenter: parent.verticalCenter; scale: ccHl.lift; width: 16; height: 16; kind: "cc"; color: bpal.fg }
                             // privacy dots like macOS: orange = microphone, green = camera, purple = screen sharing / recording
                             Row {
                                 id: ccDots
@@ -5533,7 +5505,7 @@ Scope {
                                     }
                                 }
                             }
-                            MouseArea { anchors.fill: parent; onClicked: ui.openPop("cc", 0) }
+                            MouseArea { id: ccMa; anchors.fill: parent; hoverEnabled: true; onClicked: ui.openPop("cc", 0) }
                         }
                         // clock
                         Item {
@@ -5541,14 +5513,11 @@ Scope {
                             visible: root.barWidgetEnabled("clock")
                             width: root.barWidgetEnabled("clock") ? clockText.implicitWidth + 16 : 0
                             height: 28
-                            Rectangle {
-                                anchors.centerIn: parent
-                                width: parent.width - 2; height: parent.height - 6; radius: 6
-                                color: ui.pop === "cal" ? bpal.hover : "transparent"
-                            }
+                            BarHover { id: clockHl; accent: bpal.accent; hot: clockMa.containsMouse; pressed: clockMa.pressed; open: ui.pop === "cal" }
                             Text {
                                 id: clockText
                                 anchors.centerIn: parent
+                                scale: 1 + (clockHl.lift - 1) * 0.4
                                 text: root.clockText
                                 color: bpal.fg
                                 font.family: Fonts.forWeight(Font.DemiBold, root.boldFontFamily)
@@ -5561,7 +5530,7 @@ Scope {
                                 verticalAlignment: Text.AlignVCenter
                                 anchors.verticalCenterOffset: 0.5
                             }
-                            MouseArea { anchors.fill: parent; onClicked: ui.openPop("cal", 0) }
+                            MouseArea { id: clockMa; anchors.fill: parent; hoverEnabled: true; onClicked: ui.openPop("cal", 0) }
                         }
                     }
                 }
