@@ -11,6 +11,24 @@ hl.window_rule({ name = "float-pavucontrol", match = { class = "^(org.pulseaudio
 hl.window_rule({ name = "float-polkit",      match = { class = "^(org.kde.polkit-kde-authentication-agent-1)$" }, float = true })
 hl.window_rule({ name = "pip-float",         match = { title = "^(Picture-in-Picture)$" }, float = true, pin = true })
 
+-- File pickers float, centred, instead of tiling next to your work. "Choose a picture", Chromium's Open/Save, Dolphin and the like all
+-- go through the desktop portal (xdg-desktop-portal-gtk / -kde); zenity, kdialog and yad are covered too, and so are the GTK/Qt
+-- dialogs that name themselves "Open File", "Save As" etc. (Chromium page titles end in " - Chromium", so they never match.)
+hl.window_rule({
+    name  = "float-file-pickers",
+    match = { class = "^(xdg-desktop-portal-gtk|xdg-desktop-portal-kde|org\\.freedesktop\\.impl\\.portal\\.desktop\\.(gtk|kde)|zenity|org\\.gnome\\.Zenity|kdialog|yad)$" },
+    float = true,
+    center = true,
+    size = "1000 680",
+})
+hl.window_rule({
+    name  = "float-file-dialogs",
+    match = { title = "^(Open Files?|Open Folder|Save Files?|Save As|Select (a )?([Ff]iles?|[Ff]olders?)|File Upload|Choose Files?|Choose a [Ff]ile)$" },
+    float = true,
+    center = true,
+    size = "1000 680",
+})
+
 
 -- Liquid-glass kitty: heavy blur behind a translucent window, frosted white rim instead of the accent border.
 hl.window_rule({
