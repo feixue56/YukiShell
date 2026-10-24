@@ -362,7 +362,7 @@ Scope {
         "barStyle", "barGlass", "glassRim", "glassGrain", "glassLiquid", "glassBlur", "barBgOpacity", "glassRealtime", "liveWallGlass", "glassDebug", "wallpaperPath", "use24h", "language", "showDate",
         "showSeconds", "showBatteryPercent", "showTray", "showSearch",
         "spotlightEnabled", "reduceMotion", "ccEnabled", "notificationsEnabled", "clockAppEnabled", "ccStyle", "barLogoMode", "barCustomLogoPath", "barWidgets", "weekStartsMonday", "terminal", "launcher",
-        "filesCmd", "clipboardCmd", "appUsage", "clipHistory", "clipAutoPaste", "emojiRecent", "screenshotDir", "screenshotSave", "screenshotClipboard", "screenshotNotify", "nightTemp", "ccControls", "ccMigRec", "wallpaperDir", "wallpaperFavs", "wallpaperCmd", "wallpaperVideo", "wpRestorePath", "uiSounds", "gamingMode", "gamingAuto", "ccMigGame", "lockArtBackground",
+        "filesCmd", "clipboardCmd", "appUsage", "clipHistory", "clipAutoPaste", "emojiRecent", "screenshotDir", "screenshotSave", "screenshotClipboard", "screenshotNotify", "nightTemp", "ccControls", "ccSizes", "ccTileSize", "ccSpacing", "ccOnColor", "ccMigRec", "wallpaperDir", "wallpaperFavs", "wallpaperCmd", "wallpaperVideo", "wpRestorePath", "uiSounds", "gamingMode", "gamingAuto", "ccMigGame", "lockArtBackground",
         "lockClockStyle", "switcherStyle", "lockClockFont", "lockClockWeight", "lockClockMaterial", "lockClockIntensity", "lockClockTint", "lockClockDate", "autoContrast", "wallpaperAppearance", "wpPairLight", "wpPairDark",
         "notifDnd", "dnd", "nightOn", "keepAwake",
         "kbRepeatRate", "kbRepeatDelay", "mouseSens", "mouseNatural", "tpNatural", "tpTap", "tpDwt", "tpScroll"]
@@ -395,20 +395,54 @@ Scope {
     // ═════════════ CONTROL CENTER LAYOUT ═════════════
     // The Control Center is a 4-column grid. Every control has a size in grid cells; the enabled ones are packed
     // first-fit in the order of `ccControls`, so dragging a control onto another one simply reorders the list.
+    // `sizes` lists the sizes (in cells, default first) a control can be switched between in Edit Controls or in Settings → Control Center.
     readonly property var ccCatalog: [
-        { id: "wifi",       label: I18n.tr("Wi-Fi"),         glyph: "wifi",       w: 2, h: 1 },
-        { id: "bluetooth",  label: I18n.tr("Bluetooth"),     glyph: "bluetooth",  w: 2, h: 1 },
-        { id: "airplane",   label: I18n.tr("Airplane Mode"), glyph: "airplane",   w: 1, h: 1 },
-        { id: "focus",      label: I18n.tr("Focus"),         glyph: "moon",       w: 2, h: 1 },
-        { id: "nightshift", label: I18n.tr("Night Shift"),   glyph: "nightshift", w: 1, h: 1 },
-        { id: "keepawake",  label: I18n.tr("Keep Awake"),    glyph: "coffee",     w: 1, h: 1 },
-        { id: "darkmode",   label: I18n.tr("Dark Mode"),     glyph: "contrast",   w: 1, h: 1 },
-        { id: "gaming",     label: I18n.tr("Game Mode"),     glyph: "gamepad",    w: 2, h: 1 },
-        { id: "record",     label: I18n.tr("Screen Recording"), glyph: "record",  w: 2, h: 1 },
+        { id: "wifi",       label: I18n.tr("Wi-Fi"),         glyph: "wifi",       w: 2, h: 1, sizes: [[2, 1], [1, 1]] },
+        { id: "bluetooth",  label: I18n.tr("Bluetooth"),     glyph: "bluetooth",  w: 2, h: 1, sizes: [[2, 1], [1, 1]] },
+        { id: "airplane",   label: I18n.tr("Airplane Mode"), glyph: "airplane",   w: 1, h: 1, sizes: [[1, 1], [2, 1]] },
+        { id: "focus",      label: I18n.tr("Focus"),         glyph: "moon",       w: 2, h: 1, sizes: [[2, 1], [1, 1]] },
+        { id: "nightshift", label: I18n.tr("Night Shift"),   glyph: "nightshift", w: 1, h: 1, sizes: [[1, 1], [2, 1]] },
+        { id: "keepawake",  label: I18n.tr("Keep Awake"),    glyph: "coffee",     w: 1, h: 1, sizes: [[1, 1], [2, 1]] },
+        { id: "darkmode",   label: I18n.tr("Dark Mode"),     glyph: "contrast",   w: 1, h: 1, sizes: [[1, 1], [2, 1]] },
+        { id: "gaming",     label: I18n.tr("Game Mode"),     glyph: "gamepad",    w: 2, h: 1, sizes: [[2, 1], [1, 1]] },
+        { id: "record",     label: I18n.tr("Screen Recording"), glyph: "record",  w: 2, h: 1, sizes: [[2, 1], [1, 1]] },
         { id: "nowplaying", label: I18n.tr("Now Playing"),   glyph: "note",       w: 2, h: 2 },
         { id: "display",    label: I18n.tr("Display"),       glyph: "sun",        w: 4, h: 1 },
-        { id: "sound",      label: I18n.tr("Sound"),         glyph: "speaker",    w: 4, h: 1 }
+        { id: "sound",      label: I18n.tr("Sound"),         glyph: "speaker",    w: 4, h: 1 },
+        { id: "lock",        label: I18n.tr("Lock Screen"),     glyph: "lock",    w: 1, h: 1, sizes: [[1, 1], [2, 1]] },
+        { id: "screenshot",  label: I18n.tr("Screenshot"),      glyph: "camera",  w: 1, h: 1, sizes: [[1, 1], [2, 1]] },
+        { id: "colorpicker", label: I18n.tr("Color Picker"),    glyph: "dropper", w: 1, h: 1, sizes: [[1, 1], [2, 1]] },
+        { id: "wallpapers",  label: I18n.tr("Wallpapers"),      glyph: "photo",   w: 1, h: 1, sizes: [[1, 1], [2, 1]] },
+        { id: "settings",    label: I18n.tr("System Settings"), glyph: "gear",    w: 1, h: 1, sizes: [[1, 1], [2, 1]] },
+        { id: "micmute",     label: I18n.tr("Microphone"),      glyph: "mic",     w: 1, h: 1, sizes: [[1, 1], [2, 1]] },
+        { id: "powermode",   label: I18n.tr("Power Mode"),      glyph: "bolt",    w: 1, h: 1, sizes: [[1, 1], [2, 1]] }
     ]
+    property var ccSizes: ({})             // control id → "WxH" the user picked (only for controls that offer several sizes)
+    function ccSizeFor(id) {
+        var d = ccDef(id);
+        if (!d) return [1, 1];
+        var opts = d.sizes || [], want = String(ccSizes[id] || "");
+        for (var i = 0; i < opts.length; i++) if (opts[i][0] + "x" + opts[i][1] === want) return opts[i];
+        return [d.w, d.h];
+    }
+    function ccSetSize(id, w, h) { var m = {}; for (var k in ccSizes) m[k] = ccSizes[k]; m[id] = w + "x" + h; ccSizes = m; }
+    function ccCycleSize(id) {
+        var d = ccDef(id);
+        if (!d || !d.sizes || d.sizes.length < 2) return;
+        var cur = ccSizeFor(id), at = 0;
+        for (var i = 0; i < d.sizes.length; i++) if (d.sizes[i][0] === cur[0] && d.sizes[i][1] === cur[1]) at = i;
+        var nx = d.sizes[(at + 1) % d.sizes.length];
+        ccSetSize(id, nx[0], nx[1]);
+    }
+    function ccResetLayout() { ccControls = ccDefault.slice(); ccSizes = ({}); }
+    function ccResetAll() { ccResetLayout(); ccTileSize = "regular"; ccSpacing = "normal"; ccOnColor = ""; }
+    // looks of the Control Center (Settings → Control Center)
+    property string ccTileSize: "regular"  // compact | regular | large: the height of one row of tiles
+    property string ccSpacing: "normal"    // tight | normal | loose: the gap between tiles
+    property string ccOnColor: ""          // "" = white; otherwise the colour a switched-on tile (or its icon disc) turns
+    readonly property color ccOnFill: ccOnColor !== "" ? Qt.color(ccOnColor) : Qt.color("white")
+    readonly property bool ccOnLight: (0.299 * ccOnFill.r + 0.587 * ccOnFill.g + 0.114 * ccOnFill.b) > 0.62
+    readonly property color ccOnInk: ccOnLight ? Qt.rgba(0.07, 0.07, 0.09, 1) : Qt.color("white")     // text / icon drawn on the on-colour
     readonly property var ccDefault: ["wifi", "nowplaying", "bluetooth", "airplane", "focus", "record", "nightshift", "keepawake", "display", "sound"]
     function ccDef(id) {
         for (var i = 0; i < ccCatalog.length; i++) if (ccCatalog[i].id === id) return ccCatalog[i];
@@ -427,13 +461,14 @@ Scope {
             var d = ccDef(ids[i]);
             if (!d || seen[d.id]) continue;
             seen[d.id] = true;
+            var sz = ccSizeFor(d.id), dw = sz[0], dh = sz[1];
             var placed = false;
             for (var r = 0; !placed; r++) {
-                for (var c = 0; c + d.w <= cols; c++) {
-                    if (isFree(r, c, d.w, d.h)) {
-                        mark(r, c, d.w, d.h);
-                        out.push({ id: d.id, col: c, row: r, w: d.w, h: d.h });
-                        rows = Math.max(rows, r + d.h);
+                for (var c = 0; c + dw <= cols; c++) {
+                    if (isFree(r, c, dw, dh)) {
+                        mark(r, c, dw, dh);
+                        out.push({ id: d.id, col: c, row: r, w: dw, h: dh });
+                        rows = Math.max(rows, r + dh);
                         placed = true;
                         break;
                     }
@@ -454,9 +489,9 @@ Scope {
         }
         return { items: out, rows: rows, total: rows > 0 ? ys[rows - 1] + ccCellH : 0 };
     }
-    readonly property real ccCellH: 66
-    readonly property real ccGap: 6
-    readonly property real ccSliderGap: 10
+    readonly property real ccCellH: ({ compact: 56, regular: 66, large: 78 })[ccTileSize] || 66
+    readonly property real ccGap: ({ tight: 3, normal: 6, loose: 10 })[ccSpacing] || 6
+    readonly property real ccSliderGap: ccGap + 4
     readonly property var ccPlan: ccLayout(ccControls)
     function ccAdd(id) {
         if (ccControls.indexOf(id) < 0) ccControls = ccControls.concat([id]);
@@ -932,6 +967,13 @@ Scope {
                 ctx.beginPath(); ctx.arc(9, 14.3, 1.7, 0.25, PI - 0.25); ctx.stroke();
             } else if (k === "close") {
                 line(5, 5, 13, 13); line(13, 5, 5, 13);
+            } else if (k === "dropper") {
+                // eyedropper drawn along its own axis, then turned 45°: squeeze bulb up right, collar, glass tube, pointed tip down left
+                ctx.save(); ctx.translate(9, 9); ctx.rotate(-PI / 4);
+                rrect(2.6, -2.9, 4.8, 5.8, 2); ctx.stroke();
+                line(1.2, -2.9, 1.2, 2.9);
+                ctx.beginPath(); ctx.moveTo(1.2, -1.3); ctx.lineTo(-4.8, -1.3); ctx.lineTo(-8, -0.3); ctx.lineTo(-8, 0.3); ctx.lineTo(-4.8, 1.3); ctx.lineTo(1.2, 1.3); ctx.stroke();
+                ctx.restore();
             } else if (k === "gear") {
                 circ(9, 9, 2.6); ctx.stroke();
                 for (i2 = 0; i2 < 8; i2++) {
@@ -1281,8 +1323,8 @@ Scope {
         // small icon-only tiles (the "circle buttons"): when on, the whole tile turns white. Wide tiles keep their glass
         // (only the round icon inside them turns white), so their text colours stay as they are.
         readonly property bool whole: on && width <= 110
-        readonly property color fg: whole ? Qt.rgba(0.07, 0.07, 0.09, 1) : t.fg
-        readonly property color fg2: whole ? Qt.rgba(0.07, 0.07, 0.09, 0.55) : t.fg2
+        readonly property color fg: whole ? root.ccOnInk : t.fg
+        readonly property color fg2: whole ? Qt.rgba(root.ccOnInk.r, root.ccOnInk.g, root.ccOnInk.b, 0.55) : t.fg2
         signal clicked()
         scale: (clickable && tma.pressed) ? 0.97 : 1
         Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack; easing.overshoot: 2.4 } }
@@ -1290,7 +1332,7 @@ Scope {
         Rectangle {     // enabled (small tiles only): the whole tile background is solid white
             anchors.fill: parent
             radius: tile.radius
-            color: "white"
+            color: root.ccOnFill
             opacity: tile.whole ? 1 : 0
             Behavior on opacity { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
         }
@@ -1380,7 +1422,7 @@ Scope {
             anchors.fill: parent
             radius: b.width / 2
             // enabled: solid white fill (the icon carries the accent colour); off: grey circle only on wide tiles
-            color: b.on ? "white"
+            color: b.on ? (b.plain ? root.ccOnFill : "white")
                         : (b.plain ? (b.inWide ? (b.t.dark ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(0, 0, 0, 0.14))      // wide tile: grey circle while off
                                                : Qt.rgba(1, 1, 1, 0))                                                 // small tile: none
                                    : (!b.glass ? (b.t.dark ? Qt.rgba(1, 1, 1, bma.containsMouse ? 0.22 : 0.16) : Qt.rgba(0, 0, 0, bma.containsMouse ? 0.18 : 0.14))   // flat, no glass
@@ -1401,10 +1443,38 @@ Scope {
             anchors.centerIn: parent
             width: b.circleBtn ? 23 : b.width * 0.46; height: width
             kind: b.kind; level: b.level; flag: b.flag
-            color: b.on ? (b.onTint !== "" ? Qt.color(b.onTint) : b.t.accent) : b.t.fg
+            color: b.on ? ((b.plain && root.ccOnColor !== "") ? root.ccOnInk : (b.onTint !== "" ? Qt.color(b.onTint) : b.t.accent)) : b.t.fg
             Behavior on color { ColorAnimation { duration: 320; easing.type: Easing.OutCubic } }
         }
         MouseArea { id: bma; anchors.fill: parent; enabled: !b.plain; hoverEnabled: true; onClicked: b.clicked() }
+    }
+
+    // The simple Control Center controls (one tap = one action or switch): a round icon, and, when the tile is two cells wide, its title and a status
+    // line beside it. One cell wide it is just the icon, so every control built on this can be resized in Edit Controls / Settings.
+    component CCSimpleTile: CCTile {
+        id: stl
+        property string kind: ""
+        property string title: ""
+        property string status: ""
+        property string tint: ""
+        property bool flag: false
+        readonly property bool wide: width > 110
+        CCBtn {
+            plain: true
+            t: stl.t; gx: stl.gx
+            x: stl.wide ? 12 : (stl.width - width) / 2
+            anchors.verticalCenter: parent.verticalCenter
+            kind: stl.kind; flag: stl.flag; on: stl.on; onTint: stl.tint
+        }
+        Column {
+            visible: stl.wide
+            x: 60; anchors.verticalCenter: parent.verticalCenter
+            width: parent.width - 60 - 8
+            spacing: 1
+            // long titles ("Lock Screen", "Power Mode", translations) shrink a little instead of being cut off
+            Text { width: parent.width; elide: Text.ElideRight; fontSizeMode: Text.HorizontalFit; minimumPixelSize: 10; text: stl.title; color: stl.fg; font.family: root.fontForWeight(Font.DemiBold, stl.t.fam); font.pixelSize: 13; font.weight: Font.DemiBold }
+            MorphText { visible: stl.status !== ""; animateWidth: false; duration: 420; width: parent.width; elide: Text.ElideRight; text: stl.status; color: stl.fg2; font.family: root.fontForWeight(Font.Normal, stl.t.fam); font.pixelSize: 12 }
+        }
     }
 
     // thin-line slider: icon at each end, slim rounded track between them
@@ -1902,6 +1972,15 @@ Scope {
     readonly property var micSource: Pipewire.defaultAudioSource
     PwObjectTracker { objects: [root.micSource] }
     readonly property bool micMuted: (micSource && micSource.audio) ? micSource.audio.muted : true
+    // Power Mode tile: the profile from power-profiles-daemon, re-read whenever Control Center opens
+    property string powerProfile: "balanced"
+    Process { id: ppGetBar; command: ["powerprofilesctl", "get"]; stdout: StdioCollector { onStreamFinished: { var v = text.trim(); if (v !== "") root.powerProfile = v; } } }
+    function refreshPowerProfile() { if (!ppGetBar.running) ppGetBar.running = true; }
+    function cyclePowerProfile() {
+        var order = ["power-saver", "balanced", "performance"], nx = order[(Math.max(0, order.indexOf(powerProfile)) + 1) % order.length];
+        powerProfile = nx;
+        Quickshell.execDetached(["powerprofilesctl", "set", nx]);
+    }
     function toggleMicMute() { if (micSource && micSource.audio) micSource.audio.muted = !micSource.audio.muted; }
     readonly property real volLevel: muted || volume <= 0.001 ? 0 : (volume < 0.34 ? 1 : (volume < 0.67 ? 2 : 3))
     readonly property real micVolume: (micSource && micSource.audio) ? micSource.audio.volume : 0
@@ -3737,7 +3816,7 @@ Scope {
     onGamingAutoChanged: { if (!gamingAuto) gamingAutoActive = false; else gameProbeDelay.restart(); }
 
     // ═════════════ SETTINGS PERSISTENCE ═════════════
-    readonly property string settingsSig: settingKeys.map(function (k) { return String(root[k]); }).join("|")
+    readonly property string settingsSig: settingKeys.map(function (k) { return k === "ccSizes" ? JSON.stringify(root[k]) : String(root[k]); }).join("|")
     property bool settingsReady: false
     onSettingsSigChanged: if (settingsReady) saveTimer.restart()
     Timer { id: saveTimer; interval: 400; onTriggered: root.saveSettings() }
@@ -7385,7 +7464,7 @@ Scope {
                     // the panel itself never moves above the bar (the menu bar is transparent, so anything that did would
                     // show straight through it). The motion lives in the controls: they slide up into place inside it.
                     onOpeningChanged: if (opening) openSeq++
-                    onVisibleChanged: if (visible) { root.refreshWifi(); root.refreshBt(); root.refreshBrightness(); }
+                    onVisibleChanged: if (visible) { root.refreshWifi(); root.refreshBt(); root.refreshBrightness(); root.refreshPowerProfile(); }
 
                     // Resize refresh: when the menu bar is made smaller / bigger (or the panel itself changes size or position) the
                     // Control Center's backdrop capture used to stay stuck on the old rectangle. Every such change now drops and
@@ -7497,6 +7576,13 @@ Scope {
                         case "keepawake": return cAwake;
                         case "darkmode": return cDark;
                         case "nowplaying": return cNowPlaying;
+                        case "lock": return cLock;
+                        case "screenshot": return cShot;
+                        case "colorpicker": return cPicker;
+                        case "wallpapers": return cWalls;
+                        case "settings": return cSettings;
+                        case "micmute": return cMic;
+                        case "powermode": return cPower;
                         case "display": return cDisplay;
                         case "sound": return cSound;
                         case "record": return cRecord;
@@ -7583,135 +7669,145 @@ Scope {
                     }
                     Component {
                         id: cAirplane
-                        CCTile {
-                            id: tl
+                        CCSimpleTile {
                             clickable: root.hasRadios
                             opacity: root.hasRadios ? 1 : 0.4
                             on: root.airplane
                             onClicked: root.toggleAirplane()
                             t: ccPal; gx: ccg
-                            CCBtn {
-                                plain: true
-                                t: ccPal; gx: ccg; anchors.centerIn: parent
-                                kind: "airplane"; on: root.airplane
-                            }
+                            kind: "airplane"; title: I18n.tr("Airplane Mode")
+                            status: !root.hasRadios ? "N/A" : (root.airplane ? I18n.tr("On") : I18n.tr("Off"))
                         }
                     }
                     Component {
                         id: cFocus
-                        CCTile {
-                            id: tl
+                        CCSimpleTile {
                             clickable: true
                             on: root.dnd
                             onClicked: root.toggleDnd()
                             t: ccPal; gx: ccg
-                            CCBtn {
-                                plain: true
-                                t: ccPal; gx: ccg
-                                x: 12; anchors.verticalCenter: parent.verticalCenter
-                                kind: "moon"; on: root.dnd
-                            }
-                            Column {
-                                x: 62; anchors.verticalCenter: parent.verticalCenter
-                                width: parent.width - 62 - 10
-                                spacing: 1
-                                Text { width: parent.width; elide: Text.ElideRight; text: I18n.tr("Focus"); color: tl.fg; font.family: root.fontForWeight(Font.DemiBold, ccPal.fam); font.pixelSize: 13; font.weight: Font.DemiBold }
-                                MorphText { animateWidth: false; duration: 420; width: parent.width; elide: Text.ElideRight; text: root.dnd ? I18n.tr("On") : I18n.tr("Off"); color: tl.fg2; font.family: root.fontForWeight(Font.Normal, ccPal.fam); font.pixelSize: 12 }
-                            }
+                            kind: "moon"; title: I18n.tr("Focus"); status: root.dnd ? I18n.tr("On") : I18n.tr("Off")
                         }
                     }
                     Component {
                         id: cGaming
-                        CCTile {
-                            id: tl
+                        CCSimpleTile {
                             clickable: true
                             on: root.gaming
-                            onTint: "#30D158"
                             onClicked: root.gamingMode = !root.gaming
                             t: ccPal; gx: ccg
-                            CCBtn {
-                                plain: true
-                                t: ccPal; gx: ccg
-                                x: 12; anchors.verticalCenter: parent.verticalCenter
-                                kind: "gamepad"; on: root.gaming; onTint: "#30D158"
-                            }
-                            Column {
-                                x: 62; anchors.verticalCenter: parent.verticalCenter
-                                width: parent.width - 62 - 10
-                                spacing: 1
-                                Text { width: parent.width; elide: Text.ElideRight; text: I18n.tr("Game Mode"); color: tl.fg; font.family: root.fontForWeight(Font.DemiBold, ccPal.fam); font.pixelSize: 13; font.weight: Font.DemiBold }
-                                MorphText { animateWidth: false; duration: 420; width: parent.width; elide: Text.ElideRight; text: root.gamingAutoActive && !root.gamingMode ? I18n.tr("On (game detected)") : (root.gaming ? I18n.tr("On") : (root.gamingAuto ? I18n.tr("Auto") : I18n.tr("Off")))
-                                       color: tl.fg2; font.family: root.fontForWeight(Font.Normal, ccPal.fam); font.pixelSize: 12 }
-                            }
+                            kind: "gamepad"; tint: "#30D158"; onTint: "#30D158"; title: I18n.tr("Game Mode")
+                            status: root.gamingAutoActive && !root.gamingMode ? I18n.tr("On (game detected)") : (root.gaming ? I18n.tr("On") : (root.gamingAuto ? I18n.tr("Auto") : I18n.tr("Off")))
                         }
                     }
                     Component {
                         id: cRecord
-                        CCTile {
-                            id: tl
+                        CCSimpleTile {
                             clickable: true
                             on: root.recording
-                            onTint: "#FF453A"
                             onClicked: root.toggleRecording()
                             t: ccPal; gx: ccg
-                            CCBtn {
-                                plain: true
-                                t: ccPal; gx: ccg
-                                x: 12; anchors.verticalCenter: parent.verticalCenter
-                                kind: root.recording ? "stoprec" : "record"; on: root.recording; onTint: "#FF453A"
-                            }
-                            Column {
-                                x: 62; anchors.verticalCenter: parent.verticalCenter
-                                width: parent.width - 62 - 10
-                                spacing: 1
-                                MorphText { animateWidth: false; duration: 420; width: parent.width; elide: Text.ElideRight; text: root.recording ? "Stop" : I18n.tr("Record"); color: tl.fg; font.family: root.fontForWeight(Font.DemiBold, ccPal.fam); font.pixelSize: 13; font.weight: Font.DemiBold }
-                                MorphText { animateWidth: false; duration: 420; width: parent.width; elide: Text.ElideRight; text: root.recording ? root.recTime() : I18n.tr("Screen"); color: tl.fg2; font.family: root.fontForWeight(Font.Normal, ccPal.fam); font.pixelSize: 12 }
-                            }
+                            kind: root.recording ? "stoprec" : "record"; tint: "#FF453A"; onTint: "#FF453A"
+                            title: root.recording ? "Stop" : I18n.tr("Record")
+                            status: root.recording ? root.recTime() : I18n.tr("Screen")
                         }
                     }
                     Component {
                         id: cNight
-                        CCTile {
-                            id: tl
+                        CCSimpleTile {
                             clickable: true
                             on: root.nightOn
                             onClicked: root.nightOn = !root.nightOn
                             t: ccPal; gx: ccg
-                            CCBtn {
-                                plain: true
-                                t: ccPal; gx: ccg; anchors.centerIn: parent
-                                kind: "nightshift"; on: root.nightOn
-                            }
+                            kind: "nightshift"; title: I18n.tr("Night Shift"); status: root.nightOn ? I18n.tr("On") : I18n.tr("Off")
                         }
                     }
                     Component {
                         id: cAwake
-                        CCTile {
-                            id: tl
+                        CCSimpleTile {
                             clickable: true
                             on: root.keepAwake
                             onClicked: root.keepAwake = !root.keepAwake
                             t: ccPal; gx: ccg
-                            CCBtn {
-                                plain: true
-                                t: ccPal; gx: ccg; anchors.centerIn: parent
-                                kind: "coffee"; on: root.keepAwake
-                            }
+                            kind: "coffee"; title: I18n.tr("Keep Awake"); status: root.keepAwake ? I18n.tr("On") : I18n.tr("Off")
                         }
                     }
                     Component {
                         id: cDark
-                        CCTile {
-                            id: tl
+                        CCSimpleTile {
                             clickable: true
                             on: root.darkMode
                             onClicked: root.setAppearance(root.darkMode ? "light" : "dark")
                             t: ccPal; gx: ccg
-                            CCBtn {
-                                plain: true
-                                t: ccPal; gx: ccg; anchors.centerIn: parent
-                                kind: "contrast"; on: root.darkMode
-                            }
+                            kind: "contrast"; title: I18n.tr("Dark Mode"); status: root.darkMode ? I18n.tr("On") : I18n.tr("Off")
+                        }
+                    }
+                    Component {
+                        id: cLock
+                        CCSimpleTile {
+                            clickable: true
+                            onClicked: { ui.pop = ""; root.lockScreen(); }
+                            t: ccPal; gx: ccg
+                            kind: "lock"; title: I18n.tr("Lock Screen")
+                        }
+                    }
+                    Component {
+                        id: cShot
+                        CCSimpleTile {
+                            clickable: true
+                            onClicked: { ui.pop = ""; root.shotStart(); }
+                            t: ccPal; gx: ccg
+                            kind: "camera"; title: I18n.tr("Screenshot")
+                        }
+                    }
+                    Component {
+                        id: cPicker
+                        CCSimpleTile {
+                            clickable: true
+                            onClicked: { ui.pop = ""; root.pickColor(); }
+                            t: ccPal; gx: ccg
+                            kind: "dropper"; title: I18n.tr("Color Picker")
+                        }
+                    }
+                    Component {
+                        id: cWalls
+                        CCSimpleTile {
+                            clickable: true
+                            onClicked: { ui.pop = ""; root.wpToggle(); }
+                            t: ccPal; gx: ccg
+                            kind: "photo"; title: I18n.tr("Wallpapers")
+                        }
+                    }
+                    Component {
+                        id: cSettings
+                        CCSimpleTile {
+                            clickable: true
+                            onClicked: { ui.pop = ""; root.openSettings("general"); }
+                            t: ccPal; gx: ccg
+                            kind: "gear"; title: I18n.tr("System Settings")
+                        }
+                    }
+                    Component {
+                        id: cMic
+                        CCSimpleTile {
+                            clickable: true
+                            on: root.micMuted
+                            onClicked: root.toggleMicMute()
+                            t: ccPal; gx: ccg
+                            kind: "mic"; flag: root.micMuted; tint: "#FF453A"; onTint: "#FF453A"
+                            title: I18n.tr("Microphone"); status: root.micMuted ? I18n.tr("Muted") : I18n.tr("On")
+                        }
+                    }
+                    Component {
+                        id: cPower
+                        CCSimpleTile {
+                            clickable: true
+                            on: root.powerProfile !== "balanced"
+                            onClicked: root.cyclePowerProfile()
+                            t: ccPal; gx: ccg
+                            kind: "bolt"; tint: "#FF9F0A"; onTint: "#FF9F0A"
+                            title: I18n.tr("Power Mode")
+                            status: root.powerProfile === "power-saver" ? I18n.tr("Low Power") : (root.powerProfile === "performance" ? I18n.tr("High Power") : I18n.tr("Automatic"))
                         }
                     }
                     Component {
@@ -8007,7 +8103,7 @@ Scope {
                         Item {
                             id: ccGrid
                             width: parent.width
-                            height: Math.max(66, root.ccPlan.total)
+                            height: Math.max(root.ccCellH, root.ccPlan.total)
                             readonly property real cw: (width - 3 * root.ccGap) / 4
                             readonly property real chh: root.ccCellH
 
@@ -8060,8 +8156,8 @@ Scope {
                                     readonly property bool small: slot !== null && slot.w === 1 && slot.h === 1
                                     Loader {
                                         anchors.centerIn: parent
-                                        width: ct.small ? 63 : ct.width
-                                        height: ct.small ? 63 : ct.height
+                                        width: ct.small ? Math.min(ct.width, ct.height) - 3 : ct.width
+                                        height: ct.small ? Math.min(ct.width, ct.height) - 3 : ct.height
                                         active: ct.slot !== null
                                         sourceComponent: cc.ccComp(ct.modelData.id)
                                     }
@@ -8094,6 +8190,29 @@ Scope {
                                             root.ccDrop(ct.modelData.id, q.x, q.y, ccGrid.cw, ccGrid.chh, ccGrid.height);
                                         }
                                         onCanceled: { ct.dragging = false; ct.dx = 0; ct.dy = 0; }
+                                    }
+
+                                    // size badge (edit mode): click to switch between the sizes this control offers
+                                    Rectangle {
+                                        readonly property var opts: ct.modelData.sizes || []
+                                        visible: ui.ccEdit && opts.length > 1
+                                        z: 60
+                                        anchors.right: parent.right; anchors.bottom: parent.bottom
+                                        anchors.rightMargin: -3; anchors.bottomMargin: -3
+                                        width: sizeLbl.implicitWidth + 12; height: 20; radius: 10
+                                        color: ccPal.dark ? "#636366" : "#8E8E93"
+                                        border.width: 1.5
+                                        border.color: ccPal.dark ? Qt.rgba(1, 1, 1, 0.35) : "white"
+                                        Text {
+                                            id: sizeLbl
+                                            anchors.centerIn: parent
+                                            text: ct.slot ? (ct.slot.w + "×" + ct.slot.h) : ""
+                                            color: "white"; font.family: root.fontForWeight(Font.DemiBold, ccPal.fam); font.pixelSize: 10; font.weight: Font.DemiBold
+                                        }
+                                        MouseArea {
+                                            anchors.fill: parent; anchors.margins: -3
+                                            onClicked: root.ccCycleSize(ct.modelData.id)
+                                        }
                                     }
 
                                     // remove badge
@@ -8189,7 +8308,7 @@ Scope {
                                     visible: ui.ccEdit
                                     t: ccPal; gx: ccg
                                     text: I18n.tr("Reset")
-                                    onClicked: root.ccControls = root.ccDefault.slice()
+                                    onClicked: root.ccResetLayout()
                                 }
                                 CCPill {
                                     t: ccPal; gx: ccg

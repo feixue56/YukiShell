@@ -79,6 +79,10 @@ Shortcuts** shows the same list, translated and read live from the running Hyprl
   cover the desktop that video is switched off completely, so it costs nothing when you cannot see it.
 - Hover feedback everywhere: the menu bar and Dock buttons get a frosted-glass tile with a rim light that follows the pointer,
   workspaces that have windows keep a resting glass tile, and the Dock's last button is a gear that opens Settings.
+- **A Control Center you can shape**: *Edit Controls* (or **Settings → Control Center**) lets you add, remove and drag the controls, and switch most of them between
+  a small round button and a wide tile (the grey `1×1` / `2×1` badge in edit mode). Seven extra controls are available besides the usual switches: Lock Screen,
+  Screenshot, Color Picker, Wallpapers, System Settings, Microphone mute and Power Mode (power-profiles-daemon). Settings also has the row height
+  (Compact / Regular / Large), the spacing between controls, and the colour a switched-on control turns (white by default). All of it is saved and has a Reset.
 - **Settings → Users & Groups → Picture** lets you crop your profile picture (drag, scroll to zoom) before it is saved.
 - **Hardware that is not there is not offered**: Airplane Mode follows the real radio switches (rfkill), and on a PC with no Wi-Fi or Bluetooth adapter
   those Control Center tiles are greyed out (N/A), the Bluetooth icon leaves the menu bar and the two Settings panes disappear. Plug an adapter in and they come back.

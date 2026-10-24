@@ -493,7 +493,6 @@ var strings = {
     // Control Center
     "Add Controls": "Добавить элементы",
     "Edit Controls": "Изменить элементы",
-    "Choose which controls appear in Control Center. You can also drag them around in Control Center → Edit Controls.": "Выберите элементы Пункта управления. Их можно перетаскивать прямо в Пункте управления → «Изменить элементы».",
     "No controls. Use Edit Controls to add some.": "Нет элементов. Добавьте их через «Изменить элементы».",
     "Done": "Готово",
     "Display": "Дисплей",
@@ -767,5 +766,21 @@ var strings = {
     "Swap Window with Neighbour (also → ↑ ↓)": "Поменять местами с соседним окном (также → ↑ ↓)",
     "Switch Windows": "Переключение окон",
     "Terminal Transparency": "Прозрачность терминала",
-    "Toggle Floating": "Переключить плавающий режим"
+    "Toggle Floating": "Переключить плавающий режим",
+    "Color Picker": "Пипетка",
+    "Muted": "Выключен",
+    "Power Mode": "Режим питания",
+    "Screenshot": "Снимок экрана",
+    "Controls": "Элементы",
+    "Regular": "Стандартный",
+    "Wide": "Широкий",
+    "Spacing": "Интервал",
+    "Tile size": "Размер элементов",
+    "How tall each row of controls is": "Высота каждого ряда элементов",
+    "The gap between controls": "Расстояние между элементами",
+    "Highlight color": "Цвет выделения",
+    "The color a switched-on control turns": "Цвет включённого элемента",
+    "Reset Control Center": "Сбросить Пункт управления",
+    "Back to the default controls, sizes and looks": "Вернуть стандартные элементы, размеры и оформление",
+    "Choose which controls appear in Control Center and how big each one is. You can also drag them around in Control Center → Edit Controls.": "Выберите, какие элементы показывать в Пункте управления и какого они размера. Их также можно перетаскивать в Пункт управления → Изменить элементы."
 };

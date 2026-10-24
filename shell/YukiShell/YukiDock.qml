@@ -2842,26 +2842,115 @@ Scope {
             id: paneCC
             Column {
                 spacing: 10
-                SLabel { t: pal; text: I18n.tr("Choose which controls appear in Control Center. You can also drag them around in Control Center → Edit Controls.") }
+                SLabel { t: pal; text: I18n.tr("Choose which controls appear in Control Center and how big each one is. You can also drag them around in Control Center → Edit Controls.") }
+                SLabel { t: pal; header: true; text: I18n.tr("Appearance") }
+                SCard {
+                    t: pal
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Tile size")
+                        subtitle: I18n.tr("How tall each row of controls is")
+                        SSegmented {
+                            t: pal
+                            model: ["Compact", "Regular", "Large"]
+                            segWidth: 76
+                            current: Math.max(0, ["compact", "regular", "large"].indexOf(root.bar ? root.bar.ccTileSize : "regular"))
+                            onPicked: i => { if (root.bar) root.bar.ccTileSize = ["compact", "regular", "large"][i]; }
+                        }
+                    }
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Spacing")
+                        subtitle: I18n.tr("The gap between controls")
+                        SSegmented {
+                            t: pal
+                            model: ["Tight", "Normal", "Loose"]
+                            segWidth: 76
+                            current: Math.max(0, ["tight", "normal", "loose"].indexOf(root.bar ? root.bar.ccSpacing : "normal"))
+                            onPicked: i => { if (root.bar) root.bar.ccSpacing = ["tight", "normal", "loose"][i]; }
+                        }
+                    }
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Highlight color")
+                        subtitle: I18n.tr("The color a switched-on control turns")
+                        Row {
+                            spacing: 6
+                            Repeater {
+                                model: ["", "#0A84FF", "#30D158", "#FFD60A", "#FF9F0A", "#FF453A", "#FF375F", "#64D2FF"]
+                                delegate: Item {
+                                    id: ccsw
+                                    required property string modelData
+                                    readonly property bool sel: (root.bar ? root.bar.ccOnColor : "").toLowerCase() === modelData.toLowerCase()
+                                    width: 26; height: 26
+                                    Rectangle {
+                                        x: 4; y: 4
+                                        width: 18; height: 18; radius: 9
+                                        color: ccsw.modelData === "" ? "white" : ccsw.modelData
+                                        border.width: 1
+                                        border.color: Qt.rgba(0, 0, 0, 0.18)
+                                    }
+                                    Rectangle {
+                                        x: 0; y: 0
+                                        visible: ccsw.sel
+                                        width: 26; height: 26; radius: 13
+                                        color: "transparent"
+                                        border.width: 2
+                                        border.color: pal.text3
+                                    }
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: { if (root.bar) root.bar.ccOnColor = ccsw.modelData; }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                SLabel { t: pal; header: true; text: I18n.tr("Controls") }
                 SCard {
                     t: pal
                     Repeater {
                         model: root.bar ? root.bar.ccCatalog : []
                         delegate: SRow {
+                            id: ccRow
                             required property var modelData
+                            readonly property bool enabledHere: root.bar ? root.bar.ccControls.indexOf(modelData.id) >= 0 : false
+                            readonly property bool resizable: (modelData.sizes || []).length > 1
                             t: pal
                             title: I18n.tr(modelData.label)
-                            SSwitch {
-                                t: pal
-                                checked: root.bar ? root.bar.ccControls.indexOf(modelData.id) >= 0 : false
-                                onToggled: v => {
-                                    if (!root.bar) return;
-                                    var cl = root.bar.ccControls.filter(function (x) { return x !== modelData.id; });
-                                    if (v) cl.push(modelData.id);
-                                    root.bar.ccControls = cl;
+                            Row {
+                                spacing: 12
+                                SSegmented {
+                                    visible: ccRow.resizable
+                                    opacity: ccRow.enabledHere ? 1 : 0.45
+                                    t: pal
+                                    model: ["Small", "Wide"]
+                                    segWidth: 58
+                                    current: root.bar && root.bar.ccSizeFor(ccRow.modelData.id)[0] > 1 ? 1 : 0
+                                    onPicked: i => { if (root.bar) root.bar.ccSetSize(ccRow.modelData.id, i === 0 ? 1 : 2, 1); }
+                                }
+                                SSwitch {
+                                    t: pal
+                                    checked: ccRow.enabledHere
+                                    onToggled: v => {
+                                        if (!root.bar) return;
+                                        var cl = root.bar.ccControls.filter(function (x) { return x !== ccRow.modelData.id; });
+                                        if (v) cl.push(ccRow.modelData.id);
+                                        root.bar.ccControls = cl;
+                                    }
                                 }
                             }
                         }
+                    }
+                }
+                SCard {
+                    t: pal
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Reset Control Center")
+                        subtitle: I18n.tr("Back to the default controls, sizes and looks")
+                        SButton { t: pal; text: I18n.tr("Reset"); onClicked: { if (root.bar) root.bar.ccResetAll(); } }
                     }
                 }
             }
