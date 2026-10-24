@@ -2,6 +2,7 @@
 local mod = "SUPER"
 
 hl.bind(mod .. " + Return",         hl.dsp.exec_cmd("kitty"))
+hl.bind(mod .. " + SHIFT + Return", hl.dsp.exec_cmd("kitty", { float = true, center = true, size = "900 560" }))   -- floating terminal
 hl.bind(mod .. " + E",              hl.dsp.exec_cmd("dolphin"))
 hl.bind(mod .. " + W",              hl.dsp.exec_cmd("chromium"))
 hl.bind(mod .. " + Q",              hl.dsp.window.close())
