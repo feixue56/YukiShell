@@ -46,7 +46,8 @@ do
                 hl.window_rule({
                     name    = "yuki-transparent-" .. cls,
                     match   = { class = "^" .. cls:gsub("%p", "\\%0") .. "$" },
-                    opacity = "0.8 0.8",
+                    opacity = "0.92 0.92",
+                    no_blur = true,
                 })
             end
         end
