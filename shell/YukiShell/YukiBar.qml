@@ -2325,6 +2325,7 @@ Scope {
             onStreamFinished: {
                 var f = text.trim().split(",");
                 if (f.length >= 4) { var p = parseInt(f[3]); if (!isNaN(p)) root.brightness = p / 100; }
+                root.brightLaptop = f.length >= 4 && f[0] !== "yuki";   // yuki-brightness getm = an external monitor over DDC/CI
             }
         }
     }
@@ -2383,7 +2384,10 @@ Scope {
         brightUser();
         showOsd("brightness", brightness);
     }
-    Timer { interval: 850; repeat: true; running: true; onTriggered: root.refreshBrightness() }
+    // A laptop backlight is cheap to read and firmware keys change it behind our back, so it is polled quickly; an external monitor
+    // (DDC/CI, cached for 30 s by yuki-brightness) or no brightness control at all is polled slowly. Opening Control Center refreshes it too.
+    property bool brightLaptop: true
+    Timer { interval: root.brightLaptop ? 850 : 6000; repeat: true; running: true; onTriggered: root.refreshBrightness() }
     // ═════════════ KEYBOARD LAYOUT ═════════════
     // Hyprland's event gives an immediate update; a small reconciliation poll handles dropped events and
     // keyboards whose active keymap changes without a usable activelayout payload.

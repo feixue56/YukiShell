@@ -5,7 +5,10 @@
 # for 30 s and writes are serialised with flock; the shell sends the newest slider value as soon as the previous write ends.
 rt="${XDG_RUNTIME_DIR:-/tmp}"; cache="$rt/yuki-brightness.val"; busf="$rt/yuki-brightness.bus"; lock="$rt/yuki-brightness.lock"
 
-backlight() { brightnessctl -c backlight -m 2>/dev/null | head -n1; }
+# a desktop has no /sys/class/backlight entry: skip the brightnessctl run (and its fork) entirely
+backlight() {
+    local d; for d in /sys/class/backlight/*/; do [ -e "${d}brightness" ] && { brightnessctl -c backlight -m 2>/dev/null | head -n1; return; }; done
+}
 bus() {
     [ -s "$busf" ] || ddcutil detect --brief 2>/dev/null | sed -n 's#.*I2C bus: */dev/i2c-\([0-9]*\).*#\1#p' | head -n1 > "$busf"
     cat "$busf"
