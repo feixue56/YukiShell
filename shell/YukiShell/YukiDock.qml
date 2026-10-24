@@ -3756,21 +3756,13 @@ Scope {
                     Item {
                         width: parent.width
                         height: 176
-                        Rectangle {
+                        Image {
                             x: (parent.width - width) / 2
                             y: 18
-                            width: 80; height: 80; radius: 22
-                            gradient: Gradient {
-                                orientation: Gradient.Vertical
-                                GradientStop { position: 0.0; color: "#cba6f7" }
-                                GradientStop { position: 1.0; color: "#f5c2e7" }
-                            }
-                            Text {
-                                anchors.centerIn: parent
-                                text: "\u96ea"
-                                color: "#1e1e2e"
-                                font.pixelSize: 44
-                            }
+                            width: 80; height: 80
+                            source: Qt.resolvedUrl("assets/yukishell-logo.png")
+                            sourceSize: Qt.size(240, 240)
+                            smooth: true; mipmap: true
                         }
                         Text {
                             y: 110

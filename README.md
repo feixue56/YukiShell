@@ -1,3 +1,5 @@
+<p align="center"><img src="shell/YukiShell/assets/yukishell-logo.png" width="128" alt="YukiShell"></p>
+
 # YukiShell
 
 A Catppuccin Mocha (mauve + pink) rice for **Hyprland** with its own desktop shell, built on **Quickshell**.
