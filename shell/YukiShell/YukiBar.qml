@@ -2178,7 +2178,8 @@ Scope {
     Process {
         id: btProc
         command: ["sh", "-c",
-            "p=$(timeout 4 bluetoothctl show 2>/dev/null </dev/null | grep -i 'Powered:' | head -n1); echo \"P:$p\"; "
+            "[ -n \"$(ls /sys/class/bluetooth 2>/dev/null)\" ] || { echo P:; exit 0; }; "      // no adapter: nothing to ask (bluetoothctl would block for its whole timeout, every poll)
+            + "p=$(timeout 4 bluetoothctl show 2>/dev/null </dev/null | grep -i 'Powered:' | head -n1); echo \"P:$p\"; "
             + "timeout 4 bluetoothctl devices 2>/dev/null </dev/null | while read -r _ mac name; do "
             + "[ -n \"$mac\" ] || continue; "
             + "i=$(timeout 3 bluetoothctl info \"$mac\" 2>/dev/null </dev/null); "
@@ -2271,8 +2272,9 @@ Scope {
     function toggleBt() {
         root.btOn = !root.btOn;
         Quickshell.execDetached(["sh", "-c",
-            root.btOn ? "rfkill unblock bluetooth 2>/dev/null; sleep 0.3; bluetoothctl power on"
-                      : "bluetoothctl power off"]);
+            "[ -n \"$(ls /sys/class/bluetooth 2>/dev/null)\" ] || exit 0; "
+            + (root.btOn ? "rfkill unblock bluetooth 2>/dev/null; sleep 0.3; timeout 8 bluetoothctl power on"
+                         : "timeout 8 bluetoothctl power off")]);
         settleTimer.interval = 1500;
         settleTimer.restart();
     }
