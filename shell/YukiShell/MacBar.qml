@@ -2334,7 +2334,7 @@ Scope {
 
     // brightness
     property real brightness: 0.5
-    function refreshBrightness() { if (!brightProc.running) brightProc.running = true; }
+    function refreshBrightness() { if (brightProc.running || brightWrite.running || brightDirty || Date.now() - brightTouched < 2500) return; brightProc.running = true; }
     Process {
         id: brightProc
         command: ["sh", "-c", "yuki-brightness getm 2>/dev/null || brightnessctl -c backlight -m 2>/dev/null | head -n1"]
@@ -2345,12 +2345,26 @@ Scope {
             }
         }
     }
-    Timer {
-        id: brightApply
-        interval: 140          // DDC/CI writes are slow: let a drag settle before sending
-        onTriggered: Quickshell.execDetached(["yuki-brightness", "set", String(Math.max(1, Math.round(root.brightness * 100)))])
+    // Live brightness: one write in flight at a time; when it finishes, the newest slider value is sent right away
+    // (leading + trailing throttle, ~12 updates/s over DDC/CI) instead of waiting for the drag to stop.
+    property bool brightDirty: false
+    property int brightSent: -1
+    property double brightTouched: 0                  // when the user last changed it (the poll must not fight a drag)
+    Process {
+        id: brightWrite
+        onRunningChanged: if (!running && root.brightDirty) root.brightFlush()
     }
-    function setBrightness(v) { osdQuiet("brightness", 1800); brightness = Math.max(0.01, Math.min(1, v)); brightApply.restart(); }
+    function brightFlush() {
+        var want = Math.max(1, Math.round(brightness * 100));
+        if (brightWrite.running) { brightDirty = true; return; }
+        brightDirty = false;
+        if (want === brightSent) return;
+        brightSent = want;
+        brightWrite.command = ["yuki-brightness", "set", String(want)];
+        brightWrite.running = true;
+    }
+    function brightUser() { brightTouched = Date.now(); brightFlush(); }
+    function setBrightness(v) { osdQuiet("brightness", 1800); brightness = Math.max(0.01, Math.min(1, v)); brightUser(); }
     onBrightnessChanged: showOsd("brightness", brightness)
     // hardware keys: like the sliders, but the on-screen display is shown (no quiet window)
     function hwVolume(d) {
@@ -2368,7 +2382,7 @@ Scope {
     function hwMicMute() { if (micSource && micSource.audio) micSource.audio.muted = !micSource.audio.muted; }
     function hwBrightness(d) {
         brightness = Math.max(0.01, Math.min(1, Math.round((brightness + d) * 100) / 100));
-        brightApply.restart();
+        brightUser();
         showOsd("brightness", brightness);
     }
     Timer { interval: 850; repeat: true; running: true; onTriggered: root.refreshBrightness() }
