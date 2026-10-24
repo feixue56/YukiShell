@@ -1,10 +1,23 @@
 #!/usr/bin/env python3
-"""Super+Shift+Tab: switch the terminal under the mouse pointer (falls back to the focused window) between the liquid-glass
-look (background_opacity from kitty.conf, blurred by Hyprland) and a fully solid background. Only the BACKGROUND changes
-(kitty's own background_opacity via remote control), so the text is never touched. Other apps are left alone."""
+"""Super+Shift+Tab: cycle the terminal under the mouse pointer (falls back to the focused window) through
+    solid        - fully opaque background
+    glass        - the liquid-glass look (background_opacity from kitty.conf, blurred by Hyprland)
+    clear        - completely transparent background, blur off, so whatever is behind shows straight through
+Only the BACKGROUND changes (kitty's own background_opacity), so the text is never touched. Other apps are left alone."""
 import json, os, subprocess, sys
 
-KITTY_LEVEL = "1.0"     # kitty background opacity while "solid"; the other state is the liquid-glass value from kitty.conf
+def glass_level():
+    """The liquid-glass opacity: the terminal's own background_opacity from kitty.conf."""
+    try:
+        for line in open(os.path.expanduser("~/.config/kitty/kitty.conf")):
+            if line.startswith("background_opacity"):
+                return float(line.split()[1])
+    except (OSError, ValueError, IndexError):
+        pass
+    return 0.55
+
+LEVEL = {"solid": 1.0, "glass": glass_level(), "clear": 0.0}   # kitty background opacity per state
+NEXT = {"solid": "glass", "glass": "clear", "clear": "solid"}    # the cycle, in the order solid -> glass -> clear
 
 def hc(*a):
     return subprocess.run(["hyprctl", *a], capture_output=True, text=True).stdout
@@ -21,10 +34,18 @@ def target():
         return min(hit, key=lambda c: (not c["floating"], c["focusHistoryID"]))
     return json.loads(hc("-j", "activewindow") or "{}") or None
 
-def kitty_toggle(pid):
-    r = subprocess.run(["kitty", "@", "--to", f"unix:@kitty-{pid}", "set-background-opacity", "--all", "--toggle", KITTY_LEVEL],
-                       capture_output=True, text=True)
-    return r.returncode == 0
+def kitty_cmd(pid, *args):
+    return subprocess.run(["kitty", "@", "--to", f"unix:@kitty-{pid}", *args], capture_output=True, text=True)
+
+def kitty_level(pid):
+    """Current background opacity of a remote-controllable kitty, else None."""
+    r = kitty_cmd(pid, "ls")
+    if r.returncode != 0:
+        return None
+    try:
+        return float(json.loads(r.stdout)[0]["background_opacity"])
+    except (ValueError, KeyError, IndexError, TypeError):
+        return None
 
 w = target()
 if not w or not w.get("address"):
@@ -39,30 +60,40 @@ def set_window_opacity(value):
     for prop in ("opacity", "opacity_inactive", "opacity_fullscreen"):
         hc("dispatch", f'hl.dsp.window.set_prop({{ prop = "{prop}", value = "{value}", window = "address:{w["address"]}" }})')
 
+def set_no_blur(on):
+    """Hyprland blurs whatever sits behind a translucent window; the fully transparent state turns that off."""
+    hc("dispatch", f'hl.dsp.window.set_prop({{ prop = "no_blur", value = "{"true" if on else "false"}", window = "address:{w["address"]}" }})')
+
 STATE = os.path.join(os.environ.get("XDG_RUNTIME_DIR", "/tmp"), "toggle-opacity.json")
 
-def kitty_shortcut(solid_now):
-    """kitty started without remote control: press its own opacity shortcuts in that window (ctrl+shift+a, then 1 = solid /
-    d = back to the configured glass). Hyprland can't read the result back, so which state we are in is remembered."""
+def kitty_shortcut(target_state):
+    """kitty started without remote control: press its own opacity shortcuts in that window (ctrl+shift+a, then 1 = solid,
+    d = back to the configured glass, l = 0.1 less opaque). Hyprland can't read the result back, so the state is remembered."""
     addr = w["address"]
     send = lambda mods, key: hc("dispatch", f'hl.dsp.send_shortcut({{ mods = "{mods}", key = "{key}", window = "address:{addr}" }})')
-    send("CTRL_SHIFT", "a")
-    send("", "d" if solid_now else "1")
+    presses = {"solid": ["1"], "glass": ["d"], "clear": ["l"] * 10}[target_state]
+    for key in presses:
+        send("CTRL_SHIFT", "a")
+        send("", key)
 
 if w["class"] == "kitty" or w["class"].startswith("dash-"):
     if 0 < window_opacity() < 1:                        # a whole-window fade (older toggle / fallback) is on: this press undoes it
         set_window_opacity("-1")
         sys.exit(0)
-    if kitty_toggle(w["pid"]):
-        sys.exit(0)                                     # background only, text untouched
-    try: state = json.load(open(STATE))
-    except (OSError, ValueError): state = {}
-    live = {c["address"] for c in json.loads(hc("-j", "clients"))}
-    state = {a: v for a, v in state.items() if a in live}          # forget windows that are gone
-    solid = state.get(w["address"], False)
-    kitty_shortcut(solid)
-    state[w["address"]] = not solid
-    json.dump(state, open(STATE, "w"))
+    lvl = kitty_level(w["pid"])
+    if lvl is not None:                                 # remote control: the real current opacity decides the next state
+        nxt = "glass" if lvl >= 0.99 else ("solid" if lvl <= 0.01 else "clear")
+        kitty_cmd(w["pid"], "set-background-opacity", "--all", str(LEVEL[nxt]))
+    else:
+        try: state = json.load(open(STATE))
+        except (OSError, ValueError): state = {}
+        live = {c["address"] for c in json.loads(hc("-j", "clients"))}
+        state = {a: v for a, v in state.items() if a in live and v in NEXT}      # forget windows that are gone
+        nxt = NEXT[state.get(w["address"], "glass")]    # an unknown window is assumed to be on the configured glass look
+        kitty_shortcut(nxt)
+        state[w["address"]] = nxt
+        json.dump(state, open(STATE, "w"))
+    set_no_blur(nxt == "clear")
     sys.exit(0)
 # Not a terminal. Hyprland only ever sees the finished window, so it can only fade the whole thing (text included): there is
 # no background-only transparency for other apps, and this key deliberately leaves them alone. A leftover whole-window fade
@@ -71,4 +102,4 @@ if 0 < window_opacity() < 1:
     set_window_opacity("-1")
 else:
     subprocess.run(["notify-send", "-a", "Transparency", "-t", "2000", "Terminals only",
-                    "Super+Shift+Tab switches kitty between glass and solid."], capture_output=True)
+                    "Super+Shift+Tab cycles kitty: solid, glass, clear."], capture_output=True)
