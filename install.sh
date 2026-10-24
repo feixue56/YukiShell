@@ -22,6 +22,10 @@ for v in 3 4; do
     link "$here/gtk-$v.0/gtk.css"      "$cfg/gtk-$v.0/gtk.css"
     link "$here/gtk-$v.0/settings.ini" "$cfg/gtk-$v.0/settings.ini"
 done
+link "$here/shell/RiceShell"                   "$cfg/quickshell/RiceShell"
+link "$here/shell/RiceLock"                    "$cfg/quickshell/RiceLock"
+link "$here/shell/bin/rice-start"              "$HOME/.local/bin/rice-start"
+[ -f "$cfg/hypr-rice/env" ] || { mkdir -p "$cfg/hypr-rice"; cp "$here/shell/env.example" "$cfg/hypr-rice/env"; }
 link "$here/qt/CatppuccinMauve.colors" "$HOME/.local/share/color-schemes/CatppuccinMauve.colors"
 
 # Hyprland: one require line, placed above any MacShell block so install.sh updates there never touch the rice.
@@ -30,13 +34,23 @@ if [ -f "$lua" ] && ! grep -q 'rice.theme\|"rice\.' "$lua"; then
     cp "$lua" "$lua.pre-rice"
     { cat <<'LUA'
 -- Rice (managed by ~/hypr-rice)
-for _, m in ipairs({ "monitor", "look", "input", "binds", "rules" }) do
+for _, m in ipairs({ "monitor", "look", "input", "binds", "rules", "shell" }) do
     local ok, err = pcall(require, "rice." .. m)
     if not ok then hl.exec_cmd("notify-send 'Hyprland rice' 'rice." .. m .. " failed: " .. tostring(err):gsub("'", "") .. "'") end
 end
 
 LUA
       cat "$lua.pre-rice"; } > "$lua"
+fi
+
+# Drop MacShell's own block from hyprland.lua; RiceShell is wired in rice/shell.lua instead.
+if [ -f "$lua" ] && grep -q '>>> MacShell module' "$lua"; then
+    cp "$lua" "$lua.pre-fork"
+    python3 - "$lua" <<'PY'
+import re, sys
+p = sys.argv[1]; t = open(p).read()
+open(p, "w").write(re.sub(r"\n?-- >>> MacShell module.*?-- <<< MacShell module <<<\n?", "\n", t, flags=re.S))
+PY
 fi
 
 # btop / Qt / GTK settings that live in other files

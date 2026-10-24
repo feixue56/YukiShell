@@ -4,6 +4,9 @@ Covers Hyprland (look, input, binds, rules), kitty (glass), fastfetch, btop, cav
 Palette lives in `hypr/rice/theme.lua`. Install with `./install.sh`.
 Note: MacShell's matugen templates can overwrite `gtk.css`; re-run `./install.sh` to restore.
 
-## MacShell motion
-`macshell/motion.py` retunes the Spotlight pop (spring-like open, softer close). Backs up MacBar.qml once; re-run after macshell-update.
-`macshell/dock.py` makes Dock magnification follow the cursor on a spring. Same backup/re-run rules.
+## RiceShell (standalone fork)
+`shell/RiceShell` and `shell/RiceLock` are this repo's own copy of MacShell and MacLock, with the motion/dock/menu-bar
+tweaks already applied. They run as `qs -c RiceShell` / `qs -c RiceLock`, started by `shell/bin/rice-start` from
+`hypr/rice/shell.lua`. Nothing here depends on MacShell's `install.sh` or `macshell-update`, and they never touch it.
+MacShell's data files (`~/.config/macbar`, `macdock`, `macshell`) are still shared, since the QML reads those paths.
+Env overrides: `~/.config/hypr-rice/env`. Log: `~/.local/state/hypr-rice/RiceShell.log`.
