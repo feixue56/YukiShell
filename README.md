@@ -43,6 +43,7 @@ Before using it, check:
 | `Super+Enter` | terminal (kitty) |
 | `Super+Shift+Enter` | floating terminal |
 | `Super+W` / `Super+E` | Chromium / Dolphin |
+| `Super+Shift+W` / `Super+Shift+E` | floating Chromium / Dolphin (1280×800 / 1100×700, centred) |
 | `Super+Q` | close window |
 | `Super+F` | fullscreen |
 | `Super+T` or `Super+Alt+Space` | toggle floating |

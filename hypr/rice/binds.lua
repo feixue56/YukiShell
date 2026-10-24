@@ -5,6 +5,8 @@ hl.bind(mod .. " + Return",         hl.dsp.exec_cmd("kitty"))
 hl.bind(mod .. " + SHIFT + Return", hl.dsp.exec_cmd("kitty", { float = true, center = true, size = "900 560" }))   -- floating terminal
 hl.bind(mod .. " + E",              hl.dsp.exec_cmd("dolphin"))
 hl.bind(mod .. " + W",              hl.dsp.exec_cmd("chromium"))
+hl.bind(mod .. " + SHIFT + E",      hl.dsp.exec_cmd("dolphin", { float = true, center = true, size = "1100 700" }))     -- floating file manager
+hl.bind(mod .. " + SHIFT + W",      hl.dsp.exec_cmd("~/.config/hypr/bin/float-chromium"))                             -- floating browser window (script: a running Chromium ignores exec rules)
 hl.bind(mod .. " + Q",              hl.dsp.window.close())
 hl.bind(mod .. " + F",              hl.dsp.window.fullscreen())
 hl.bind(mod .. " + T",              hl.dsp.window.float({ action = "toggle" }))
