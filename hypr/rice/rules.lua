@@ -9,6 +9,7 @@ hl.window_rule({
 -- Small utility windows float.
 hl.window_rule({ name = "float-pavucontrol", match = { class = "^(org.pulseaudio.pavucontrol|pavucontrol)$" }, float = true })
 hl.window_rule({ name = "float-polkit",      match = { class = "^(org.kde.polkit-kde-authentication-agent-1)$" }, float = true })
+hl.window_rule({ name = "float-utilities",   match = { class = "^(nm-connection-editor|blueman-manager|org\\.gnome\\.Calculator|org\\.kde\\.kcalc|qalculate-gtk|io\\.github\\.Qalculate\\.qalculate-gtk|org\\.kde\\.kdeconnect.*|org\\.gnome\\.Characters)$" }, float = true, center = true })
 hl.window_rule({ name = "pip-float",         match = { title = "^(Picture-in-Picture)$" }, float = true, pin = true })
 
 -- File pickers float, centred, instead of tiling next to your work. "Choose a picture", Chromium's Open/Save, Dolphin and the like all
