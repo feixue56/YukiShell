@@ -35,12 +35,13 @@ hl.config({
         blur = {
             enabled  = true,
             size     = 8,
-            passes   = 3,
+            passes   = 2,
             vibrancy = 0.35,
             noise    = 0.015,
             contrast = 0.95,
             brightness = 0.9,
             popups   = true,
+            new_optimizations = true,
         },
     },
 
@@ -72,4 +73,8 @@ hl.animation({ leaf = "fade",          enabled = true, speed = 3,   bezier = "sm
 hl.animation({ leaf = "layers",        enabled = true, speed = 4,   bezier = "snap" })
 hl.animation({ leaf = "layersIn",      enabled = true, speed = 4,   bezier = "snap",   style = "fade" })
 hl.animation({ leaf = "layersOut",     enabled = true, speed = 2,   bezier = "linear", style = "fade" })
-hl.animation({ leaf = "workspaces",    enabled = true, speed = 4,   bezier = "smooth", style = "slide" })
+hl.curve("wsSpring", { type = "spring", mass = 1, stiffness = 180, dampening = 24 }) -- critically damped: glides, no bounce
+hl.animation({ leaf = "workspaces",    enabled = true, speed = 5,   spring = "wsSpring", style = "slide" })
+hl.animation({ leaf = "workspacesIn",  enabled = true, speed = 5,   spring = "wsSpring", style = "slide" })
+hl.animation({ leaf = "workspacesOut", enabled = true, speed = 5,   spring = "wsSpring", style = "slide" })
+hl.animation({ leaf = "specialWorkspace", enabled = true, speed = 5, spring = "wsSpring", style = "slidevert" })
