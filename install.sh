@@ -70,6 +70,8 @@ if command -v kwriteconfig6 >/dev/null; then
     kwriteconfig6 --file kdeglobals --group General --key AccentColor 203,166,247
     kwriteconfig6 --file kdeglobals --group Icons   --key Theme Papirus-Dark
     kwriteconfig6 --file kdeglobals --group KDE     --key widgetStyle Breeze
+    # KDE apps (Dolphin's file view) read colours from kdeglobals itself, so the scheme's groups have to be copied in
+    python3 "$here/qt/apply-scheme.py" "$here/qt/CatppuccinMauve.colors" || true
 fi
 if command -v gsettings >/dev/null; then
     gsettings set org.gnome.desktop.interface gtk-theme adw-gtk3-dark || true
