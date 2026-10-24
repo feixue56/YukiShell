@@ -771,5 +771,15 @@ var strings = {
     "The color a switched-on control turns": "已开启的控制项所显示的颜色",
     "Reset Control Center": "重置控制中心",
     "Back to the default controls, sizes and looks": "恢复默认的控制项、大小和外观",
-    "Choose which controls appear in Control Center and how big each one is. You can also drag them around in Control Center → Edit Controls.": "选择控制中心中显示哪些控制项以及各自的大小。也可以在“控制中心 → 编辑控制项”中拖动调整位置。"
+    "Choose which controls appear in Control Center and how big each one is. You can also drag them around in Control Center → Edit Controls.": "选择控制中心中显示哪些控制项以及各自的大小。也可以在“控制中心 → 编辑控制项”中拖动调整位置。",
+    "Add Super, Ctrl or Alt to that key": "请为该按键加上 Super、Ctrl 或 Alt",
+    "Already used by": "已用于",
+    "Already used by another shortcut": "已被其他快捷键使用",
+    "Back to the shortcuts this rice comes with": "恢复为此配置自带的快捷键",
+    "Click a shortcut to change it. Shortcuts that belong to a group of keys (the workspace numbers, the arrows) and Alt + Tab stay as they are.": "点按快捷键即可修改。成组的按键（工作区数字、方向键）和 Alt + Tab 保持不变。",
+    "Not set": "未设置",
+    "Press the new shortcut. Esc cancels, Backspace removes it.": "请按下新的快捷键。Esc 取消，Backspace 移除。",
+    "Reset All Shortcuts": "重置所有快捷键",
+    "That key can't be used": "无法使用该按键",
+    "Type the new shortcut…": "输入新的快捷键…"
 };

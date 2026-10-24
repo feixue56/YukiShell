@@ -782,5 +782,15 @@ var strings = {
     "The color a switched-on control turns": "Цвет включённого элемента",
     "Reset Control Center": "Сбросить Пункт управления",
     "Back to the default controls, sizes and looks": "Вернуть стандартные элементы, размеры и оформление",
-    "Choose which controls appear in Control Center and how big each one is. You can also drag them around in Control Center → Edit Controls.": "Выберите, какие элементы показывать в Пункте управления и какого они размера. Их также можно перетаскивать в Пункт управления → Изменить элементы."
+    "Choose which controls appear in Control Center and how big each one is. You can also drag them around in Control Center → Edit Controls.": "Выберите, какие элементы показывать в Пункте управления и какого они размера. Их также можно перетаскивать в Пункт управления → Изменить элементы.",
+    "Add Super, Ctrl or Alt to that key": "Добавьте к этой клавише Super, Ctrl или Alt",
+    "Already used by": "Уже используется для",
+    "Already used by another shortcut": "Уже используется другим сочетанием",
+    "Back to the shortcuts this rice comes with": "Вернуть сочетания, с которыми поставляется эта конфигурация",
+    "Click a shortcut to change it. Shortcuts that belong to a group of keys (the workspace numbers, the arrows) and Alt + Tab stay as they are.": "Нажмите на сочетание, чтобы изменить его. Группы клавиш (номера рабочих столов, стрелки) и Alt + Tab не меняются.",
+    "Not set": "Не задано",
+    "Press the new shortcut. Esc cancels, Backspace removes it.": "Нажмите новое сочетание. Esc — отмена, Backspace — удалить.",
+    "Reset All Shortcuts": "Сбросить все сочетания",
+    "That key can't be used": "Эту клавишу нельзя использовать",
+    "Type the new shortcut…": "Введите новое сочетание…"
 };

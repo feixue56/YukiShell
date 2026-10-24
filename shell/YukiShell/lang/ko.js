@@ -771,5 +771,15 @@ var strings = {
     "The color a switched-on control turns": "켜진 제어 항목의 색상",
     "Reset Control Center": "제어 센터 재설정",
     "Back to the default controls, sizes and looks": "기본 제어 항목, 크기, 모양으로 되돌립니다",
-    "Choose which controls appear in Control Center and how big each one is. You can also drag them around in Control Center → Edit Controls.": "제어 센터에 표시할 제어 항목과 각각의 크기를 선택합니다. 제어 센터 → ‘제어 항목 편집’에서 끌어서 순서를 바꿀 수도 있습니다."
+    "Choose which controls appear in Control Center and how big each one is. You can also drag them around in Control Center → Edit Controls.": "제어 센터에 표시할 제어 항목과 각각의 크기를 선택합니다. 제어 센터 → ‘제어 항목 편집’에서 끌어서 순서를 바꿀 수도 있습니다.",
+    "Add Super, Ctrl or Alt to that key": "이 키에 Super, Ctrl 또는 Alt를 함께 누르세요",
+    "Already used by": "이미 사용 중:",
+    "Already used by another shortcut": "다른 단축키에서 이미 사용 중입니다",
+    "Back to the shortcuts this rice comes with": "이 환경에 포함된 기본 단축키로 되돌립니다",
+    "Click a shortcut to change it. Shortcuts that belong to a group of keys (the workspace numbers, the arrows) and Alt + Tab stay as they are.": "단축키를 클릭하여 변경하세요. 여러 키가 한 묶음인 단축키(작업 공간 번호, 방향키)와 Alt + Tab은 그대로 유지됩니다.",
+    "Not set": "설정 안 됨",
+    "Press the new shortcut. Esc cancels, Backspace removes it.": "새 단축키를 누르세요. Esc는 취소, Backspace는 삭제입니다.",
+    "Reset All Shortcuts": "모든 단축키 재설정",
+    "That key can't be used": "이 키는 사용할 수 없습니다",
+    "Type the new shortcut…": "새 단축키 입력…"
 };

@@ -729,5 +729,15 @@ var strings = {
     "The color a switched-on control turns": "Màu của điều khiển khi được bật",
     "Reset Control Center": "Đặt lại Trung tâm điều khiển",
     "Back to the default controls, sizes and looks": "Quay về các điều khiển, kích thước và giao diện mặc định",
-    "Choose which controls appear in Control Center and how big each one is. You can also drag them around in Control Center → Edit Controls.": "Chọn các điều khiển hiển thị trong Trung tâm điều khiển và kích thước của từng mục. Bạn cũng có thể kéo để sắp xếp trong Trung tâm điều khiển → Chỉnh sửa điều khiển."
+    "Choose which controls appear in Control Center and how big each one is. You can also drag them around in Control Center → Edit Controls.": "Chọn các điều khiển hiển thị trong Trung tâm điều khiển và kích thước của từng mục. Bạn cũng có thể kéo để sắp xếp trong Trung tâm điều khiển → Chỉnh sửa điều khiển.",
+    "Add Super, Ctrl or Alt to that key": "Hãy thêm Super, Ctrl hoặc Alt vào phím này",
+    "Already used by": "Đã được dùng cho",
+    "Already used by another shortcut": "Đã được dùng cho một phím tắt khác",
+    "Back to the shortcuts this rice comes with": "Quay về các phím tắt có sẵn của bộ cấu hình này",
+    "Click a shortcut to change it. Shortcuts that belong to a group of keys (the workspace numbers, the arrows) and Alt + Tab stay as they are.": "Nhấp vào một phím tắt để đổi. Các phím theo nhóm (số không gian làm việc, phím mũi tên) và Alt + Tab được giữ nguyên.",
+    "Not set": "Chưa đặt",
+    "Press the new shortcut. Esc cancels, Backspace removes it.": "Nhấn phím tắt mới. Esc để hủy, Backspace để xóa.",
+    "Reset All Shortcuts": "Đặt lại tất cả phím tắt",
+    "That key can't be used": "Không thể dùng phím này",
+    "Type the new shortcut…": "Nhập phím tắt mới…"
 };

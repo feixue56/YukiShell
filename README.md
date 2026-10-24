@@ -68,10 +68,17 @@ Before using it, check:
 | `Super+Shift+R` | restart the shell cleanly (`yuki-restart`) |
 | `Super+Shift+C` | reload the Hyprland config |
 
-There is deliberately no key that exits Hyprland. The full list is in `hypr/rice/binds.lua` and `shell.lua`; **System Settings → Keyboard → Keyboard
-Shortcuts** shows the same list, translated and read live from the running Hyprland. A bind appears there as soon as you give it a
-`description` (`hl.bind(keys, dispatcher, { description = "Open Terminal" })`; `binds.lua` has a small `bind()` helper for it), and
-`tools/i18n-check.py` reminds you to translate it.
+There is deliberately no key that exits Hyprland. The full list is in `hypr/rice/binds.lua` and `shell.lua`.
+
+**Every shortcut can be changed** in **System Settings → Keyboard → Keyboard Shortcuts** (translated, and read live from the running Hyprland): click
+the keys, press the new combination, and it is applied at once. Esc cancels, Backspace removes the shortcut, *Reset* brings the default back, and a combination that
+is already taken is refused with the name of its owner. Groups of keys that belong together (the workspace numbers, the arrow keys) and `Alt+Tab` (the switcher waits for Alt to be
+let go) stay as they are. While it listens, Settings switches Hyprland to an empty `yuki-capture` submap so your own binds do not fire; `Ctrl+Alt+F1…F12` cannot be recorded, because the
+compositor keeps them for switching VTs.
+
+How it works: `hypr/rice/keys.lua` provides `bind(keys, dispatcher, "Description", opts)`. Your choices are kept in `~/.config/yukishell/keybinds.tsv`
+(`description<TAB>keys`, empty keys = no shortcut) and replace the defaults when the config loads, then Settings runs `hyprctl reload`. Binds written with the
+helper show up in Settings by their description, and `tools/i18n-check.py` reminds you to translate it. Pass `{ fixed = true }` to keep one out of the editor.
 
 ## What it does
 
@@ -111,7 +118,7 @@ method (`fcitx5-mozc`, `fcitx5-hangul`, `fcitx5-chewing`); the profile only ship
 
 | Path | What |
 | --- | --- |
-| `hypr/rice/` | Hyprland Lua modules: `theme monitor look input ime binds rules shell` |
+| `hypr/rice/` | Hyprland Lua modules: `theme monitor look input ime keys binds rules shell` |
 | `hypr/bin/` | `dashboard`, `toggle-opacity` |
 | `shell/YukiShell`, `shell/YukiLock` | the Quickshell shell and lock screen (`qs -c YukiShell`, `qs -c YukiLock`) |
 | `shell/bin/` | `yuki-start` (keeps the shell running), `yuki-restart` (restarts it cleanly), `yuki-brightness` |

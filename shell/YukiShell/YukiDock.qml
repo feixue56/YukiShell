@@ -661,27 +661,173 @@ Scope {
             { id: "about",      sec: 7, name: "About",           glyph: "about",    c1: "#A7A7AD", c2: "#7C7C82", keys: "version github profile source author credits config folder yukidock yukishell" }
         ]
 
-        // Keyboard → Keyboard Shortcuts: the binds Hyprland really has loaded (the ones with a description), read live
-        property var shortcuts: []
+        // Keyboard → Keyboard Shortcuts: the binds Hyprland really has loaded (the ones with a description), read live, and editable.
+        //   ~/.cache/yukishell/keybinds.tsv      written by hypr/rice/keys.lua: every shortcut, its default keys, and whether it may be changed
+        //   ~/.config/yukishell/keybinds.tsv     the user's own choices, read by keys.lua when Hyprland loads its config (so it is applied by `hyprctl reload`)
+        property var shortcuts: []          // rows: { desc, spec, keys (keycap texts), def, editable, changed }
+        property var kbBinds: []            // what Hyprland has right now: { desc, spec, norm }
+        property var kbManifest: []         // [{ desc, def, editable }]; empty until keys.lua has run (an old config): then nothing is editable
+        property var kbOverrides: ({})      // desc → keys ("" = no shortcut)
+        property string kbCapturing: ""     // the description whose new shortcut is being recorded
+        property string kbMessage: ""
+        readonly property bool kbCanEdit: kbManifest.length > 0
         function loadShortcuts() { if (!bindsProc.running) bindsProc.running = true; }
-        function parseBinds(text) {
-            var b; try { b = JSON.parse(text); } catch (e) { return []; }
-            var names = { Return: "Return", space: "Space", left: "←", right: "→", up: "↑", down: "↓", period: ".", comma: ",", PRINT: "Print", Tab: "Tab", TAB: "Tab" };
-            var mods = [[64, "Super"], [4, "Ctrl"], [8, "Alt"], [1, "Shift"]], out = [];
-            for (var i = 0; i < b.length; i++) {
-                var x = b[i];
-                if (!x.has_description || x.mouse || x.description === "") continue;
-                var keys = [];
-                for (var m = 0; m < mods.length; m++) if (x.modmask & mods[m][0]) keys.push(mods[m][1]);
-                keys.push(names[x.key] !== undefined ? names[x.key] : (x.key.length === 1 ? x.key.toUpperCase() : x.key));
-                out.push({ desc: x.description, keys: keys });
+
+        readonly property var kbKeyNames: ({ "return": "Return", "space": "Space", "left": "←", "right": "→", "up": "↑", "down": "↓", "period": ".", "comma": ",", "print": "Print", "tab": "Tab",
+                                             "minus": "-", "equal": "=", "slash": "/", "backslash": "\\", "semicolon": ";", "apostrophe": "'", "grave": "`", "bracketleft": "[", "bracketright": "]",
+                                             "prior": "Page Up", "next": "Page Down", "backspace": "⌫", "escape": "Esc", "delete": "Del", "insert": "Ins" })
+        function kbCaps(spec) {
+            var out = [], parts = String(spec).split("+");
+            for (var i = 0; i < parts.length; i++) {
+                var w = parts[i].trim(); if (w === "") continue;
+                var u = w.toUpperCase();
+                if (u === "SUPER") out.push("Super"); else if (u === "CTRL") out.push("Ctrl"); else if (u === "ALT") out.push("Alt"); else if (u === "SHIFT") out.push("Shift");
+                else out.push(kbKeyNames[w.toLowerCase()] !== undefined ? kbKeyNames[w.toLowerCase()] : (w.length === 1 ? w.toUpperCase() : w));
             }
             return out;
+        }
+        // "SUPER + shift + Return" and "shift+super+return" are the same shortcut
+        function kbNorm(spec) {
+            var parts = String(spec).split("+"), mods = [], key = "";
+            for (var i = 0; i < parts.length; i++) {
+                var w = parts[i].trim().toUpperCase(); if (w === "") continue;
+                if (w === "SUPER" || w === "CTRL" || w === "ALT" || w === "SHIFT") mods.push(w); else key = parts[i].trim().toLowerCase();
+            }
+            mods.sort();
+            return mods.join("+") + "|" + key;
+        }
+        function parseBinds(text) {
+            var b; try { b = JSON.parse(text); } catch (e) { return []; }
+            var mods = [[64, "SUPER"], [4, "CTRL"], [8, "ALT"], [1, "SHIFT"]], out = [];
+            for (var i = 0; i < b.length; i++) {
+                var x = b[i];
+                if (x.mouse || (x.submap || "") !== "" || x.catch_all) continue;
+                var parts = [];
+                for (var m = 0; m < mods.length; m++) if (x.modmask & mods[m][0]) parts.push(mods[m][1]);
+                parts.push(x.key);
+                var spec = parts.join(" + ");
+                out.push({ desc: x.has_description ? x.description : "", spec: spec, norm: kbNorm(spec) });
+            }
+            return out;
+        }
+        function parseFiles(text) {
+            var man = [], ov = {}, inOv = false, lines = String(text).split("\n");
+            for (var i = 0; i < lines.length; i++) {
+                var ln = lines[i].replace(/\r$/, "");
+                if (ln === "@@OVERRIDES") { inOv = true; continue; }
+                if (ln === "") continue;
+                var f = ln.split("\t");
+                if (inOv) { if (f.length >= 2) ov[f[0]] = f[1]; }
+                else if (f.length >= 3) man.push({ desc: f[0], def: f[1], editable: f[2] === "1" });
+            }
+            kbOverrides = ov; kbManifest = man;
+        }
+        function composeShortcuts() {
+            var first = {}, rows = [], seen = {};
+            for (var i = 0; i < kbBinds.length; i++) if (kbBinds[i].desc !== "" && !first[kbBinds[i].desc]) first[kbBinds[i].desc] = kbBinds[i];
+            for (var j = 0; j < kbManifest.length; j++) {
+                var m = kbManifest[j], h = first[m.desc]; seen[m.desc] = true;
+                var spec = h ? h.spec : "";
+                rows.push({ desc: m.desc, spec: spec, keys: kbCaps(spec), def: m.def, editable: m.editable, changed: kbOverrides[m.desc] !== undefined });
+            }
+            for (var d in first) if (!seen[d]) rows.push({ desc: d, spec: first[d].spec, keys: kbCaps(first[d].spec), def: first[d].spec, editable: false, changed: false });
+            shortcuts = rows;
         }
         Process {
             id: bindsProc
             command: ["hyprctl", "-j", "binds"]
-            stdout: StdioCollector { onStreamFinished: prefsWindow.shortcuts = prefsWindow.parseBinds(text) }
+            stdout: StdioCollector { onStreamFinished: { prefsWindow.kbBinds = prefsWindow.parseBinds(text); kbFilesProc.running = true; } }
+        }
+        Process {
+            id: kbFilesProc
+            command: ["sh", "-c", "cat \"${XDG_CACHE_HOME:-$HOME/.cache}/yukishell/keybinds.tsv\" 2>/dev/null; printf '\\n@@OVERRIDES\\n'; cat \"${XDG_CONFIG_HOME:-$HOME/.config}/yukishell/keybinds.tsv\" 2>/dev/null; true"]
+            stdout: StdioCollector { onStreamFinished: { prefsWindow.parseFiles(text); prefsWindow.composeShortcuts(); } }
+        }
+
+        // ── recording a new shortcut ──
+        // Hyprland runs its own binds before an app sees the keys, so recording first switches to the empty "yuki-capture" submap (see keys.lua).
+        // Whatever ends the recording (a key, Esc, the 20 s timer, the window losing focus or closing) switches back.
+        function kbStart(desc) {
+            if (!kbCanEdit) return;
+            if (kbCapturing !== "") kbStop();
+            kbCapturing = desc; kbMessage = "";
+            Quickshell.execDetached(["hyprctl", "dispatch", "hl.dsp.submap('yuki-capture')"]);
+            kbCap.forceActiveFocus();
+            kbTimer.restart();
+        }
+        function kbStop() {
+            if (kbCapturing === "") return;
+            kbCapturing = ""; kbMessage = "";
+            kbTimer.stop();
+            Quickshell.execDetached(["hyprctl", "dispatch", "hl.dsp.submap('reset')"]);
+        }
+        Timer { id: kbTimer; interval: 20000; onTriggered: prefsWindow.kbStop() }
+        onActiveChanged: if (!active) kbStop()
+
+        // evdev key code → the key's name in Hyprland (US layout, the one this rice sets)
+        readonly property var kbEvdev: ({ 1: "Escape", 2: "1", 3: "2", 4: "3", 5: "4", 6: "5", 7: "6", 8: "7", 9: "8", 10: "9", 11: "0", 12: "minus", 13: "equal", 14: "BackSpace", 15: "Tab",
+            16: "Q", 17: "W", 18: "E", 19: "R", 20: "T", 21: "Y", 22: "U", 23: "I", 24: "O", 25: "P", 26: "bracketleft", 27: "bracketright", 28: "Return",
+            30: "A", 31: "S", 32: "D", 33: "F", 34: "G", 35: "H", 36: "J", 37: "K", 38: "L", 39: "semicolon", 40: "apostrophe", 41: "grave", 43: "backslash",
+            44: "Z", 45: "X", 46: "C", 47: "V", 48: "B", 49: "N", 50: "M", 51: "comma", 52: "period", 53: "slash", 57: "space",
+            59: "F1", 60: "F2", 61: "F3", 62: "F4", 63: "F5", 64: "F6", 65: "F7", 66: "F8", 67: "F9", 68: "F10", 87: "F11", 88: "F12",
+            99: "Print", 102: "Home", 103: "up", 104: "Prior", 105: "left", 106: "right", 107: "End", 108: "down", 109: "Next", 110: "Insert", 111: "Delete" })
+        function kbKeyName(ev) {
+            var n = ev.nativeScanCode > 8 ? kbEvdev[ev.nativeScanCode - 8] : undefined;
+            if (n !== undefined) return n;
+            if (ev.key >= Qt.Key_A && ev.key <= Qt.Key_Z) return String.fromCharCode(ev.key);
+            if (ev.key >= Qt.Key_0 && ev.key <= Qt.Key_9) return String.fromCharCode(ev.key);
+            if (ev.key >= Qt.Key_F1 && ev.key <= Qt.Key_F12) return "F" + (ev.key - Qt.Key_F1 + 1);
+            return "";
+        }
+        function kbKey(ev) {
+            ev.accepted = true;
+            if (kbCapturing === "" || ev.isAutoRepeat) return;
+            var k = ev.key;
+            if (k === Qt.Key_Control || k === Qt.Key_Shift || k === Qt.Key_Alt || k === Qt.Key_AltGr || k === Qt.Key_Meta || k === Qt.Key_Super_L || k === Qt.Key_Super_R
+                || k === Qt.Key_CapsLock || k === Qt.Key_NumLock) return;      // wait for the key that goes with them
+            var m = ev.modifiers, mods = [];
+            if (m & Qt.MetaModifier) mods.push("SUPER");
+            if (m & Qt.ControlModifier) mods.push("CTRL");
+            if (m & Qt.AltModifier) mods.push("ALT");
+            if (m & Qt.ShiftModifier) mods.push("SHIFT");
+            if (mods.length === 0 && k === Qt.Key_Escape) { kbStop(); return; }
+            if (mods.length === 0 && (k === Qt.Key_Backspace || k === Qt.Key_Delete)) { kbCommit(""); return; }
+            var name = kbKeyName(ev);
+            if (name === "") { kbMessage = I18n.tr("That key can't be used"); return; }
+            var bare = !(m & (Qt.MetaModifier | Qt.ControlModifier | Qt.AltModifier));
+            if (bare && !/^F([1-9]|1[0-2])$/.test(name) && name !== "Print") { kbMessage = I18n.tr("Add Super, Ctrl or Alt to that key"); return; }
+            var spec = mods.concat([name]).join(" + "), norm = kbNorm(spec);
+            for (var i = 0; i < kbBinds.length; i++) {
+                if (kbBinds[i].norm !== norm || kbBinds[i].desc === kbCapturing) continue;
+                kbMessage = kbBinds[i].desc !== "" ? I18n.tr("Already used by") + " “" + I18n.tr(kbBinds[i].desc) + "”" : I18n.tr("Already used by another shortcut");
+                return;
+            }
+            kbCommit(spec);
+        }
+        function kbCommit(spec) {
+            var desc = kbCapturing, def = "";
+            kbStop();
+            for (var i = 0; i < kbManifest.length; i++) if (kbManifest[i].desc === desc) def = kbManifest[i].def;
+            var ov = {}; for (var k in kbOverrides) ov[k] = kbOverrides[k];
+            if (spec !== "" && kbNorm(spec) === kbNorm(def)) delete ov[desc]; else ov[desc] = spec;
+            kbWrite(ov);
+        }
+        function kbReset(desc) { var ov = {}; for (var k in kbOverrides) if (k !== desc) ov[k] = kbOverrides[k]; kbWrite(ov); }
+        // write the choices, then let Hyprland read them again
+        function kbWrite(ov) {
+            var text = "";
+            for (var k in ov) text += k + "\t" + ov[k] + "\n";
+            kbOverrides = ov;
+            composeShortcuts();
+            kbSaveProc.command = ["sh", "-c", "f=\"${XDG_CONFIG_HOME:-$HOME/.config}/yukishell/keybinds.tsv\"; mkdir -p \"$(dirname \"$f\")\" && printf '%s' \"$1\" > \"$f\" && hyprctl reload >/dev/null 2>&1; sleep 0.3", "sh", text];
+            kbSaveProc.running = true;
+        }
+        Process { id: kbSaveProc; onExited: prefsWindow.loadShortcuts() }
+        Item {
+            id: kbCap
+            width: 0; height: 0
+            Keys.onShortcutOverride: ev => { if (prefsWindow.kbCapturing !== "") ev.accepted = true; }     // Esc and Ctrl+W close this window; while recording they are just keys
+            Keys.onPressed: ev => prefsWindow.kbKey(ev)
         }
 
         // the Trackpad pane only exists when a touchpad is plugged in
@@ -732,7 +878,7 @@ Scope {
         Shortcut { sequences: ["Escape", "Ctrl+W"]; onActivated: { if (cropSheet.open) cropSheet.open = false; else prefsWindow.visible = false; } }
 
         // Settings always opens as a floating, centred window (no windowrule needed in hyprland.conf)
-        onVisibleChanged: if (visible) { showNormal(); applyScaledSize(); floatTries = 0; floatTimer.restart(); if (root.glassState === "idle") root.startGlass(); }
+        onVisibleChanged: { if (!visible) kbStop(); if (visible) { showNormal(); applyScaledSize(); floatTries = 0; floatTimer.restart(); if (root.glassState === "idle") root.startGlass(); } }
         property int floatTries: 0
         readonly property int preferredWidth: Math.round(800 * root.uiS)
         readonly property int preferredHeight: Math.round(880 * root.uiS)
@@ -3640,32 +3786,96 @@ Scope {
                         SRow {
                             id: scRow
                             required property var modelData
+                            readonly property bool recording: prefsWindow.kbCapturing === modelData.desc
+                            readonly property bool canEdit: modelData.editable && prefsWindow.kbCanEdit
                             t: pal; title: I18n.tr(scRow.modelData.desc)
+                            subtitle: scRow.recording ? (prefsWindow.kbMessage !== "" ? prefsWindow.kbMessage : I18n.tr("Press the new shortcut. Esc cancels, Backspace removes it.")) : ""
                             Row {
-                                spacing: 4
-                                Repeater {
-                                    model: scRow.modelData.keys
-                                    Rectangle {
-                                        id: cap
-                                        required property string modelData
-                                        height: 22; width: Math.max(22, capText.implicitWidth + 12); radius: 6
-                                        color: pal.dark ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(0, 0, 0, 0.06)
-                                        border.width: 1; border.color: pal.cardBorder
+                                spacing: 8
+                                SButton {
+                                    visible: scRow.modelData.changed && !scRow.recording
+                                    t: pal; text: I18n.tr("Reset")
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    onClicked: prefsWindow.kbReset(scRow.modelData.desc)
+                                }
+                                Item {
+                                    id: capBox
+                                    width: scRow.recording ? recPill.width : capRow.width
+                                    height: 26
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    Rectangle {         // recording: this is where the new shortcut will appear
+                                        id: recPill
+                                        visible: scRow.recording
+                                        height: 26; width: recText.implicitWidth + 24; radius: 7
+                                        color: pal.dark ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(0, 0, 0, 0.05)
+                                        border.width: 1.5; border.color: pal.accent
                                         Text {
-                                            id: capText
+                                            id: recText
                                             anchors.centerIn: parent
-                                            text: cap.modelData
-                                            color: pal.text
-                                            font.family: root.fontForWeight(Font.Medium, pal.fam)
-                                            font.pixelSize: 12
+                                            text: I18n.tr("Type the new shortcut…")
+                                            color: pal.accent
+                                            font.family: root.fontForWeight(Font.Medium, pal.fam); font.pixelSize: 12
                                         }
+                                    }
+                                    Row {
+                                        id: capRow
+                                        visible: !scRow.recording
+                                        spacing: 4
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        Repeater {
+                                            model: scRow.modelData.keys
+                                            Rectangle {
+                                                id: cap
+                                                required property string modelData
+                                                height: 22; width: Math.max(22, capText.implicitWidth + 12); radius: 6
+                                                color: pal.dark ? Qt.rgba(1, 1, 1, capMa.containsMouse ? 0.16 : 0.10) : Qt.rgba(0, 0, 0, capMa.containsMouse ? 0.10 : 0.06)
+                                                border.width: 1; border.color: pal.cardBorder
+                                                Text {
+                                                    id: capText
+                                                    anchors.centerIn: parent
+                                                    text: cap.modelData
+                                                    color: pal.text
+                                                    font.family: root.fontForWeight(Font.Medium, pal.fam)
+                                                    font.pixelSize: 12
+                                                }
+                                            }
+                                        }
+                                        Rectangle {     // no shortcut
+                                            visible: scRow.modelData.keys.length === 0
+                                            height: 22; width: noneText.implicitWidth + 16; radius: 6
+                                            color: "transparent"
+                                            border.width: 1; border.color: pal.cardBorder
+                                            Text { id: noneText; anchors.centerIn: parent; text: I18n.tr("Not set"); color: pal.text3; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12 }
+                                        }
+                                    }
+                                    MouseArea {
+                                        id: capMa
+                                        anchors.fill: parent; anchors.margins: -4
+                                        enabled: scRow.canEdit && !scRow.recording
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: prefsWindow.kbStart(scRow.modelData.desc)
                                     }
                                 }
                             }
                         }
                     }
                 }
-                SLabel { t: pal; visible: prefsWindow.shortcuts.length > 0; text: I18n.tr("Read from Hyprland as it is running. Change them in ~/hypr-rice/hypr/rice/binds.lua and shell.lua.") }
+                SCard {
+                    t: pal
+                    visible: prefsWindow.kbCanEdit && Object.keys(prefsWindow.kbOverrides).length > 0
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Reset All Shortcuts")
+                        subtitle: I18n.tr("Back to the shortcuts this rice comes with")
+                        SButton { t: pal; text: I18n.tr("Reset"); onClicked: prefsWindow.kbWrite({}) }
+                    }
+                }
+                SLabel {
+                    t: pal; visible: prefsWindow.shortcuts.length > 0
+                    text: prefsWindow.kbCanEdit ? I18n.tr("Click a shortcut to change it. Shortcuts that belong to a group of keys (the workspace numbers, the arrows) and Alt + Tab stay as they are.")
+                                                : I18n.tr("Read from Hyprland as it is running. Change them in ~/hypr-rice/hypr/rice/binds.lua and shell.lua.")
+                }
                 Component.onCompleted: prefsWindow.loadShortcuts()
             }
         }

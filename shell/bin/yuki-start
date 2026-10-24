@@ -90,6 +90,8 @@ rung() { # rung <number of quick crashes so far>
 fast=0
 while :; do
     rung "$fast"
+    # a crash while Settings was recording a new shortcut would leave Hyprland in the empty "yuki-capture" submap, where no key bind works
+    command -v hyprctl >/dev/null 2>&1 && hyprctl dispatch "hl.dsp.submap('reset')" >/dev/null 2>&1
     log "starting qs -c $NAME (attempt $((fast + 1)))${applied:+, fallback settings:$applied}$([ "$soft" = 1 ] && printf ' QT_QUICK_BACKEND=software')"
     start=$(date +%s)
     qs -c "$NAME" >>"$LOG" 2>&1 9>&- &

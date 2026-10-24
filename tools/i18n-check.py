@@ -43,7 +43,7 @@ for f in sorted(shell.glob("*.qml")):
 
 # keyboard shortcut descriptions live in the Lua binds (hypr/rice/*.lua) and are translated by the Settings → Keyboard list
 lua_desc = [re.compile(r'description = "([^"]+)"'), re.compile(r'\band "([^"]+)" or nil'),
-            re.compile(r'^bind\(.*?,\s*"([^"]+)"\)\s*(?:--.*)?$', re.M)]
+            re.compile(r'^bind\(.*?,\s*"([^"]+)"(?:,\s*\{[^}]*\})?\)\s*(?:--.*)?$', re.M)]
 for f in sorted((root / "hypr" / "rice").glob("*.lua")):
     text = f.read_text(encoding="utf-8")
     for rx in lua_desc:

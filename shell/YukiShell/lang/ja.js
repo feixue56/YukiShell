@@ -771,5 +771,15 @@ var strings = {
     "The color a switched-on control turns": "オンになったコントロールの色",
     "Reset Control Center": "コントロールセンターをリセット",
     "Back to the default controls, sizes and looks": "コントロール、サイズ、見た目を初期状態に戻します",
-    "Choose which controls appear in Control Center and how big each one is. You can also drag them around in Control Center → Edit Controls.": "コントロールセンターに表示するコントロールと、それぞれの大きさを選びます。コントロールセンター →「コントロールを編集」でドラッグして並べ替えることもできます。"
+    "Choose which controls appear in Control Center and how big each one is. You can also drag them around in Control Center → Edit Controls.": "コントロールセンターに表示するコントロールと、それぞれの大きさを選びます。コントロールセンター →「コントロールを編集」でドラッグして並べ替えることもできます。",
+    "Add Super, Ctrl or Alt to that key": "このキーには Super、Ctrl、Alt のいずれかを組み合わせてください",
+    "Already used by": "すでに使用中:",
+    "Already used by another shortcut": "他のショートカットですでに使用されています",
+    "Back to the shortcuts this rice comes with": "このライスに付属のショートカットに戻します",
+    "Click a shortcut to change it. Shortcuts that belong to a group of keys (the workspace numbers, the arrows) and Alt + Tab stay as they are.": "ショートカットをクリックして変更できます。キーのグループ（ワークスペース番号、矢印キー）と Alt + Tab は変更できません。",
+    "Not set": "未設定",
+    "Press the new shortcut. Esc cancels, Backspace removes it.": "新しいショートカットを押してください。Esc で取り消し、Backspace で削除します。",
+    "Reset All Shortcuts": "すべてのショートカットをリセット",
+    "That key can't be used": "このキーは使用できません",
+    "Type the new shortcut…": "新しいショートカットを入力…"
 };
