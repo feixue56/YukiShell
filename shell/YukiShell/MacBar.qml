@@ -8832,7 +8832,7 @@ Scope {
             exclusionMode: ExclusionMode.Ignore
 
             WlrLayershell.namespace: "macspot"
-            WlrLayershell.layer: WlrLayer.Top
+            WlrLayershell.layer: WlrLayer.Overlay      // Overlay, not Top: Hyprland draws fullscreen windows above the Top layer, so Spotlight never showed over a fullscreen app
             WlrLayershell.keyboardFocus: ui.pop === "spot" ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
             Item {
