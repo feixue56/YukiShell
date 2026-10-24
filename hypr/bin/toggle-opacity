@@ -9,7 +9,6 @@ import json, os, subprocess, sys
 
 KITTY_LEVEL = "1.0"     # kitty background opacity while "solid"; the other state is the liquid-glass value from kitty.conf
 WINDOW_LEVEL = "0.92"   # other apps: whole-window opacity, kept subtle (the content fades with it, there is no way around that)
-# Other apps also get no_blur, so it reads as a light see-through window instead of full frosted glass.
 
 def hc(*a):
     return subprocess.run(["hyprctl", *a], capture_output=True, text=True).stdout
@@ -89,11 +88,13 @@ open(APPS, "w").write("".join(a + "\n" for a in apps))
 # set directly. An explicit per-window value also beats any leftover fade from an older version of this script.
 for c in json.loads(hc("-j", "clients")):
     if c["class"] == cls:
-        for prop, value in (("opacity", WINDOW_LEVEL), ("opacity_inactive", WINDOW_LEVEL), ("opacity_fullscreen", WINDOW_LEVEL), ("no_blur", "true")):
-            if not on:
-                value = "false" if prop == "no_blur" else "-1"
+        # no_blur is cleared too: older versions set it, and without the blur whatever sits behind the window (desktop widgets)
+        # shows through as crisp ghost text instead of a smear.
+        for prop, value in (("opacity", WINDOW_LEVEL), ("opacity_inactive", WINDOW_LEVEL), ("opacity_fullscreen", WINDOW_LEVEL), ("no_blur", "false")):
+            if not on and prop != "no_blur":
+                value = "-1"
             hc("dispatch", f'hl.dsp.window.set_prop({{ prop = "{prop}", value = "{value}", window = "address:{c["address"]}" }})')
 rx = "^" + "".join("\\" + ch if ch in string.punctuation else ch for ch in cls) + "$"
-rule = ('hl.window_rule({ name = %s, match = { class = %s }, opacity = "%s %s", no_blur = true, enabled = %s })'
+rule = ('hl.window_rule({ name = %s, match = { class = %s }, opacity = "%s %s", enabled = %s })'
         % (json.dumps("yuki-transparent-" + cls), json.dumps(rx), WINDOW_LEVEL, WINDOW_LEVEL, "true" if on else "false"))
 hc("eval", rule)

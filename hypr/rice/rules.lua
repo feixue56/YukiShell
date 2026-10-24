@@ -47,7 +47,6 @@ do
                     name    = "yuki-transparent-" .. cls,
                     match   = { class = "^" .. cls:gsub("%p", "\\%0") .. "$" },
                     opacity = "0.92 0.92",
-                    no_blur = true,
                 })
             end
         end
