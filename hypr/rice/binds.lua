@@ -1,4 +1,4 @@
--- YukiShell owns: SUPER+Z/V/Space/period/L, ALT+TAB, CTRL+ALT+W, PRINT and the hardware keys. Don't rebind those here.
+-- YukiShell owns (see shell.lua): SUPER+Z/V/G/L/Space/period/comma, ALT+TAB, CTRL+ALT+W, PRINT (+SHIFT/CTRL) and the hardware keys. Don't rebind those here.
 local mod = "SUPER"
 
 hl.bind(mod .. " + Return",         hl.dsp.exec_cmd("kitty"))
@@ -38,6 +38,15 @@ hl.bind(mod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
 hl.bind(mod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
 hl.bind(mod .. " + mouse:272",  hl.dsp.window.drag(),   { mouse = true })
 hl.bind(mod .. " + mouse:273",  hl.dsp.window.resize(), { mouse = true })
+
+-- move a tiled window through the layout (swaps it with its neighbour)
+for key, dir in pairs({ left = "left", right = "right", up = "up", down = "down" }) do
+    hl.bind(mod .. " + SHIFT + " .. key, hl.dsp.window.swap({ direction = dir }))
+end
+
+-- housekeeping: restart the shell cleanly (yuki-restart), reload this Hyprland config
+hl.bind(mod .. " + SHIFT + R", hl.dsp.exec_cmd("yuki-restart"))
+hl.bind(mod .. " + SHIFT + C", hl.dsp.exec_cmd("hyprctl reload"))
 
 -- resize the focused window from the keyboard (hold to keep going); tiled windows move the split, floating ones grow/shrink
 for key, d in pairs({ left = { -40, 0 }, right = { 40, 0 }, up = { 0, -40 }, down = { 0, 40 } }) do

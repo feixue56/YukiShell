@@ -18,6 +18,10 @@ hl.bind("SUPER + Space",      hl.dsp.exec_cmd(qs .. "spotlight toggle"))
 hl.bind("ALT + TAB",          hl.dsp.exec_cmd(qs .. "switcher next"))
 hl.bind("CTRL + ALT + W",     hl.dsp.exec_cmd(qs .. "wallpapers toggle"))
 hl.bind("PRINT",              hl.dsp.exec_cmd(qs .. "screenshot region"))
+hl.bind("SHIFT + PRINT",      hl.dsp.exec_cmd(qs .. "screenshot screen"))
+hl.bind("CTRL + PRINT",       hl.dsp.exec_cmd(qs .. "screenshot window"))
+hl.bind("SUPER + G",          hl.dsp.exec_cmd(qs .. "gaming toggle"))          -- Game Mode: the shell stops its effects while you play
+hl.bind("SUPER + comma",      hl.dsp.exec_cmd(qs .. "notifications open"))
 
 -- Hardware keys (laptop buttons too): volume, mute, brightness, media. YukiShell handles them itself and shows its
 -- on-screen display. If the shell is not running, wpctl / brightnessctl do the work instead.

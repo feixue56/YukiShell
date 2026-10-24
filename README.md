@@ -56,8 +56,28 @@ Before using it, check:
 | `Super+Ctrl+Arrows` | resize the window from the keyboard |
 | `Super+Left/Right mouse` | drag / resize a window |
 | `Super+S`, `Super+Shift+S` | scratchpad, send window to it |
+| `Super+Shift+Arrows` | swap the window with its neighbour |
+| `Super+Z` | System Settings |
+| `Super+Space` / `Super+V` / `Super+.` | Spotlight / clipboard history / emoji |
+| `Alt+Tab` | window switcher |
+| `Print` / `Shift+Print` / `Ctrl+Print` | screenshot: region / screen / window |
+| `Super+G` | Game Mode (the shell pauses its effects) |
+| `Super+,` | notification centre |
+| `Super+L` | lock screen |
+| `Super+Shift+R` | restart the shell cleanly (`yuki-restart`) |
+| `Super+Shift+C` | reload the Hyprland config |
 
 There is deliberately no key that exits Hyprland. The full list is in `hypr/rice/binds.lua`.
+
+## What it does
+
+- **Liquid Glass** menus, Dock, widgets and Settings, optionally with the *animated wallpaper playing inside the glass*. While windows
+  cover the desktop that video is switched off completely, so it costs nothing when you cannot see it.
+- Hover feedback everywhere: the menu bar and Dock buttons get a frosted-glass tile with a rim light that follows the pointer,
+  workspaces that have windows keep a resting glass tile, and the Dock's last button is a gear that opens Settings.
+- **Settings → Users & Groups → Picture** lets you crop your profile picture (drag, scroll to zoom) before it is saved.
+- **Airplane Mode** follows the real radio switches (rfkill); on a PC with no radios it stays off and greyed out.
+- File pickers ("Choose a picture", Open/Save dialogs) float, centred, instead of tiling.
 
 ## Multi-language typing
 
@@ -88,13 +108,19 @@ method (`fcitx5-mozc`, `fcitx5-hangul`, `fcitx5-chewing`); the profile only ship
 | `shell/bin/` | `yuki-start` (keeps the shell running), `yuki-restart` (restarts it cleanly), `yuki-brightness` |
 | `shell/scripts/` | helpers the shell calls: wallpaper (`yukishell-setwall.sh`, `-dynwall.sh`, `-wallpause.sh`), Game Mode, UI sound generator |
 | `kitty fish fastfetch btop cava gtk-3.0 gtk-4.0 qt chromium` | app configs and themes |
-| `tools/` | one-off helpers |
+| `tools/` | `check` (lints the whole repo), `i18n-check.py` (missing translations), `make-logo.py`, `fix-font-loops.py` |
 
 The palette lives in `hypr/rice/theme.lua`. Env overrides go in `~/.config/hypr-rice/env`; the shell log is
 `~/.local/state/hypr-rice/YukiShell.log`. Open Settings with `qs -c YukiShell ipc call settings open`.
 
 The shell keeps its settings in `~/.config/yukibar`, `yukidock`, `yukishell`, `yukilock` and `yukiwidgets`. They are its own
 folders: YukiShell never reads or writes MacShell's, and never runs MacShell's installer or updater.
+
+## Hacking on it
+
+QML changes hot-reload as soon as you save; language tables (`lang/*.js`) are cached, so use `yuki-restart` (or `Super+Shift+R`)
+after editing those. Run `tools/check` before committing: it syntax-checks the Lua, fish, shell, Python, JSON, JS and QML files and
+reports every interface string that a language is missing. A quick CPU check: `top -p $(pgrep -f '^qs -c YukiShell')`.
 
 ## Credits and license
 
