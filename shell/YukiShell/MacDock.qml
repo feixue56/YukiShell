@@ -51,17 +51,14 @@ Scope {
     }
     property string userName: Quickshell.env("USER") || ""
 
-    // ═════ Displays: main display + resolution / refresh, with a macOS-style "keep or revert" safety net ═════
-    property var displays: ({ primary: "", modes: {} })      // saved in ~/.config/macshell/displays.json
+    // ═════ Displays: which monitor is the main one (resolution / refresh / position live in hypr/rice/monitor.lua) ═════
+    property var displays: ({ primary: "" })                   // the main display, saved in ~/.config/macshell/displays.json
     property var monList: []                                  // hyprctl monitors (live)
-    property string pendingOut: ""                            // a mode change waiting for "Keep"
-    property string pendingPrev: ""
-    property int revertLeft: 0
     FileView {
         id: dispFile
         path: Quickshell.env("HOME") + "/.config/macshell/displays.json"
         printErrors: false
-        onLoaded: { try { root.displays = JSON.parse(text()); } catch (e) {} root.applySavedModes(); }
+        onLoaded: { try { root.displays = JSON.parse(text()); } catch (e) {} root.applySavedPrimary(); }
     }
     function saveDisplays() { dispFile.setText(JSON.stringify(root.displays, null, 2)); }
     function refreshMons() { if (!monListProc.running) monListProc.running = true; }
@@ -70,55 +67,16 @@ Scope {
         command: ["hyprctl", "-j", "monitors"]
         stdout: StdioCollector { onStreamFinished: { try { root.monList = JSON.parse(text); } catch (e) {} } }
     }
-    function modeOf(m) { return m.width + "x" + m.height + "@" + Number(m.refreshRate).toFixed(2); }
-    function applyMode(out, mode) {
-        var m = null;
-        for (var i = 0; i < monList.length; i++) if (monList[i].name === out) m = monList[i];
-        var pos = m ? (m.x + "x" + m.y) : "auto", sc = m ? m.scale : 1;
-        Quickshell.execDetached(["hyprctl", "eval", "hl.monitor({ output = \"" + out + "\", mode = \"" + mode + "\", position = \"" + pos + "\", scale = " + sc + " })"]);
-        monRefreshSoon.restart();
-    }
-    Timer { id: monRefreshSoon; interval: 700; onTriggered: root.refreshMons() }
-    // change a monitor's mode; it reverts by itself after 15 s unless kept
-    function tryMode(out, mode) {
-        var m = null;
-        for (var i = 0; i < monList.length; i++) if (monList[i].name === out) m = monList[i];
-        if (!m) return;
-        if (pendingOut === "") pendingPrev = modeOf(m);
-        pendingOut = out;
-        applyMode(out, mode);
-        pendingMode = mode;
-        revertLeft = 15;
-        revertTimer.restart();
-    }
-    property string pendingMode: ""
-    Timer {
-        id: revertTimer; interval: 1000; repeat: true
-        onTriggered: { root.revertLeft--; if (root.revertLeft <= 0) root.revertMode(); }
-    }
-    function keepMode() {
-        revertTimer.stop();
-        var d = displays, mm = {}; for (var k in d.modes) mm[k] = d.modes[k];
-        mm[pendingOut] = pendingMode;
-        displays = { primary: d.primary || "", modes: mm };
-        saveDisplays();
-        pendingOut = ""; pendingMode = "";
-    }
-    function revertMode() {
-        revertTimer.stop();
-        if (pendingOut !== "" && pendingPrev !== "") applyMode(pendingOut, pendingPrev);
-        pendingOut = ""; pendingMode = "";
-    }
-    function applySavedModes() {
-        var mm = displays.modes || {};
-        for (var k in mm) Quickshell.execDetached(["hyprctl", "eval", "hl.monitor({ output = \"" + k + "\", mode = \"" + mm[k] + "\", position = \"auto\", scale = 1 })"]);
+    // Resolution, refresh rate and position are NOT set from here: hypr/rice/monitor.lua owns them (this used to re-apply
+    // a saved mode at every start and on every change, which fought the rice's own monitor config).
+    function applySavedPrimary() {
         if (displays.primary) root.monitorPrimary = displays.primary;
         refreshMons();
     }
     property string monitorPrimary: ""
     function setPrimary(name) {
         var d = displays;
-        displays = { primary: name, modes: d.modes || {} };
+        displays = { primary: name };
         saveDisplays();
         monitorPrimary = name;
         root.monitor = name;                                         // the Dock lives on the main display
@@ -680,7 +638,7 @@ Scope {
             { id: "appearance", sec: 2, name: "Appearance",      glyph: "appearance", c1: "#3A3A3C", c2: "#1C1C1E", keys: "theme dark light auto mode accent color glass liquid apple style blur font spotlight top bar menus" },
             { id: "wallpaper",  sec: 2, name: "Wallpaper",       glyph: "wallpaper", c1: "#5AC8FA", c2: "#007AFF", keys: "wallpaper background picture image video animated live motion desktop dynamic" },
             { id: "displays",   sec: 2, name: "Displays",        wg: "sun",        c1: "#3D9BFF", c2: "#0A6CFF", keys: "brightness night shift monitor resolution refresh scale" },
-            { id: "battery",    sec: 2, name: "Battery",         wg: "bolt",       c1: "#4CD964", c2: "#28A745", keys: "power energy charge profile performance game mode gaming fullscreen" },
+            { id: "battery",    sec: 2, name: (root.bar && !root.bar.hasBattery) ? "Power" : "Battery",         wg: "bolt",       c1: "#4CD964", c2: "#28A745", keys: "power energy charge profile performance game mode gaming fullscreen" },
             // 3 · Desktop
             { id: "dock",       sec: 3, name: "Desktop & Dock",  glyph: "dock",     c1: "#2C2C2E", c2: "#1C1C1E", keys: "size icon magnification zoom spacing margin distance corner radius round square edge hide auto labels indicators bounce trash monitor preview app switcher alt tab" },
             { id: "menubar",    sec: 3, name: "Menu Bar",        glyph: "menubar",  c1: "#3D9BFF", c2: "#0A6CFF", keys: "panel bar height clock date seconds 24 hour battery tray search spotlight week monday style liquid bluetooth screenshots" },
@@ -702,10 +660,19 @@ Scope {
             { id: "about",      sec: 7, name: "About",           glyph: "about",    c1: "#A7A7AD", c2: "#7C7C82", keys: "version reset config folder macdock macbar macshell" }
         ]
 
+        // the Trackpad pane only exists when a touchpad is plugged in
+        property bool hasTouchpad: false
+        Process {
+            running: true
+            command: ["sh", "-c", "hyprctl -j devices 2>/dev/null | grep -qi touchpad && echo yes || echo no"]
+            stdout: StdioCollector { onStreamFinished: prefsWindow.hasTouchpad = text.trim() === "yes" }
+        }
+
         readonly property var filtered: {
             var q = query.trim().toLowerCase();
             var out = [];
             for (var i = 0; i < panes.length; i++) {
+                if (panes[i].id === "trackpad" && !hasTouchpad) continue;
                 var hay = (panes[i].name + " " + panes[i].keys).toLowerCase();
                 if (q === "" || hay.indexOf(q) >= 0) out.push(i);
             }
@@ -739,7 +706,7 @@ Scope {
         Shortcut { sequences: ["Escape", "Ctrl+W"]; onActivated: prefsWindow.visible = false }
 
         // Settings always opens as a floating, centred window (no windowrule needed in hyprland.conf)
-        onVisibleChanged: if (visible) { if (root.bar) { root.bar.updateDialogOpen = root.bar.updateState === "available"; root.bar.checkForUpdates(true); } showNormal(); applyScaledSize(); floatTries = 0; floatTimer.restart(); if (root.glassState === "idle") root.startGlass(); }
+        onVisibleChanged: if (visible) { showNormal(); applyScaledSize(); floatTries = 0; floatTimer.restart(); if (root.glassState === "idle") root.startGlass(); }
         property int floatTries: 0
         readonly property int preferredWidth: Math.round(800 * root.uiS)
         readonly property int preferredHeight: Math.round(880 * root.uiS)
@@ -862,55 +829,6 @@ Scope {
                 color: "transparent"
                 border.width: 1; border.color: pal.edgeInner
                 z: 900
-            }
-
-            // "New update x.x.x": shown by itself when Settings opens and a newer version exists. Nothing is downloaded.
-            Item {
-                id: updateOverlay
-                anchors.fill: parent
-                z: 1000
-                visible: root.bar && root.bar.updateDialogOpen
-                MouseArea { anchors.fill: parent; hoverEnabled: true; acceptedButtons: Qt.AllButtons }     // modal: blocks the page underneath
-                Rectangle { anchors.fill: parent; radius: frame.radius; color: Qt.rgba(0, 0, 0, pal.dark ? 0.45 : 0.25) }
-                Rectangle {
-                    anchors.centerIn: parent
-                    width: 300; height: 176
-                    radius: 14
-                    color: pal.contentSolid
-                    border.width: 1; border.color: pal.buttonBorder
-                    Text {
-                        x: 0; y: 28; width: parent.width
-                        horizontalAlignment: Text.AlignHCenter
-                        text: I18n.tr("New update ") + (root.bar ? root.bar.updateVersion : "")
-                        color: pal.text
-                        font.family: root.fontForWeight(Font.DemiBold, pal.fam); font.weight: Font.DemiBold
-                        font.pixelSize: 17
-                    }
-                    Text {
-                        x: 20; y: 62; width: parent.width - 40
-                        horizontalAlignment: Text.AlignHCenter
-                        wrapMode: Text.WordWrap
-                        text: I18n.tr("A new version of MacShell is available.")
-                        color: pal.text2
-                        font.family: root.fontForWeight(Font.Normal, pal.fam)
-                        font.pixelSize: 13
-                    }
-                    Row {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.bottom: parent.bottom; anchors.bottomMargin: 20
-                        spacing: 10
-                        SButton {
-                            t: pal
-                            text: I18n.tr("Update")
-                            onClicked: { if (root.bar) root.bar.openUpdateLink(); }
-                        }
-                        SButton {
-                            t: pal
-                            text: I18n.tr("Close")
-                            onClicked: { if (root.bar) root.bar.updateDialogOpen = false; }
-                        }
-                    }
-                }
             }
 
             // opaque page area: from the sidebar's right edge to the window edge (rounded on the right only)
@@ -1528,36 +1446,6 @@ Scope {
                     t: pal
                     text: I18n.tr("If you turn both off, reopen this window with:  qs -c YukiShell ipc call settings open")
                 }
-
-                SCard {
-                    t: pal
-                    SRow {
-                        t: pal
-                        title: I18n.tr("Software Update")
-                        subtitle: !root.bar ? ""
-                                  : root.bar.updateChecking ? I18n.tr("Checking for updates…")
-                                  : root.bar.updateState === "available" ? I18n.tr("New update ") + root.bar.updateVersion
-                                  : root.bar.updateState === "uptodate" ? I18n.tr("MacShell is up to date")
-                                  : root.bar.updateState === "error" ? I18n.tr("Couldn't check for updates")
-                                  : ""
-                        Row {
-                            spacing: 8
-                            SButton {
-                                t: pal
-                                visible: root.bar && root.bar.updateState === "available"
-                                text: I18n.tr("Update")
-                                onClicked: { if (root.bar) root.bar.openUpdateLink(); }
-                            }
-                            SButton {
-                                t: pal
-                                opacity: root.bar && root.bar.updateChecking ? 0.5 : 1
-                                text: I18n.tr("Check for updates")
-                                onClicked: { if (root.bar && !root.bar.updateChecking) root.bar.checkForUpdates(false); }
-                            }
-                        }
-                    }
-                }
-
             }
         }
 
@@ -2720,6 +2608,7 @@ Scope {
                 SCard {
                     t: pal
                     SRow {
+                        visible: root.bar && root.bar.hasBattery
                         t: pal; title: I18n.tr("Battery Level")
                         subtitle: batPane.charging ? I18n.tr("Charging") : (batPane.dev && batPane.dev.timeToEmpty > 0 ? Math.floor(batPane.dev.timeToEmpty / 3600) + " h " + Math.round(batPane.dev.timeToEmpty % 3600 / 60) + I18n.tr(" min remaining") : I18n.tr("On battery"))
                         Row {
@@ -3089,25 +2978,6 @@ Scope {
                     }
                 }
                 SLabel { t: pal; header: true; text: I18n.tr("Displays") }
-                // keep / revert sheet (macOS: "Keep these display settings?")
-                Rectangle {
-                    visible: root.pendingOut !== ""
-                    width: parent.width; height: 64; radius: 10
-                    color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.22)
-                    border.width: 1; border.color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.6)
-                    Text {
-                        x: 14; anchors.verticalCenter: parent.verticalCenter
-                        width: parent.width - 220; wrapMode: Text.WordWrap
-                        text: I18n.tr("Keep these display settings? Reverting in ") + root.revertLeft + " s."
-                        color: pal.text; font.family: root.fontForWeight(Font.DemiBold, pal.fam); font.pixelSize: 13; font.weight: Font.DemiBold
-                    }
-                    Row {
-                        anchors.right: parent.right; anchors.rightMargin: 12; anchors.verticalCenter: parent.verticalCenter
-                        spacing: 8
-                        SButton { t: pal; text: I18n.tr("Revert"); onClicked: root.revertMode() }
-                        SButton { t: pal; text: I18n.tr("Keep Changes"); onClicked: root.keepMode() }
-                    }
-                }
                 SCard {
                     t: pal
                     visible: root.monList.length > 1
@@ -3129,73 +2999,14 @@ Scope {
                         id: monCard
                         required property var modelData
                         t: pal
-                        // available modes → resolutions (largest first) and the refresh rates of the chosen one
-                        readonly property var modes: {
-                            var seen = {}, out = [];
-                            var am = modelData.availableModes || [];
-                            for (var i = 0; i < am.length; i++) {
-                                var m = /^(\d+)x(\d+)@([\d.]+)Hz$/.exec(am[i]); if (!m) continue;
-                                var k = m[1] + "x" + m[2] + "@" + parseFloat(m[3]).toFixed(2);
-                                if (seen[k]) continue; seen[k] = true;
-                                out.push({ w: parseInt(m[1]), h: parseInt(m[2]), hz: parseFloat(m[3]) });
-                            }
-                            return out;
-                        }
-                        readonly property var resolutions: {
-                            var seen = {}, out = [];
-                            for (var i = 0; i < modes.length; i++) { var r = modes[i].w + "x" + modes[i].h; if (!seen[r]) { seen[r] = true; out.push(modes[i]); } }
-                            out.sort(function (a, b) { return b.w * b.h - a.w * a.h; });
-                            var cur = modelData.width + "x" + modelData.height;
-                            if (!seen[cur]) out.unshift({ w: modelData.width, h: modelData.height, hz: modelData.refreshRate, custom: true });
-                            return out;
-                        }
-                        property string selRes: modelData.width + "x" + modelData.height
-                        readonly property var rates: {
-                            var out = [];
-                            for (var i = 0; i < modes.length; i++) if (modes[i].w + "x" + modes[i].h === selRes && out.indexOf(Math.round(modes[i].hz)) < 0) out.push(Math.round(modes[i].hz));
-                            out.sort(function (a, b) { return b - a; });
-                            if (out.length === 0) out.push(Math.round(modelData.refreshRate));
-                            return out;
-                        }
-                        function bestHz(res, hz) {
-                            var best = null;
-                            for (var i = 0; i < modes.length; i++) if (modes[i].w + "x" + modes[i].h === res && (best === null || Math.abs(modes[i].hz - hz) < Math.abs(best - hz))) best = modes[i].hz;
-                            return best === null ? hz : best;
-                        }
                         SRow {
                             t: pal
                             title: (modelData.description || modelData.name).replace(/\s*\(.*\)$/, "")
                             subtitle: modelData.name + " · " + modelData.width + " × " + modelData.height + " @ " + Math.round(modelData.refreshRate) + I18n.tr(" Hz · Scale ") + modelData.scale
                         }
-                        SRow {
-                            t: pal; title: I18n.tr("Resolution")
-                            SPopUp {
-                                t: pal
-                                model: monCard.resolutions.map(function (r) { return r.w + " × " + r.h + (r.custom ? "  (current)" : ""); })
-                                current: { for (var i = 0; i < monCard.resolutions.length; i++) if (monCard.resolutions[i].w + "x" + monCard.resolutions[i].h === monCard.selRes) return i; return 0; }
-                                onPicked: i => {
-                                    var r = monCard.resolutions[i];
-                                    if (r.custom) return;
-                                    monCard.selRes = r.w + "x" + r.h;
-                                    var hz = monCard.bestHz(monCard.selRes, monCard.modelData.refreshRate);
-                                    root.tryMode(monCard.modelData.name, monCard.selRes + "@" + hz.toFixed(2));
-                                }
-                            }
-                        }
-                        SRow {
-                            t: pal; title: I18n.tr("Refresh rate")
-                            SPopUp {
-                                t: pal
-                                model: monCard.rates.map(function (h) { return h + " Hz"; })
-                                current: { var c = Math.round(monCard.modelData.refreshRate), i = monCard.rates.indexOf(c); return i < 0 ? 0 : i; }
-                                onPicked: i => {
-                                    var hz = monCard.bestHz(monCard.selRes, monCard.rates[i]);
-                                    root.tryMode(monCard.modelData.name, monCard.selRes + "@" + hz.toFixed(2));
-                                }
-                            }
-                        }
                     }
                 }
+                SLabel { t: pal; text: I18n.tr("Resolution, refresh rate and position are set in ~/hypr-rice/hypr/rice/monitor.lua, so they survive reloads and restarts.") }
             }
         }
 
@@ -3944,30 +3755,37 @@ Scope {
                     Item {
                         width: parent.width
                         height: 176
-                        Image {
+                        Rectangle {
                             x: (parent.width - width) / 2
-                            y: 16
-                            width: 84; height: 84
-                            source: Qt.resolvedUrl("assets/macshell-logo.png")
-                            sourceSize.width: 256; sourceSize.height: 256
-                            fillMode: Image.PreserveAspectFit
-                            smooth: true; mipmap: true
+                            y: 18
+                            width: 80; height: 80; radius: 22
+                            gradient: Gradient {
+                                orientation: Gradient.Vertical
+                                GradientStop { position: 0.0; color: "#cba6f7" }
+                                GradientStop { position: 1.0; color: "#f5c2e7" }
+                            }
+                            Text {
+                                anchors.centerIn: parent
+                                text: "\u96ea"
+                                color: "#1e1e2e"
+                                font.pixelSize: 44
+                            }
                         }
                         Text {
-                            y: 108
+                            y: 110
                             width: parent.width
                             horizontalAlignment: Text.AlignHCenter
-                            text: "macshell"
+                            text: "YukiShell"
                             color: pal.text
                             font.family: root.fontForWeight(Font.DemiBold, pal.fam)
                             font.pixelSize: 21
                             font.weight: Font.DemiBold
                         }
                         Text {
-                            y: 138
+                            y: 140
                             width: parent.width
                             horizontalAlignment: Text.AlignHCenter
-                            text: I18n.tr("Version 0.3.9 \u2022 Hyprland \u2022 Quickshell")
+                            text: I18n.tr("Hyprland \u2022 Quickshell \u2022 Catppuccin Mocha")
                             color: pal.text2
                             font.family: root.fontForWeight(Font.Normal, pal.fam)
                             font.pixelSize: 12
@@ -3979,17 +3797,18 @@ Scope {
                     t: pal
                     SRow {
                         t: pal
-                        title: I18n.tr("Configuration")
-                        Text {
-                            text: "~/.config/macdock"
-                            color: pal.text2
-                            font.family: root.fontForWeight(Font.Normal, pal.fam)
-                            font.pixelSize: 13
+                        title: I18n.tr("Rice")
+                        subtitle: "~/hypr-rice"
+                        SButton {
+                            t: pal
+                            text: I18n.tr("Open")
+                            onClicked: Quickshell.execDetached(["xdg-open", Quickshell.env("HOME") + "/hypr-rice"])
                         }
                     }
                     SRow {
                         t: pal
-                        title: I18n.tr("Open configuration folder")
+                        title: I18n.tr("Shell settings")
+                        subtitle: "~/.config/macdock"
                         SButton {
                             t: pal
                             text: I18n.tr("Open")
@@ -3997,30 +3816,12 @@ Scope {
                         }
                     }
                 }
-
                 SCard {
                     t: pal
                     SRow {
                         t: pal
-                        title: I18n.tr("Install dependencies")
-                        subtitle: I18n.tr("Installs everything MacShell uses (Quickshell, awww, mpvpaper, ffmpeg, wf-recorder, fonts, icons…) with your package manager, in a terminal")
-                        SButton {
-                            t: pal
-                            text: I18n.tr("Install\u2026")
-                            onClicked: {
-                                var inst = Quickshell.env("HOME") + "/.local/share/macshell/install.sh";
-                                var term = root.bar ? root.bar.terminal : "kitty";
-                                Quickshell.execDetached(["sh", "-c", term + " -e sh -c '\"$0\" --deps-only; echo; echo Press Enter to close; read x'", inst]);
-                            }
-                        }
-                    }
-                }
-                SCard {
-                    t: pal
-                    SRow {
-                        t: pal
-                        title: I18n.tr("Reset MacShell")
-                        subtitle: I18n.tr("Restore every setting to its default (appearance, Dock, Menu Bar, widgets, lock screen, input). Pinned apps and your widgets' layout are kept.")
+                        title: I18n.tr("Reset shell settings")
+                        subtitle: I18n.tr("Restore the shell's settings (appearance, Dock, Menu Bar, widgets, lock screen, input) to their defaults. Pinned apps and your widgets' layout are kept; the rice itself is not touched.")
                         SButton {
                             t: pal
                             destructive: true
@@ -4033,16 +3834,16 @@ Scope {
                     }
                 }
 
-                // ── Credits ──
-                SLabel { t: pal; header: true; text: I18n.tr("Credits") }
+                // ── Credits: YukiShell is a fork of MacShell ──
+                SLabel { t: pal; header: true; text: I18n.tr("Based on MacShell") }
                 SCard {
                     t: pal
                     Repeater {
                         model: [
                             { img: "assets/credits/0-ss.jpg", name: "Rickky", gh: "0-ss",
-                              role: "Owner — the menu bar, the Dock, the Liquid Glass the widgets and more... The one who actually knew what he was doing" },
+                              role: "Original author of MacShell: the menu bar, the Dock, the Liquid Glass and the widgets" },
                             { img: "assets/credits/vsoultann.png", name: "vSuol", gh: "vsoultann",
-                              role: "Contributors — improved the Settings app, and most of the bugs you would find" }
+                              role: "Contributor to MacShell: the Settings app" }
                         ]
                         delegate: Item {
                             id: cr
@@ -4078,55 +3879,6 @@ Scope {
                                 font.underline: crMa.containsMouse
                                 MouseArea { id: crMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: Quickshell.execDetached(["xdg-open", "https://github.com/" + cr.modelData.gh]) }
                             }
-                        }
-                    }
-                }
-                Text {
-                    width: parent.width
-                    horizontalAlignment: Text.AlignHCenter
-                    topPadding: 4
-                    text: I18n.tr("Designed by Apple in California.\nRebuilt on Linux by two people who could not afford the Mac.")
-                    color: pal.text3; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 11
-                }
-
-                // (keep scrolling…)
-                Item { width: 1; height: 900 }
-
-                // ── AppleCare+ — nobody asked. The button does nothing. ──
-                SCard {
-                    t: pal
-                    Item {
-                        width: parent.width; height: 214
-                        Image {
-                            anchors.horizontalCenter: parent.horizontalCenter; y: 16
-                            width: 36; height: 36
-                            source: Qt.resolvedUrl(pal.dark ? "apple-logo-white.svg" : "apple-logo-black.svg")
-                            sourceSize: Qt.size(72, 72); fillMode: Image.PreserveAspectFit; smooth: true
-                        }
-                        Text {
-                            anchors.horizontalCenter: parent.horizontalCenter; y: 64
-                            text: I18n.tr("Protect your MacShell with AppleCare+")
-                            color: pal.text; font.family: root.fontForWeight(Font.DemiBold, pal.fam); font.pixelSize: 17; font.weight: Font.DemiBold
-                        }
-                        Text {
-                            anchors.horizontalCenter: parent.horizontalCenter; y: 90
-                            width: parent.width - 60; horizontalAlignment: Text.AlignHCenter; wrapMode: Text.WordWrap
-                            text: I18n.tr("Unlimited repairs for accidental damage, 24/7 priority access to Apple experts, and battery service coverage. Same price as for a MacBook Pro.")
-                            color: pal.text2; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12
-                        }
-                        Text {
-                            anchors.horizontalCenter: parent.horizontalCenter; y: 136
-                            text: I18n.tr("$279.00 for 3 years or $99.99/yr.")
-                            color: pal.text; font.family: root.fontForWeight(Font.Medium, pal.fam); font.pixelSize: 13; font.weight: Font.Medium
-                        }
-                        Rectangle {
-                            anchors.horizontalCenter: parent.horizontalCenter; y: 166
-                            width: 150; height: 32; radius: 16
-                            color: careMa.pressed ? Qt.darker(pal.accent, 1.15) : pal.accent
-                            scale: careMa.pressed ? 0.96 : 1
-                            Behavior on scale { NumberAnimation { duration: 180; easing.type: Easing.OutQuint } }
-                            Text { anchors.centerIn: parent; text: I18n.tr("Add AppleCare+"); color: "white"; font.family: root.fontForWeight(Font.DemiBold, pal.fam); font.pixelSize: 13; font.weight: Font.DemiBold }
-                            MouseArea { id: careMa; anchors.fill: parent; cursorShape: Qt.PointingHandCursor }
                         }
                     }
                 }

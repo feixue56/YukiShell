@@ -183,47 +183,6 @@ Scope {
     //    flips it between light and dark by itself.
     // The choice is made by worst-case contrast (white text on the brightest part vs dark text on the darkest part, spread
     // included), with hysteresis so it never flickers, and falls back to the system look when both read equally well.
-    // ═════════ UPDATE CHECK ═════════
-    // Only ASKS whether a newer MacShell exists (assets/check-update.sh: the latest release, else VERSION on the main branch of
-    // github.com/0-ss/MacShell, compared with the VERSION file of this install). It never downloads or installs anything:
-    // the "Update" button just opens updateUrl in the browser.
-    readonly property string updateScript: decodeURIComponent(String(Qt.resolvedUrl("assets/check-update.sh")).replace(/^file:\/\//, ""))
-    property string updateUrl: "https://github.com/0-ss/MacShell/releases/latest"     // ← the link the "Update" button opens
-    property bool updateChecking: false
-    property string updateState: ""            // "" = not checked yet | uptodate | available | error
-    property string updateVersion: ""          // the new version, e.g. "1.2.0"
-    property bool updateDialogOpen: false      // the "New update x.x.x" window in Settings
-    property bool updateAnnounce: false        // this check may open that window
-    function checkForUpdates(announce) {
-        updateAnnounce = announce === true;
-        if (updateProc.running) return;
-        updateChecking = true;
-        updateProc.command = ["sh", updateScript];
-        updateProc.running = true;
-    }
-    function openUpdateLink() { Quickshell.execDetached(["xdg-open", updateUrl]); }
-    Process {
-        id: updateProc
-        stdout: StdioCollector {
-            onStreamFinished: {
-                root.updateChecking = false;
-                var o = null;
-                try { o = JSON.parse(text.trim().split("\n").pop()); } catch (e) { o = null; }
-                if (!o) { root.updateState = "error"; return; }
-                if (o.url) root.updateUrl = String(o.url);
-                if (o.status === "available") {
-                    root.updateVersion = String(o.latest || "").replace(/^v(?=[0-9])/, "");
-                    root.updateState = "available";
-                    if (root.updateAnnounce) root.updateDialogOpen = true;
-                } else {
-                    root.updateState = o.status === "uptodate" ? "uptodate" : "error";
-                    root.updateDialogOpen = false;
-                }
-            }
-        }
-        onExited: root.updateChecking = false
-    }
-
     readonly property string toneScript: decodeURIComponent(String(Qt.resolvedUrl("assets/tone.sh")).replace(/^file:\/\//, ""))
     // cur: 1 = dark text now (bright backdrop), -1 = white text now, 0 = undecided; v/sd = brightness / spread 0..1
     function pickTone(cur, v, sd, fresh) {
