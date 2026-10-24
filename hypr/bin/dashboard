@@ -15,6 +15,10 @@ open() {  # open <class> <command...>; wait for the window before the next one s
     for _ in $(seq 40); do [ "$(count)" -gt "$n" ] && break; sleep 0.05; done
 }
 pre() { hyprctl dispatch "hl.dsp.layout(\"preselect $1\")" >/dev/null; }
-open dash-fff   fish -C fff
+# cava first (fills the workspace), then fff splits off above it, then the clock splits off to fff's right.
+open dash-cava  cava -p "$HOME/.config/cava/dashboard.conf"
+pre u; open dash-fff   fish -C fff
 pre r; open dash-clock tty-clock -scb -C 5
-pre d; open dash-cava  cava -p "$HOME/.config/cava/dashboard.conf"
+# fff 20 px wider (the clock window gets 20 px narrower on its left edge)
+fff=$(hyprctl -j clients | python3 -c 'import json,sys; print(next(c["address"] for c in json.load(sys.stdin) if c["class"]=="dash-fff"))')
+hyprctl dispatch "hl.dsp.window.resize({ x = 20, y = 0, relative = true, window = \"address:$fff\" })" >/dev/null
