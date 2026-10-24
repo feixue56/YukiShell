@@ -661,6 +661,29 @@ Scope {
             { id: "about",      sec: 7, name: "About",           glyph: "about",    c1: "#A7A7AD", c2: "#7C7C82", keys: "version github profile source author credits config folder yukidock yukishell" }
         ]
 
+        // Keyboard → Keyboard Shortcuts: the binds Hyprland really has loaded (the ones with a description), read live
+        property var shortcuts: []
+        function loadShortcuts() { if (!bindsProc.running) bindsProc.running = true; }
+        function parseBinds(text) {
+            var b; try { b = JSON.parse(text); } catch (e) { return []; }
+            var names = { Return: "Return", space: "Space", left: "←", right: "→", up: "↑", down: "↓", period: ".", comma: ",", PRINT: "Print", Tab: "Tab", TAB: "Tab" };
+            var mods = [[64, "Super"], [4, "Ctrl"], [8, "Alt"], [1, "Shift"]], out = [];
+            for (var i = 0; i < b.length; i++) {
+                var x = b[i];
+                if (!x.has_description || x.mouse || x.description === "") continue;
+                var keys = [];
+                for (var m = 0; m < mods.length; m++) if (x.modmask & mods[m][0]) keys.push(mods[m][1]);
+                keys.push(names[x.key] !== undefined ? names[x.key] : (x.key.length === 1 ? x.key.toUpperCase() : x.key));
+                out.push({ desc: x.description, keys: keys });
+            }
+            return out;
+        }
+        Process {
+            id: bindsProc
+            command: ["hyprctl", "-j", "binds"]
+            stdout: StdioCollector { onStreamFinished: prefsWindow.shortcuts = prefsWindow.parseBinds(text) }
+        }
+
         // the Trackpad pane only exists when a touchpad is plugged in
         property bool hasTouchpad: false
         Process {
@@ -3516,6 +3539,42 @@ Scope {
                     }
                 }
                 SLabel { t: pal; text: I18n.tr("Layout: ") + "us" + ". Changes apply right away." }
+                SLabel { t: pal; header: true; visible: prefsWindow.shortcuts.length > 0; text: I18n.tr("Keyboard Shortcuts") }
+                SCard {
+                    t: pal
+                    visible: prefsWindow.shortcuts.length > 0
+                    Repeater {
+                        model: prefsWindow.shortcuts
+                        SRow {
+                            id: scRow
+                            required property var modelData
+                            t: pal; title: I18n.tr(scRow.modelData.desc)
+                            Row {
+                                spacing: 4
+                                Repeater {
+                                    model: scRow.modelData.keys
+                                    Rectangle {
+                                        id: cap
+                                        required property string modelData
+                                        height: 22; width: Math.max(22, capText.implicitWidth + 12); radius: 6
+                                        color: pal.dark ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(0, 0, 0, 0.06)
+                                        border.width: 1; border.color: pal.cardBorder
+                                        Text {
+                                            id: capText
+                                            anchors.centerIn: parent
+                                            text: cap.modelData
+                                            color: pal.text
+                                            font.family: root.fontForWeight(Font.Medium, pal.fam)
+                                            font.pixelSize: 12
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                SLabel { t: pal; visible: prefsWindow.shortcuts.length > 0; text: I18n.tr("Read from Hyprland as it is running. Change them in ~/hypr-rice/hypr/rice/binds.lua and shell.lua.") }
+                Component.onCompleted: prefsWindow.loadShortcuts()
             }
         }
 

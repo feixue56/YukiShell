@@ -11,17 +11,17 @@ end)
 -- keybinds (the name after -c is the config folder name, case-sensitive)
 local qs = "qs -c YukiShell ipc call "
 
-hl.bind("SUPER + Z",          hl.dsp.exec_cmd(qs .. "settings toggle"))
-hl.bind("SUPER + V",          hl.dsp.exec_cmd(qs .. "spotlight clipboard"))
-hl.bind("SUPER + period",     hl.dsp.exec_cmd(qs .. "spotlight emoji"))
-hl.bind("SUPER + Space",      hl.dsp.exec_cmd(qs .. "spotlight toggle"))
-hl.bind("ALT + TAB",          hl.dsp.exec_cmd(qs .. "switcher next"))
-hl.bind("CTRL + ALT + W",     hl.dsp.exec_cmd(qs .. "wallpapers toggle"))
-hl.bind("PRINT",              hl.dsp.exec_cmd(qs .. "screenshot region"))
-hl.bind("SHIFT + PRINT",      hl.dsp.exec_cmd(qs .. "screenshot screen"))
-hl.bind("CTRL + PRINT",       hl.dsp.exec_cmd(qs .. "screenshot window"))
-hl.bind("SUPER + G",          hl.dsp.exec_cmd(qs .. "gaming toggle"))          -- Game Mode: the shell stops its effects while you play
-hl.bind("SUPER + comma",      hl.dsp.exec_cmd(qs .. "notifications open"))
+hl.bind("SUPER + Z",          hl.dsp.exec_cmd(qs .. "settings toggle"), { description = "System Settings" })
+hl.bind("SUPER + V",          hl.dsp.exec_cmd(qs .. "spotlight clipboard"), { description = "Clipboard History" })
+hl.bind("SUPER + period",     hl.dsp.exec_cmd(qs .. "spotlight emoji"), { description = "Emoji Picker" })
+hl.bind("SUPER + Space",      hl.dsp.exec_cmd(qs .. "spotlight toggle"), { description = "Spotlight" })
+hl.bind("ALT + TAB",          hl.dsp.exec_cmd(qs .. "switcher next"), { description = "Switch Windows" })
+hl.bind("CTRL + ALT + W",     hl.dsp.exec_cmd(qs .. "wallpapers toggle"), { description = "Wallpapers" })
+hl.bind("PRINT",              hl.dsp.exec_cmd(qs .. "screenshot region"), { description = "Screenshot a Region" })
+hl.bind("SHIFT + PRINT",      hl.dsp.exec_cmd(qs .. "screenshot screen"), { description = "Screenshot the Screen" })
+hl.bind("CTRL + PRINT",       hl.dsp.exec_cmd(qs .. "screenshot window"), { description = "Screenshot a Window" })
+hl.bind("SUPER + G",          hl.dsp.exec_cmd(qs .. "gaming toggle"), { description = "Game Mode" })          -- Game Mode: the shell stops its effects while you play
+hl.bind("SUPER + comma",      hl.dsp.exec_cmd(qs .. "notifications open"), { description = "Notifications" })
 
 -- Hardware keys (laptop buttons too): volume, mute, brightness, media. YukiShell handles them itself and shows its
 -- on-screen display. If the shell is not running, wpctl / brightnessctl do the work instead.
@@ -49,4 +49,4 @@ for _, k in ipairs(hwkeys) do
 end
 
 -- YukiLock (lock screen)
-hl.bind("SUPER + L",          hl.dsp.exec_cmd("sh ~/.config/quickshell/YukiLock/lock-via-ipc.sh"))
+hl.bind("SUPER + L",          hl.dsp.exec_cmd("sh ~/.config/quickshell/YukiLock/lock-via-ipc.sh"), { description = "Lock Screen" })

@@ -68,7 +68,10 @@ Before using it, check:
 | `Super+Shift+R` | restart the shell cleanly (`yuki-restart`) |
 | `Super+Shift+C` | reload the Hyprland config |
 
-There is deliberately no key that exits Hyprland. The full list is in `hypr/rice/binds.lua`.
+There is deliberately no key that exits Hyprland. The full list is in `hypr/rice/binds.lua` and `shell.lua`; **System Settings → Keyboard → Keyboard
+Shortcuts** shows the same list, translated and read live from the running Hyprland. A bind appears there as soon as you give it a
+`description` (`hl.bind(keys, dispatcher, { description = "Open Terminal" })`; `binds.lua` has a small `bind()` helper for it), and
+`tools/i18n-check.py` reminds you to translate it.
 
 ## What it does
 

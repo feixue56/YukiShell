@@ -30,7 +30,7 @@ def unescape(raw):
     return "".join(out)
 
 # strings that are the same in every language (brand names, symbols)
-SAME = {"H:mm", "MacBook", "Tailscale", "\u25cf", "Rice", "Hyprland \u2022 Quickshell \u2022 Catppuccin Mocha"}
+SAME = {"H:mm", "Spotlight", "MacBook", "Tailscale", "\u25cf", "Rice", "Hyprland \u2022 Quickshell \u2022 Catppuccin Mocha"}
 
 # I18n.tr("...") / I18n.tr('...') with a plain string literal as the argument
 call = re.compile(r'I18n\.tr\(\s*(?:"((?:[^"\\\n]|\\.)*)"|\'((?:[^\'\\\n]|\\.)*)\')\s*[,)]')
@@ -40,6 +40,15 @@ for f in sorted(shell.glob("*.qml")):
     for m in call.finditer(f.read_text(encoding="utf-8")):
         raw = m.group(1) if m.group(1) is not None else m.group(2)
         used.setdefault(unescape(raw), f.name)
+
+# keyboard shortcut descriptions live in the Lua binds (hypr/rice/*.lua) and are translated by the Settings → Keyboard list
+lua_desc = [re.compile(r'description = "([^"]+)"'), re.compile(r'\band "([^"]+)" or nil'),
+            re.compile(r'^bind\(.*?,\s*"([^"]+)"\)\s*(?:--.*)?$', re.M)]
+for f in sorted((root / "hypr" / "rice").glob("*.lua")):
+    text = f.read_text(encoding="utf-8")
+    for rx in lua_desc:
+        for m in rx.finditer(text):
+            used.setdefault(m.group(1), f.name)
 
 entry = re.compile(r'^\s*"((?:[^"\\\n]|\\.)*)"\s*:', re.M)
 langs = {}
