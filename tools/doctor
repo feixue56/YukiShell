@@ -1,0 +1,49 @@
+#!/bin/sh
+# tools/doctor     check this machine against what the rice uses; says what each missing command would disable.
+# Exit status 1 only when a REQUIRED command is missing. Package names are Arch / CachyOS ones.
+req_missing=0
+row() {  # row <required|optional> <command> <package> <what it is for>
+    if command -v "$2" >/dev/null 2>&1; then return; fi
+    [ "$1" = required ] && { req_missing=1; tag="MISSING"; } || tag="missing"
+    printf '  %-8s %-16s pacman -S %-18s %s\n' "$tag" "$2" "$3" "$4"
+    found=1
+}
+found=0
+echo "Checking commands…"
+row required hyprctl        hyprland             "the compositor (the Lua config API; written and tested on 0.56.2)"
+row required qs             quickshell           "runs YukiShell and YukiLock"
+row required kitty          kitty                "terminal, Super+Enter"
+row required fish           fish                 "shell config"
+row optional grim           grim                 "screenshots, auto-contrast, the glass of windows"
+row optional magick         imagemagick          "auto-contrast and the profile-picture crop"
+row optional slurp          slurp                "region screenshots"
+row optional awww           awww                 "wallpapers (awww-daemon is started with the session)"
+row optional mpvpaper       mpvpaper             "animated wallpapers"
+row optional ffmpeg         ffmpeg               "animated wallpaper thumbnails"
+row optional jq             jq                   "wallpaper / monitor helpers"
+row optional wl-copy        wl-clipboard         "clipboard, copy actions"
+row optional cliphist       cliphist             "clipboard history (Super+V)"
+row optional playerctl      playerctl            "media keys and the Now Playing widget"
+row optional nmcli          networkmanager       "Wi-Fi / network menus"
+row optional bluetoothctl   bluez-utils          "Bluetooth menu (only useful with an adapter)"
+row optional rfkill         util-linux           "Airplane Mode"
+row optional wpctl          wireplumber          "volume"
+row optional pw-play        pipewire             "UI sound effects"
+row optional brightnessctl  brightnessctl        "laptop brightness"
+row optional ddcutil        ddcutil              "external monitor brightness (DDC/CI)"
+row optional hyprsunset     hyprsunset           "Night Shift"
+row optional powerprofilesctl power-profiles-daemon "power mode"
+row optional zenity         zenity               "file picker for the profile picture / wallpapers (or kdialog)"
+row optional wtype          wtype                "typing emoji from Spotlight"
+row optional fcitx5         fcitx5               "Vietnamese / Chinese typing (plus fcitx5-bamboo, fcitx5-chinese-addons)"
+row optional dolphin        dolphin              "Super+E file manager"
+row optional chromium       chromium             "Super+W browser"
+row optional python3        python               "UI sound generator, installer helpers"
+[ "$found" = 0 ] && echo "  everything the rice uses is installed."
+echo
+echo "Checking fonts / session…"
+fc-list 2>/dev/null | grep -qi "JetBrainsMono Nerd" || echo "  missing  JetBrainsMono Nerd Font   (pacman -S ttf-jetbrains-mono-nerd)"
+[ -d /usr/share/icons/Bibata-Modern-Classic ] || [ -d "$HOME/.local/share/icons/Bibata-Modern-Classic" ] || echo "  missing  Bibata-Modern-Classic cursor"
+[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/hypr/hyprland.lua" ] || echo "  MISSING  ~/.config/hypr/hyprland.lua — this rice needs Hyprland's Lua config (tested on 0.56.2); the old hyprland.conf format is not supported"
+[ -d /sys/class/backlight ] && [ -z "$(ls /sys/class/backlight 2>/dev/null)" ] && echo "  note     no laptop backlight: brightness uses the monitor over DDC/CI (ddcutil, i2c-dev module)"
+exit $req_missing

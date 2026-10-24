@@ -27,7 +27,8 @@ line to `~/.config/hypr/hyprland.lua`, and sets the GTK/Qt/btop themes. Re-run i
 
 Packages the rice expects: `kitty fish fastfetch btop cava tty-clock fcitx5 fcitx5-bamboo adw-gtk-theme papirus-icon-theme
 plasma-integration ddcutil brightnessctl python-numpy` and the Bibata cursor and JetBrainsMono Nerd Font. The shell itself uses `nmcli`, `playerctl`,
-`powerprofilesctl`, `grim`, `wl-clipboard` and `hyprsunset` for the matching features; whatever is missing just disables that feature. `python-numpy` is only for generating the UI sound effects.
+`powerprofilesctl`, `grim`, `imagemagick`, `wl-clipboard`, `cliphist` and `hyprsunset` for the matching features; whatever is missing just disables that feature.
+`python-numpy` is only for generating the UI sound effects. **`tools/doctor`** (run by the installer too) lists exactly what is missing on your machine and what it would disable.
 
 Before using it, check:
 
@@ -108,7 +109,7 @@ method (`fcitx5-mozc`, `fcitx5-hangul`, `fcitx5-chewing`); the profile only ship
 | `shell/bin/` | `yuki-start` (keeps the shell running), `yuki-restart` (restarts it cleanly), `yuki-brightness` |
 | `shell/scripts/` | helpers the shell calls: wallpaper (`yukishell-setwall.sh`, `-dynwall.sh`, `-wallpause.sh`), Game Mode, UI sound generator |
 | `kitty fish fastfetch btop cava gtk-3.0 gtk-4.0 qt chromium` | app configs and themes |
-| `tools/` | `check` (lints the whole repo), `i18n-check.py` (missing translations), `make-logo.py`, `fix-font-loops.py` |
+| `tools/` | `doctor` (what is missing on this machine), `check` (lints the repo), `i18n-check.py` (missing translations), `make-logo.py`, `fix-font-loops.py` |
 
 The palette lives in `hypr/rice/theme.lua`. Env overrides go in `~/.config/hypr-rice/env`; the shell log is
 `~/.local/state/hypr-rice/YukiShell.log`. Open Settings with `qs -c YukiShell ipc call settings open`.

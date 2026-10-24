@@ -81,3 +81,5 @@ if command -v gsettings >/dev/null; then
 fi
 command -v hyprctl >/dev/null && hyprctl reload || true
 echo "Rice installed. Needs: adw-gtk-theme, papirus-icon-theme, bibata cursor, JetBrainsMono Nerd Font, plasma-integration."
+echo
+"$here/tools/doctor" || echo "Install the MISSING packages above, then re-run ./install.sh."
