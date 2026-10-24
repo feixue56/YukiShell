@@ -19,6 +19,6 @@ pre() { hyprctl dispatch "hl.dsp.layout(\"preselect $1\")" >/dev/null; }
 open dash-cava  cava -p "$HOME/.config/cava/dashboard.conf"
 pre u; open dash-fff   fish -C fff
 pre r; open dash-clock tty-clock -scb -C 5
-# fff 20 px wider (the clock window gets 20 px narrower on its left edge)
+# fff 40 px wider (the clock window gets 40 px narrower on its left edge)
 fff=$(hyprctl -j clients | python3 -c 'import json,sys; print(next(c["address"] for c in json.load(sys.stdin) if c["class"]=="dash-fff"))')
-hyprctl dispatch "hl.dsp.window.resize({ x = 20, y = 0, relative = true, window = \"address:$fff\" })" >/dev/null
+hyprctl dispatch "hl.dsp.window.resize({ x = 40, y = 0, relative = true, window = \"address:$fff\" })" >/dev/null
