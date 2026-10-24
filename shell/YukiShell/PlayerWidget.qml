@@ -36,6 +36,8 @@ Item {
     property string artist: ""
     property string album: ""
     property string artUrl: ""
+    property string appName: ""              // the player's own name ("Chromium", "Spotify"): fallback text
+    property string appIcon: ""              // its icon (file path): fallback artwork when the track has no cover
     property bool playing: false
     property real position: 0                // seconds
     property real length: 0                  // seconds (0 = unknown)
@@ -369,9 +371,20 @@ Item {
     function cleanTitle(t) {
         return t.replace(/^\(\d+\)\s+/, "").replace(/\s+[-\u2013\u2014|]\s+(YouTube( Music)?|Chromium|Google Chrome|Brave|Mozilla Firefox|Firefox|Vivaldi|Opera|Microsoft Edge)$/, "");
     }
-    readonly property string shownTitle: hasPlayer ? (title !== "" ? cleanTitle(title) : I18n.tr("Unknown Title")) : I18n.tr("Not Playing")
-    readonly property string shownSub: hasPlayer ? (artist !== "" ? (album !== "" ? artist + " \u2014 " + album : artist) : album)
-                                                 : "Open a music app"
+    // What is shown when the player gives little or nothing:
+    //   no player at all        -> "Not Playing" / "Open a music app", the placeholder note
+    //   player open, no track   -> "Not Playing" / the player's name, its icon as artwork
+    //   no artist and no album  -> the player's name under the title
+    //   no cover                -> the player's icon on the placeholder tile
+    readonly property bool hasTrack: hasPlayer && (title !== "" || artist !== "" || album !== "" || playing)
+    readonly property string shownTitle: !hasPlayer ? I18n.tr("Not Playing")
+                                       : (title !== "" ? cleanTitle(title)
+                                          : (hasTrack ? (artist !== "" ? artist : I18n.tr("Unknown Title")) : I18n.tr("Not Playing")))
+    readonly property string shownSub: !hasPlayer ? I18n.tr("Open a music app")
+                                     : (!hasTrack ? appName
+                                        : ((title !== "" && artist !== "") ? (album !== "" ? artist + " \u2014 " + album : artist)
+                                           : (title !== "" && album !== "" ? album : (title !== "" ? appName : album))))
+    readonly property bool live: hasPlayer && playing && length <= 0         // a stream: no length, so no bar to fill
 
 
 
@@ -421,26 +434,26 @@ Item {
             onClicked: w.raiseRequested()
         }
 
-        // ── title ──
-        Text {
+        // ── title: scrolls like the subtitle when it does not fit ──
+        MarqueeText {
             id: titleItem
-            x: w.textX * w.k
+            x: (w.textX - 17) * w.k
             y: w.titleCY * w.k - height / 2
-            width: (w.wr - w.textX - w.mx - (w.isMedium ? 50 : 0)) * w.k
-            height: 30 * w.k
+            width: (w.wr - (w.textX - 17) - (w.mx - 17) - (w.isMedium ? 50 : 0)) * w.k
             opacity: w.lyricsView ? 0 : 1
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: 380; easing.type: Easing.OutCubic } }
             layer.enabled: opacity > 0 && opacity < 0.999
             layer.sourceRect: Qt.rect(-12, -8, width + 24, height + 16)
             layer.effect: MultiEffect { blurEnabled: true; blurMax: 24; blur: Math.min(1, (1 - titleItem.opacity) * 0.9) }
-            verticalAlignment: Text.AlignVCenter
             text: w.shownTitle
-            elide: Text.ElideRight
             color: w.fg
-            font.family: Fonts.forWeight(Font.DemiBold, w.fam)
-            font.pixelSize: (w.isSmall ? 21 : 24) * w.k
-            font.weight: Font.DemiBold
+            fam: Fonts.forWeight(Font.DemiBold, w.fam)
+            pixelSize: (w.isSmall ? 21 : 24) * w.k
+            weight: Font.DemiBold
+            fade: 20 * w.k
+            startPad: 17 * w.k
+            animate: !w.preview && w.playing
         }
 
         // ── subtitle: artist - album, scrolling when it does not fit ──
@@ -603,7 +616,8 @@ Item {
             radius: height / 2
             color: w.trackCol
             Rectangle {
-                width: w.hasPlayer && w.length > 0 ? Math.max(parent.height, parent.width * w.dispFrac) : 0
+                width: w.hasPlayer && w.length > 0 ? Math.max(parent.height, parent.width * w.dispFrac) : (w.live ? parent.width : 0)
+                opacity: w.live ? 0.35 : 1
                 height: parent.height
                 radius: height / 2
                 color: seekMa.pressed || seekMa.containsMouse ? w.fa(w.dark ? 0.78 : 0.66) : w.fillCol
@@ -642,7 +656,7 @@ Item {
             y: w.timeCY * w.k - height / 2
             height: 18 * w.k
             verticalAlignment: Text.AlignVCenter
-            text: w.hasPlayer ? w.fmt(w.shownPos) : ""
+            text: (w.hasPlayer && (w.length > 0 || w.shownPos >= 1)) ? w.fmt(w.shownPos) : ""
             color: w.fg2
             font.family: w.fam
             font.pixelSize: 13 * w.k
@@ -650,7 +664,7 @@ Item {
         }
         Text {
             id: timeR
-            visible: !w.isSmall && w.length > 0 && opacity > 0
+            visible: !w.isSmall && (w.length > 0 || w.live) && opacity > 0
             opacity: w.lyricsView ? 0 : 1
             Behavior on opacity { NumberAnimation { duration: 380; easing.type: Easing.OutCubic } }
             layer.enabled: opacity > 0 && opacity < 0.999
@@ -660,7 +674,7 @@ Item {
             y: w.timeCY * w.k - height / 2
             height: 18 * w.k
             verticalAlignment: Text.AlignVCenter
-            text: "\u2212" + w.fmt(Math.max(0, w.length - w.shownPos))
+            text: w.live ? "LIVE" : "\u2212" + w.fmt(Math.max(0, w.length - w.shownPos))
             color: w.fg2
             font.family: w.fam
             font.pixelSize: 13 * w.k

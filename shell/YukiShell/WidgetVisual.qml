@@ -1,11 +1,24 @@
 // One desktop widget's content (Weather / Calendar / Clock / Player). Used by MacWidgets.qml for the desktop layer and by
 // MacBar.qml to mirror the widgets into the Liquid Glass backdrop, so a menu refracts them together with the live windows.
 import QtQuick
+import Quickshell
 import Quickshell.Services.Mpris
 
 Item {
     id: v
     required property var host           // the MacWidgets instance (data, glass state, wallpaper lookup)
+
+    // the player's icon: its desktop entry, else its name ("chromium-browser" -> "chromium"); "" when the theme has none
+    function playerIcon(p) {
+        var d = p.desktopEntry || "", n = p.identity || "";
+        var c = [d, d.replace(/-browser$/, ""), n, n.toLowerCase(), n.toLowerCase().replace(/\s+/g, "-")];
+        for (var i = 0; i < c.length; i++) {
+            if (c[i] === "") continue;
+            var path = Quickshell.iconPath(c[i], true);
+            if (path !== "") return path;
+        }
+        return "";
+    }
     property string wtype: "weather"
     property string wstyle: "liquid"
     property string wsize: "small"
@@ -123,6 +136,8 @@ Item {
                 artist: host.player ? host.player.trackArtist : ""
                 album: host.player ? host.player.trackAlbum : ""
                 artUrl: host.player ? host.player.trackArtUrl : ""
+                appName: host.player ? host.player.identity : ""
+                appIcon: host.player ? v.playerIcon(host.player) : ""
                 playing: host.player ? host.player.isPlaying : false
                 shuffle: (host.player && host.player.shuffleSupported) ? host.player.shuffle : false
                 canShuffle: host.player !== null && host.player.shuffleSupported
