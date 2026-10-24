@@ -1850,6 +1850,7 @@ Scope {
                     t: pal
                     SRow {
                         t: pal
+                        visible: !root.bar || root.bar.hasBattery      // a desktop has no battery to show a percentage for
                         title: I18n.tr("Battery percentage")
                         SSwitch {
                             t: pal

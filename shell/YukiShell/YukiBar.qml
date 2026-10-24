@@ -6833,7 +6833,7 @@ Scope {
                                 id: wsa
                                 anchors.fill: parent
                                 hoverEnabled: true
-                                onClicked: { ui.pop = ""; root.openSettings("wifi"); }
+                                onClicked: { ui.pop = ""; root.openSettings(root.hasWifi ? "wifi" : "network"); }
                             }
                         }
                     }
@@ -7515,6 +7515,7 @@ Scope {
                             }
                             MouseArea {
                                 // only the arrow end opens the Wi-Fi page inside the Control Center; the rest of the tile switches Wi-Fi on / off
+                                enabled: root.hasWifi
                                 x: parent.width - 48; width: 48; height: parent.height
                                 onClicked: { root.wifiError = ""; root.scanWifi(); root.refreshConnections(); ui.ccPage = "wifi"; }
                             }
@@ -7553,6 +7554,7 @@ Scope {
                             }
                             MouseArea {
                                 visible: btTile.wide
+                                enabled: root.hasBt
                                 // only the arrow end opens the Bluetooth page inside the Control Center; the rest of the tile switches Bluetooth on / off
                                 x: parent.width - 48; width: 48; height: parent.height
                                 onClicked: { root.btError = ""; root.scanBt(); root.refreshBt(); ui.ccPage = "bt"; }
