@@ -35,3 +35,8 @@ hl.bind(mod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
 hl.bind(mod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
 hl.bind(mod .. " + mouse:272",  hl.dsp.window.drag(),   { mouse = true })
 hl.bind(mod .. " + mouse:273",  hl.dsp.window.resize(), { mouse = true })
+
+-- resize the focused window from the keyboard (hold to keep going); tiled windows move the split, floating ones grow/shrink
+for key, d in pairs({ left = { -40, 0 }, right = { 40, 0 }, up = { 0, -40 }, down = { 0, 40 } }) do
+    hl.bind(mod .. " + CTRL + " .. key, hl.dsp.window.resize({ x = d[1], y = d[2], relative = true }), { repeating = true })
+end

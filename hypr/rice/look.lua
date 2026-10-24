@@ -15,6 +15,13 @@ hl.config({
             inactive_border = c.muted,
         },
         resize_on_border = true,
+        extend_border_grab_area = 20,   -- easier to grab the edge of a window to resize it
+        snap = {                        -- floating windows snap to the screen edges and to each other while moving / resizing
+            enabled      = true,
+            window_gap   = 12,
+            monitor_gap  = 12,
+            respect_gaps = true,
+        },
         allow_tearing    = false,
         layout           = "dwindle",
     },
