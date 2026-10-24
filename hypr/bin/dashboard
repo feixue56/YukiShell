@@ -22,3 +22,6 @@ pre r; open dash-clock tty-clock -scb -C 5
 # fff exactly 1000 px wide (the clock window takes up the slack)
 read -r fff w < <(hyprctl -j clients | python3 -c 'import json,sys; c=next(c for c in json.load(sys.stdin) if c["class"]=="dash-fff"); print(c["address"], c["size"][0])')
 hyprctl dispatch "hl.dsp.window.resize({ x = $((1000 - w)), y = 0, relative = true, window = \"address:$fff\" })" >/dev/null
+# cava 100 px taller (the top row, fff + clock, gives up the same 100 px)
+cava=$(hyprctl -j clients | python3 -c 'import json,sys; print(next(c["address"] for c in json.load(sys.stdin) if c["class"]=="dash-cava"))')
+hyprctl dispatch "hl.dsp.window.resize({ x = 0, y = -100, relative = true, window = \"address:$cava\" })" >/dev/null
