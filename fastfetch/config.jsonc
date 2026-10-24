@@ -1,0 +1,90 @@
+{
+    "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+    "logo": {
+        "source": "/home/hiyuki/.config/fastfetch/Hiyuki funny.jpg",
+        "type": "auto",
+        "width": 30,
+        "height": 15,
+        "padding": {
+            "top": 1,
+            "left": 2,
+            "right": 4
+        }
+    },
+    "display": {
+        "separator": "  ",
+        "color": { "keys": "38;2;203;166;247", "title": "38;2;245;194;231" }
+    },
+    "modules": [
+        {
+            "key": "╭─────────────╮",
+            "type": "custom"
+        },
+        {
+            "key": "│ {#38;2;203;166;247} user      {#38;2;108;112;134}│",
+            "type": "title",
+            "format": "{user-name-colored}{at-symbol-colored}{host-name-colored}"
+        },
+        {
+            "key": "│ {#38;2;148;226;213} distro    {#38;2;108;112;134}│",
+            "type": "os"
+        },
+        {
+            "key": "│ {#38;2;245;194;231} kernel    {#38;2;108;112;134}│",
+            "type": "kernel"
+        },
+        {
+            "key": "│ {#38;2;249;226;175}󰅐 uptime    {#38;2;108;112;134}│",
+            "type": "uptime"
+        },
+        {
+            "key": "│ {#38;2;166;227;161} monitor   {#38;2;108;112;134}│",
+            "type": "monitor",
+            "format": "{name} {width}x{height}@{refresh-rate}"
+        },
+        {
+            "key": "│ {#38;2;203;166;247} wm        {#38;2;108;112;134}│",
+            "type": "wm"
+        },
+        {
+            "key": "│ {#38;2;203;166;247}𝄜 board     {#38;2;108;112;134}│",
+            "type": "board"
+        },
+        {
+            "key": "│ {#38;2;203;166;247} cpu       {#38;2;108;112;134}│",
+            "type": "cpu",
+            "format": "Intel(R) Core i3-12100F ({3}C/{4}T) @ {7}"
+        },
+        {
+            "key": "│ {#38;2;245;194;231}󰾲 gpu       {#38;2;108;112;134}│",
+            "type": "gpu",
+            "hideType": "integrated"
+        },
+        {
+            "key": "│ {#38;2;249;226;175} memory    {#38;2;108;112;134}│",
+            "type": "memory"
+        },
+        {
+            "key": "│ {#38;2;148;226;213}󰓡 swap      {#38;2;108;112;134}│",
+            "type": "swap"
+        },
+        {
+            "key": "│ {#38;2;166;227;161} disk      {#38;2;108;112;134}│",
+            "type": "disk",
+            "folders": "/"
+        },
+        {
+            "key": "├─────────────┤",
+            "type": "custom"
+        },
+        {
+            "key": "│ {#38;2;137;180;250} colors    {#38;2;108;112;134}│",
+            "type": "colors",
+            "symbol": "circle"
+        },
+        {
+            "key": "╰─────────────╯",
+            "type": "custom"
+        }
+    ]
+}

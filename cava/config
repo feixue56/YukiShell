@@ -1,0 +1,50 @@
+## CAVA Configuration (Optimized for 100Hz Smoothness & Aesthetics)
+
+[general]
+framerate = 100
+autosens = 1
+sensitivity = 100
+bars = 102
+bar_width = 1
+bar_spacing = 1
+center_align = 1
+lower_cutoff_freq = 50
+higher_cutoff_freq = 12000
+max_height = 100
+sleep_timer = 0
+waveform = 0
+
+[input]
+method = pipewire
+source = auto
+
+[output]
+method = noncurses
+orientation = bottom
+channels = stereo
+mono_option = average
+reverse = 0
+show_idle_bar_heads = 0
+
+[color]
+gradient = 1
+gradient_color_1 = '#89b4fa'
+gradient_color_2 = '#b4befe'
+gradient_color_3 = '#cba6f7'
+gradient_color_4 = '#d6a9f2'
+gradient_color_5 = '#f5c2e7'
+gradient_color_6 = '#f2a6c8'
+gradient_color_7 = '#f38ba8'
+gradient_color_8 = '#fab387'
+
+[smoothing]
+monstercat = 0
+waves = 0
+noise_reduction = 86
+
+[eq]
+1 = 1.0
+2 = 1.0
+3 = 1.0
+4 = 1.0
+5 = 1.0
