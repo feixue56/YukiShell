@@ -10,3 +10,10 @@ tweaks already applied. They run as `qs -c YukiShell` / `qs -c YukiLock`, starte
 `hypr/rice/shell.lua`. Nothing here depends on MacShell's `install.sh` or `macshell-update`, and they never touch it.
 MacShell's data files (`~/.config/macbar`, `macdock`, `macshell`) are still shared, since the QML reads those paths.
 Env overrides: `~/.config/hypr-rice/env`. Log: `~/.local/state/hypr-rice/YukiShell.log`.
+
+## Multi-language typing
+
+`hypr/rice/ime.lua` starts **fcitx5** with the session and exports the input-method variables; `chromium/chromium-flags.conf`
+lets Chromium use it on Wayland. Your fcitx5 setup (Vietnamese Bamboo, Pinyin) lives in `~/.config/fcitx5`.
+**Ctrl+Space** switches the input method on and off (Telex: `chaof` → `chào`). Apps that were already running when fcitx5
+was added need a restart.
