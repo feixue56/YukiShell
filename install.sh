@@ -30,7 +30,7 @@ if [ -f "$lua" ] && ! grep -q 'rice.theme\|"rice\.' "$lua"; then
     cp "$lua" "$lua.pre-rice"
     { cat <<'LUA'
 -- Rice (managed by ~/hypr-rice)
-for _, m in ipairs({ "look", "input", "binds", "rules" }) do
+for _, m in ipairs({ "monitor", "look", "input", "binds", "rules" }) do
     local ok, err = pcall(require, "rice." .. m)
     if not ok then hl.exec_cmd("notify-send 'Hyprland rice' 'rice." .. m .. " failed: " .. tostring(err):gsub("'", "") .. "'") end
 end
