@@ -62,13 +62,14 @@ hl.curve("smooth",  { type = "bezier", points = { {0.22, 1},   {0.36, 1}   } })
 hl.curve("snap",    { type = "bezier", points = { {0.16, 1},   {0.3, 1}    } })
 hl.curve("linear",  { type = "bezier", points = { {0, 0},      {1, 1}      } })
 hl.curve("bounce",  { type = "spring", mass = 1, stiffness = 140, dampening = 17 })
+hl.curve("glide",   { type = "spring", mass = 1, stiffness = 170, dampening = 26 }) -- critically damped: resizes/moves never overshoot, so app contents never lag behind the frame
 hl.curve("pop",     { type = "spring", mass = 1, stiffness = 190, dampening = 21 }) -- open: fast, one soft overshoot
 hl.curve("fadeIO",  { type = "bezier", points = { {0.25, 0.1}, {0.25, 1} } })
 hl.curve("exit",    { type = "bezier", points = { {0.4, 0},    {1, 1}    } })
 
 hl.config({ animations = { enabled = true } })
 hl.animation({ leaf = "global",        enabled = true, speed = 10,  bezier = "smooth" })
-hl.animation({ leaf = "windows",       enabled = true, speed = 5.5, spring = "bounce" })
+hl.animation({ leaf = "windows",       enabled = true, speed = 5.5, spring = "glide" })
 hl.animation({ leaf = "windowsIn",     enabled = true, speed = 5.5, spring = "pop", style = "popin 72%" })
 hl.animation({ leaf = "windowsOut",    enabled = true, speed = 3.2, bezier = "exit", style = "popin 92%" })
 hl.animation({ leaf = "fadeIn",        enabled = true, speed = 3.6, bezier = "fadeIO" })
