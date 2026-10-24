@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# yuki-brightness get | set <0-100> | step <+N|-N>
+# yuki-brightness get | set <0-100> | sync <0-100> | step <+N|-N>
 # Laptop backlight -> brightnessctl (backlight class only, never the LAN/keyboard LEDs).
 # External monitor -> DDC/CI through ddcutil (VCP 0x10). ddcutil is slow (~0.3-1 s per call), so the last value is cached
 # for 30 s and writes are serialised with flock; the shell sends the newest slider value as soon as the previous write ends.
@@ -27,10 +27,28 @@ set_() {  # set_ <pct>
     flock "$lock" sh -c 'ddcutil --bus "$1" --noverify --skip-ddc-checks --sleep-multiplier 0.1 setvcp 10 "$2" || ddcutil --bus "$1" --noverify setvcp 10 "$2"' _ "$b" "$p" >/dev/null 2>&1
 }
 
+sync_() {  # sync_ <pct>: make the monitor really read <pct>. Fast writes can be dropped silently (exit 0, nothing happens),
+           # so after a burst read the real value back and rewrite until it matches (max 4 tries); the cache gets the truth.
+    local p=$1; [ "$p" -lt 1 ] && p=1; [ "$p" -gt 100 ] && p=100
+    if [ -n "$(backlight)" ]; then return 0; fi
+    local b; b=$(bus); [ -n "$b" ] || return 1
+    exec 9>"$lock"; flock 9
+    local cur="" i
+    for i in 1 2 3 4; do
+        cur=$(ddcutil --bus "$b" getvcp 10 --brief 2>/dev/null | awk '$1=="VCP" && $3=="C" { print $4; exit }')
+        [ "$cur" = "$p" ] && break
+        ddcutil --bus "$b" --sleep-multiplier 0.5 setvcp 10 "$p" >/dev/null 2>&1      # verified write, normal pacing
+        sleep 0.12
+    done
+    [ -n "$cur" ] && echo "$cur" > "$cache"
+    [ "$cur" = "$p" ]
+}
+
 case "${1:-get}" in
     get)  get ;;
     getm) v=$(get) && echo "yuki,monitor,$v,${v}%" ;;          # brightnessctl -m shaped, for the shell
     set)  set_ "$2" ;;
+    sync) sync_ "$2" ;;
     step) cur=$(get) || exit 1; set_ $(( cur + $2 )) ;;
-    *)    echo "usage: yuki-brightness get|set N|step +N|-N" >&2; exit 2 ;;
+    *)    echo "usage: yuki-brightness get|set N|sync N|step +N|-N" >&2; exit 2 ;;
 esac

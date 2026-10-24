@@ -2334,7 +2334,7 @@ Scope {
 
     // brightness
     property real brightness: 0.5
-    function refreshBrightness() { if (brightProc.running || brightWrite.running || brightDirty || Date.now() - brightTouched < 2500) return; brightProc.running = true; }
+    function refreshBrightness() { if (brightProc.running || brightWrite.running || brightSync.running || brightSettle.running || brightDirty || Date.now() - brightTouched < 2500) return; brightProc.running = true; }
     Process {
         id: brightProc
         command: ["sh", "-c", "yuki-brightness getm 2>/dev/null || brightnessctl -c backlight -m 2>/dev/null | head -n1"]
@@ -2363,7 +2363,22 @@ Scope {
         brightWrite.command = ["yuki-brightness", "set", String(want)];
         brightWrite.running = true;
     }
-    function brightUser() { brightTouched = Date.now(); brightFlush(); }
+    function brightUser() { brightTouched = Date.now(); brightFlush(); brightSettle.restart(); }
+    // The monitor can silently drop a write that arrives too quickly after the previous one, so the slider (our intent) and the
+    // screen disagree. Once the user has stopped, read the real value back and rewrite until it matches; the result is the truth.
+    Timer {
+        id: brightSettle
+        interval: 350
+        onTriggered: {
+            if (brightWrite.running || brightDirty) { restart(); return; }
+            brightSync.command = ["yuki-brightness", "sync", String(Math.max(1, Math.round(root.brightness * 100)))];
+            brightSync.running = true;
+        }
+    }
+    Process {
+        id: brightSync
+        onRunningChanged: if (!running) { root.brightTouched = Date.now() - 2600; root.refreshBrightness(); }   // show what the monitor really has
+    }
     function setBrightness(v) { osdQuiet("brightness", 1800); brightness = Math.max(0.01, Math.min(1, v)); brightUser(); }
     onBrightnessChanged: showOsd("brightness", brightness)
     // hardware keys: like the sliders, but the on-screen display is shown (no quiet window)
