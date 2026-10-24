@@ -152,6 +152,7 @@ Item {
                 darkGlass: host.darkGlass
                 editing: host.editing
                 onSeek: seconds => { if (host.player && host.player.canSeek) host.player.position = seconds; }
+                onRaiseRequested: { if (host.player && host.player.canRaise) host.player.raise(); }
                 onTogglePlaying: { if (host.player && host.player.canTogglePlaying) host.player.togglePlaying(); }
                 onNextTrack: { if (host.player && host.player.canGoNext) host.player.next(); }
                 onPreviousTrack: { if (host.player && host.player.canGoPrevious) host.player.previous(); }

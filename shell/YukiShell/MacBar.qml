@@ -2040,14 +2040,8 @@ Scope {
                                                      || bat.state === UPowerDeviceState.FullyCharged)
 
     // media
-    readonly property var player: {
-        var ps = Mpris.players.values, best = null;
-        for (var i = 0; i < ps.length; i++) {
-            if (ps[i].isPlaying) return ps[i];
-            if (!best) best = ps[i];
-        }
-        return best;
-    }
+    PlayerPicker { id: playerPick }
+    readonly property var player: playerPick.player
 
     // wifi
     property bool wifiOn: true

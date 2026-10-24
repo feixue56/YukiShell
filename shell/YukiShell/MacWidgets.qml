@@ -326,15 +326,9 @@ Scope {
     Timer { id: saveTimer; interval: 400; onTriggered: root.saveSettings() }
 
     // ───────────── music player (MPRIS) ─────────────
-    // the player that is playing, otherwise the first one (same rule as the Menu Bar's media widget)
-    readonly property var player: {
-        var ps = Mpris.players.values, best = null;
-        for (var i = 0; i < ps.length; i++) {
-            if (ps[i].isPlaying) return ps[i];
-            if (!best) best = ps[i];
-        }
-        return best;
-    }
+    // which player to show: see PlayerPicker.qml (same rule as the Menu Bar's media widget)
+    PlayerPicker { id: playerPick }
+    readonly property var player: playerPick.player
     // MPRIS does not announce the playback position; ask for it once a second while something plays and a Player widget exists
     Timer {
         interval: root.lyricsWanted ? 250 : 1000        // quicker while lyrics are open, so lines change on time

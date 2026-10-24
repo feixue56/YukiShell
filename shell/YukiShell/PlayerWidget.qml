@@ -55,6 +55,7 @@ Item {
     signal lyricsToggled(bool on)
 
     signal seek(real seconds)
+    signal raiseRequested()                  // click on the artwork: bring the player's window forward
     signal togglePlaying()
     signal nextTrack()
     signal previousTrack()
@@ -346,7 +347,29 @@ Item {
     readonly property real shownFrac: seekShown ? seekFrac : progress
     readonly property real shownPos: seekShown ? seekFrac * length : position
     Timer { id: seekHoldTimer; interval: 900; onTriggered: w.seekHold = false }
-    readonly property string shownTitle: hasPlayer ? (title !== "" ? title : I18n.tr("Unknown Title")) : I18n.tr("Not Playing")
+    // The player only reports its position about once a second, so the bar is glided between two reports (linear, same speed
+    // as the song) instead of stepping. Seeks, pauses, a new song and dragging move it straight away.
+    property real dispFrac: 0
+    onShownFracChanged: {
+        var d = shownFrac - dispFrac;
+        if (playing && !seekShown && length > 0 && d > 0 && d * length < 2.5) {
+            fracAnim.stop();
+            fracAnim.from = dispFrac;
+            fracAnim.to = shownFrac;
+            fracAnim.duration = Math.max(120, Math.min(1100, d * length * 1000 * 1.05));
+            fracAnim.start();
+        } else {
+            fracAnim.stop();
+            dispFrac = shownFrac;
+        }
+    }
+    onPlayingChanged: if (!playing) { fracAnim.stop(); dispFrac = shownFrac; }
+    NumberAnimation { id: fracAnim; target: w; property: "dispFrac"; easing.type: Easing.Linear }
+    // Browsers report the tab title: drop the unread-count prefix "(3) " and the site suffix " - YouTube" / " - Chromium"
+    function cleanTitle(t) {
+        return t.replace(/^\(\d+\)\s+/, "").replace(/\s+[-\u2013\u2014|]\s+(YouTube( Music)?|Chromium|Google Chrome|Brave|Mozilla Firefox|Firefox|Vivaldi|Opera|Microsoft Edge)$/, "");
+    }
+    readonly property string shownTitle: hasPlayer ? (title !== "" ? cleanTitle(title) : I18n.tr("Unknown Title")) : I18n.tr("Not Playing")
     readonly property string shownSub: hasPlayer ? (artist !== "" ? (album !== "" ? artist + " \u2014 " + album : artist) : album)
                                                  : "Open a music app"
 
@@ -388,6 +411,14 @@ Item {
             layer.enabled: opacity > 0 && opacity < 0.999
             layer.sourceRect: Qt.rect(-16, -16, width + 32, height + 32)
             layer.effect: MultiEffect { blurEnabled: true; blurMax: 32; blur: Math.min(1, (1 - artItem.opacity) * 0.9) }
+        }
+
+        // click the artwork: bring the player (browser tab, Spotify, ...) to the front
+        MouseArea {
+            x: artItem.x; y: artItem.y; width: artItem.width; height: artItem.height
+            enabled: w.hasPlayer && !w.preview && !w.editing && !w.lyricsView
+            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+            onClicked: w.raiseRequested()
         }
 
         // ── title ──
@@ -572,7 +603,7 @@ Item {
             radius: height / 2
             color: w.trackCol
             Rectangle {
-                width: w.hasPlayer && w.length > 0 ? Math.max(parent.height, parent.width * w.shownFrac) : 0
+                width: w.hasPlayer && w.length > 0 ? Math.max(parent.height, parent.width * w.dispFrac) : 0
                 height: parent.height
                 radius: height / 2
                 color: seekMa.pressed || seekMa.containsMouse ? w.fa(w.dark ? 0.78 : 0.66) : w.fillCol
