@@ -789,9 +789,8 @@ Scope {
                 var sel = 'window = "title:^(' + prefsWindow.title + ')$"';
                 Hyprland.dispatch('hl.dsp.window.float({ action = "enable", ' + sel + ' })');
                 Hyprland.dispatch('hl.dsp.window.fullscreen({ mode = "maximized", action = "unset", ' + sel + ' })');
-                // the window draws its own macOS-style edge: no Hyprland border, and Hyprland's rounding (used for its
+                // Hyprland draws the focus border (active/inactive colours, like every other window); its rounding (used for its
                 // shadow and the blur behind the sidebar) matches the window's own corner radius
-                Hyprland.dispatch('hl.dsp.window.set_prop({ prop = "border_size", value = "0", ' + sel + ' })');
                 Hyprland.dispatch('hl.dsp.window.set_prop({ prop = "rounding", value = "' + Math.round(frame.radius * root.uiS) + '", ' + sel + ' })');
                 // Hyprland can remember an older floating size; reapply the compact size after mapping.
                 if (prefsWindow.floatTries >= 2) {

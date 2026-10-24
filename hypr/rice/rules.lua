@@ -34,5 +34,4 @@ hl.window_rule({
     float = true,
     center = true,
     size = "800 880",
-    border_size = 0,
 })
