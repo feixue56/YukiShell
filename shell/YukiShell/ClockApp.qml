@@ -70,11 +70,11 @@ Scope {
     function repeatText(days) {
         if (!days || days.length === 0) return "";
         var d = days.slice().sort();
-        if (d.length === 7) return "every day";
-        if (d.join() === "1,2,3,4,5") return "weekdays";
-        if (d.join() === "0,6") return "weekends";
+        if (d.length === 7) return I18n.tr("every day");
+        if (d.join() === "1,2,3,4,5") return I18n.tr("weekdays");
+        if (d.join() === "0,6") return I18n.tr("weekends");
         var n = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-        return d.map(function (i) { return n[i]; }).join(", ");
+        return d.map(function (i) { return I18n.tr(n[i]); }).join(", ");
     }
 
     // ── persistence ──
@@ -182,9 +182,9 @@ Scope {
         var off = tzOff[tz]; if (off === undefined) off = localOff;
         var c = cityDate(tz), l = new Date(nowMs);
         var dd = Math.round((new Date(c.getFullYear(), c.getMonth(), c.getDate()) - new Date(l.getFullYear(), l.getMonth(), l.getDate())) / 86400000);
-        var day = dd === 0 ? "Today" : (dd > 0 ? "Tomorrow" : "Yesterday");
+        var day = dd === 0 ? I18n.tr("Today") : (dd > 0 ? I18n.tr("Tomorrow") : I18n.tr("Yesterday"));
         var diff = (off - localOff) / 60, hrs = Math.abs(diff);
-        var hs = (hrs % 1 === 0 ? hrs : hrs.toFixed(1)) + (hrs === 1 ? "HR" : "HRS");
+        var hs = (hrs % 1 === 0 ? hrs : hrs.toFixed(1)) + (hrs === 1 ? I18n.tr("HR") : I18n.tr("HRS"));
         return day + ", " + (diff >= 0 ? "+" : "-") + hs;
     }
     readonly property var cityChoices: [
@@ -556,7 +556,7 @@ Scope {
                             Column {
                                 y: 148; width: parent.width
                                 spacing: 2
-                                Text { anchors.horizontalCenter: parent.horizontalCenter; text: cc.modelData.name; color: pal.text; font.family: Fonts.forWeight(Font.DemiBold, root.fam); font.pixelSize: 15; font.weight: Font.DemiBold }
+                                Text { anchors.horizontalCenter: parent.horizontalCenter; text: I18n.tr(cc.modelData.name); color: pal.text; font.family: Fonts.forWeight(Font.DemiBold, root.fam); font.pixelSize: 15; font.weight: Font.DemiBold }
                                 Text { anchors.horizontalCenter: parent.horizontalCenter; text: root.cityDayText(cc.modelData.tz); color: pal.text2; font.family: root.fam; font.pixelSize: 11 }
                                 Text { anchors.horizontalCenter: parent.horizontalCenter; text: root.fmtHM(cc.d.getHours(), cc.d.getMinutes()) + (root.use24h ? "" : " " + root.ampm(cc.d.getHours())); color: pal.text2; font.family: root.fam; font.pixelSize: 13 }
                             }
@@ -972,7 +972,7 @@ Scope {
                         required property var modelData
                         width: ListView.view.width; height: 32; radius: 6
                         color: cma2.containsMouse ? root.accent : "transparent"
-                        Text { x: 12; anchors.verticalCenter: parent.verticalCenter; text: parent.modelData[0]; color: cma2.containsMouse ? "white" : pal.text; font.family: root.fam; font.pixelSize: 13 }
+                        Text { x: 12; anchors.verticalCenter: parent.verticalCenter; text: I18n.tr(parent.modelData[0]); color: cma2.containsMouse ? "white" : pal.text; font.family: root.fam; font.pixelSize: 13 }
                         MouseArea { id: cma2; anchors.fill: parent; hoverEnabled: true; onClicked: { root.addCity(parent.modelData[0], parent.modelData[1]); win.sheet = ""; } }
                     }
                 }

@@ -1407,17 +1407,46 @@ Scope {
 
                 SCard {
                     t: pal
-                    SRow {
-                        t: pal
-                        title: I18n.tr("Language")
-                        subtitle: I18n.tr("Automatic follows the system language")
-                        SSegmented {
-                            t: pal
-                            readonly property var codes: ["auto", "en", "ru"]
-                            model: ["Automatic", "English", "Русский"]
-                            segWidth: 96
-                            current: codes.indexOf(root.bar ? root.bar.language : "auto")
-                            onPicked: i => { if (root.bar) root.bar.language = codes[i]; }
+                    id: langCard
+                    readonly property string current: root.bar ? root.bar.language : "auto"
+                    // Automatic first, then every language that has a table in lang/ (see I18n.js)
+                    readonly property var options: [{ code: "auto", name: "", english: "" }].concat(I18n.languages)
+                    Repeater {
+                        model: langCard.options
+                        delegate: Item {
+                            id: lr
+                            required property var modelData
+                            required property int index
+                            readonly property bool picked: langCard.current === modelData.code
+                            width: parent.width; height: 48
+                            Rectangle { visible: lr.index > 0; x: 14; width: parent.width - 14; height: 1; color: pal.sep }
+                            Rectangle { anchors.fill: parent; color: pal.text; opacity: lrMa.pressed ? 0.08 : (lrMa.containsMouse ? 0.04 : 0) }
+                            Column {
+                                x: 14; anchors.verticalCenter: parent.verticalCenter
+                                width: parent.width - 28 - 30
+                                spacing: 2
+                                Text {
+                                    width: parent.width; elide: Text.ElideRight
+                                    text: lr.modelData.code === "auto" ? I18n.tr("Automatic") : lr.modelData.name
+                                    color: pal.text; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 13
+                                }
+                                Text {
+                                    width: parent.width; elide: Text.ElideRight
+                                    text: lr.modelData.code === "auto" ? I18n.tr("Automatic follows the system language") : lr.modelData.english
+                                    color: pal.text2; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12
+                                }
+                            }
+                            Text {
+                                visible: lr.picked
+                                anchors.right: parent.right; anchors.rightMargin: 16; anchors.verticalCenter: parent.verticalCenter
+                                text: "\u2713"; color: pal.accent
+                                font.pixelSize: 16; font.weight: Font.DemiBold
+                            }
+                            MouseArea {
+                                id: lrMa
+                                anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                                onClicked: { if (root.bar) root.bar.language = lr.modelData.code; }
+                            }
                         }
                     }
                 }
@@ -3523,9 +3552,9 @@ Scope {
                         title: I18n.tr("Appearance")
                         subtitle: {
                             var a = root.bar ? root.bar.wallpaperAppearance : "auto";
-                            return a === "auto" ? "Follows Light / Dark Mode"
-                                 : a === "dynamic" ? "Changes through the day: light by day, dark at night, blending at sunrise and sunset"
-                                 : a === "light" ? "Always the light version" : "Always the dark version";
+                            return a === "auto" ? I18n.tr("Follows Light / Dark Mode")
+                                 : a === "dynamic" ? I18n.tr("Changes through the day: light by day, dark at night, blending at sunrise and sunset")
+                                 : a === "light" ? I18n.tr("Always the light version") : I18n.tr("Always the dark version");
                         }
                         SSegmented {
                             t: pal
@@ -3735,7 +3764,7 @@ Scope {
                     t: pal
                     visible: wpPane.shown.length === 0
                     text: wpPane.searchText.trim() !== "" ? I18n.tr("No wallpapers match “") + wpPane.searchText + "”."
-                        : wpPane.filter === 2 ? "No animated wallpapers yet. Drop .mp4 / .webm videos into " + (root.bar ? root.bar.wpDirEff : "~/Pictures/Wallpapers") + "."
+                        : wpPane.filter === 2 ? I18n.tr("No animated wallpapers yet. Drop .mp4 / .webm videos into ") + (root.bar ? root.bar.wpDirEff : "~/Pictures/Wallpapers") + "."
                                               : I18n.tr("Nothing here yet.")
                 }
                 SLabel { t: pal; text: I18n.tr("Tip: Ctrl+Alt+W opens the quick wallpaper picker, which shows animated wallpapers too.") }

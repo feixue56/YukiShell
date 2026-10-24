@@ -1608,7 +1608,7 @@ Scope {
 
         readonly property string agoText: {
             var m = Math.floor((nb.nowMs - nb.stamp) / 60000);
-            return m < 1 ? "now" : (m < 60 ? m + "m ago" : (m < 1440 ? Math.floor(m / 60) + "h ago" : Math.floor(m / 1440) + "d ago"));
+            return m < 1 ? I18n.tr("now") : (m < 60 ? m + I18n.tr("m ago") : (m < 1440 ? Math.floor(m / 60) + I18n.tr("h ago") : Math.floor(m / 1440) + I18n.tr("d ago")));
         }
 
         Item {
@@ -2053,9 +2053,9 @@ Scope {
     }
     function nmErr(t) {
         var s = (t || "").trim().split("\n")[0].replace(/^Error:\s*/, "");
-        if (/secrets were required|no secrets|password/i.test(s)) return "Incorrect password.";
-        if (/no network with ssid|not found/i.test(s)) return "Network not found.";
-        return s !== "" ? s : "Couldn't join the network.";
+        if (/secrets were required|no secrets|password/i.test(s)) return I18n.tr("Incorrect password.");
+        if (/no network with ssid|not found/i.test(s)) return I18n.tr("Network not found.");
+        return s !== "" ? s : I18n.tr("Couldn't join the network.");
     }
     function scanWifi() {
         if (wifiListProc.running) return;
@@ -2114,7 +2114,7 @@ Scope {
         stderr: StdioCollector { onStreamFinished: if (text.trim() !== "") root.wifiError = root.nmErr(text) }
         onExited: (code, status) => {
             root.wifiBusy = "";
-            if (code !== 0 && root.wifiError === "") root.wifiError = "Couldn't join the network.";
+            if (code !== 0 && root.wifiError === "") root.wifiError = I18n.tr("Couldn't join the network.");
             if (code === 0) root.wifiError = "";
             wifiAfter.restart();
         }
@@ -2261,7 +2261,7 @@ Scope {
         stderr: StdioCollector { onStreamFinished: if (text.trim() !== "") root.btError = text.trim(); }
         onExited: (code, status) => {
             root.btBusy = "";
-            if (code !== 0 && root.btError === "") root.btError = "Failed to connect to device.";
+            if (code !== 0 && root.btError === "") root.btError = I18n.tr("Failed to connect to device.");
             btAfter.restart();
         }
     }
@@ -2490,7 +2490,7 @@ Scope {
             var s = g.source, t = g.target;
             if (!s || !t || s.type === undefined) continue;
             var tp = t.properties || {}, sp = s.properties || {};
-            var who = String(tp["application.name"] || tp["node.description"] || t.description || tp["node.name"] || t.name || "An app")
+            var who = String(tp["application.name"] || tp["node.description"] || t.description || tp["node.name"] || t.name || I18n.tr("An app"))
                 .replace(/\s+(input|output)$/i, "");
             if ((t.type & PwNodeType.AudioInStream) === PwNodeType.AudioInStream) {
                 // an app is recording from a real source (a monitor of a sink is "listening to the computer", not a microphone)
@@ -2833,8 +2833,8 @@ Scope {
         var tm = Qt.formatDateTime(d, root.use24h ? "HH:mm" : "h:mm ap");
         var today = new Date(n.getFullYear(), n.getMonth(), n.getDate()).getTime();
         var day = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-        if (day === today) return "Copied " + tm;
-        if (day === today - 86400000) return "Copied Yesterday, " + tm;
+        if (day === today) return I18n.tr("Copied ") + tm;
+        if (day === today - 86400000) return I18n.tr("Copied Yesterday, ") + tm;
         return I18n.tr("Copied ") + I18n.locale().toString(d, "d MMM") + ", " + tm;
     }
     function clipEntry(id, txt, ts) {
@@ -2842,8 +2842,8 @@ Scope {
         var m = /^\[\[ binary data ([\d.]+ \w+) (\w+) (\d+x\d+) \]\]$/.exec(txt);
         if (m) {
             en.kind = "image";
-            en.title = "Image " + m[3].replace("x", "\u00D7");
-            en.label = "Image \u2022 " + m[2].toUpperCase() + " \u2022 " + m[1];
+            en.title = I18n.tr("Image") + " " + m[3].replace("x", "\u00D7");
+            en.label = I18n.tr("Image") + " \u2022 " + m[2].toUpperCase() + " \u2022 " + m[1];
             en.thumb = "file://" + clipDir + "/clip/" + id + ".img";
         } else if (/^(https?|ftp):\/\/\S+$/i.test(txt) || /^www\.\S+\.\S+$/i.test(txt)) {
             en.kind = "url";
@@ -3219,7 +3219,7 @@ Scope {
                     m.push(mi("Show Hidden Windows", "", disp('hl.dsp.workspace.toggle_special("hidden")')));
                     m.push(msep());
                     m.push(mi(I18n.tr("Quit ") + n, "Ctrl+Q", function () { root.quitActive(); }));
-                    m.push(mc("Force Quit " + n, function () { root.forceQuitActive(aw); }));
+                    m.push(mc(I18n.tr("Force Quit ") + n, function () { root.forceQuitActive(aw); }));
                 }
             } else if (name === "file") {
                 if (!has) {
@@ -8533,9 +8533,9 @@ Scope {
                         verticalAlignment: Text.AlignVCenter
                         elide: Text.ElideRight
                         text: root.wpStatus !== "" ? root.wpStatus
-                              : (root.wpShown.length + (root.wpShown.length === 1 ? " image" : " images")
-                                 + ((root.wallpaperFavs || []).length > 0 ? "  \u00b7  \u2605 first" : "")
-                                 + "  \u00b7  Type to search, Enter apply, Space favourite")
+                              : (root.wpShown.length + (root.wpShown.length === 1 ? I18n.tr(" image") : I18n.tr(" images"))
+                                 + ((root.wallpaperFavs || []).length > 0 ? I18n.tr("  \u00b7  \u2605 first") : "")
+                                 + I18n.tr("  \u00b7  Type to search, Enter apply, Space favourite"))
                         color: pal.fg3
                         font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 11
                     }
@@ -9258,13 +9258,13 @@ Scope {
                         readonly property var items: ui.spMode === "clip" ? ui.spResults : []
                         readonly property int rowH: 56
                         readonly property int shown: Math.min(items.length, 7)
-                        readonly property string emptyTitle: root.clipState === "missing" ? "Clipboard history isn't set up"
-                            : (!root.clipHistory ? "Clipboard history is off"
-                            : (root.clipLoading && root.clipEntries.length === 0 ? "Loading\u2026"
-                            : (ui.spQuery.trim() !== "" ? "No Results" : "Nothing copied yet")))
-                        readonly property string emptySub: root.clipState === "missing" ? "Install cliphist and wl-clipboard, then open this tab again"
-                            : (!root.clipHistory ? "Turn it on in System Settings \u2192 Menu Bar"
-                            : (ui.spQuery.trim() === "" && !root.clipLoading ? "Copy some text or an image and it will show up here" : ""))
+                        readonly property string emptyTitle: root.clipState === "missing" ? I18n.tr("Clipboard history isn't set up")
+                            : (!root.clipHistory ? I18n.tr("Clipboard history is off")
+                            : (root.clipLoading && root.clipEntries.length === 0 ? I18n.tr("Loading\u2026")
+                            : (ui.spQuery.trim() !== "" ? I18n.tr("No Results") : I18n.tr("Nothing copied yet"))))
+                        readonly property string emptySub: root.clipState === "missing" ? I18n.tr("Install cliphist and wl-clipboard, then open this tab again")
+                            : (!root.clipHistory ? I18n.tr("Turn it on in System Settings \u2192 Menu Bar")
+                            : (ui.spQuery.trim() === "" && !root.clipLoading ? I18n.tr("Copy some text or an image and it will show up here") : ""))
                         height: 64 + (items.length > 0 ? shown * rowH + 14 : 118)
                         Behavior on height { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
                         GGlass { anchors.fill: parent; gx: spg; cornerR: 32; thickness: 34; strengthMul: 1.0; shadowAmt: 0.22 }
@@ -9508,8 +9508,8 @@ Scope {
                                             x: 38
                                             anchors.verticalCenter: parent.verticalCenter
                                             text: cm.modelData === "auto" ? I18n.tr("Paste Automatically")
-                                                  : (cm.modelData === "del" ? "Delete Selected"
-                                                  : (cm.armedNow ? "Click again to confirm" : "Clear History"))
+                                                  : (cm.modelData === "del" ? I18n.tr("Delete Selected")
+                                                  : (cm.armedNow ? I18n.tr("Click again to confirm") : I18n.tr("Clear History")))
                                             color: cmMa.containsMouse ? "white" : ((cm.modelData === "clear") ? "#FF453A" : panelPal.fg)
                                             font.family: root.fontForWeight(Font.Normal, panelPal.fam); font.pixelSize: 14
                                         }

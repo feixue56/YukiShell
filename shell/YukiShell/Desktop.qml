@@ -310,7 +310,7 @@ Scope {
                                 Text {
                                     visible: !mrow.sep
                                     x: 16; anchors.verticalCenter: parent.verticalCenter
-                                    text: mrow.modelData.t
+                                    text: I18n.tr(mrow.modelData.t)
                                     color: mMa.containsMouse ? "white"
                                            : (mrow.modelData.danger ? "#FF453A" : (dctx.app.darkMode ? "#F5F5F7" : "#1D1D1F"))
                                     font.family: dctx.app.fam; font.pixelSize: 13

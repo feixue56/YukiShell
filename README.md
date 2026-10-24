@@ -65,6 +65,18 @@ lets Chromium use it on Wayland. The fcitx5 profile (Vietnamese Bamboo, Pinyin) 
 **Ctrl+Space** switches the input method on and off (Telex: `chaof` → `chào`). Apps that were already running when fcitx5
 was added need a restart.
 
+## Interface language
+
+**System Settings → General → Language** switches the whole shell (menu bar, Dock, Spotlight, Control Center, Settings, the
+widgets and the lock screen) live, no restart: English, 简体中文, 繁體中文, 日本語, 한국어, Tiếng Việt and Русский, or
+*Automatic* to follow `LANG`. Dates, day and month names follow the chosen language too. Anything without a translation
+falls back to English.
+
+The tables are `shell/YukiShell/lang/<code>.js` (keys are the English texts used in the QML) plus a small block per language in
+`shell/YukiLock/I18n.js`. To add a language, copy `lang/vi.js`, translate the values, and register it in `dicts` and
+`languages` in `shell/YukiShell/I18n.js`. Typing in Japanese, Korean or Traditional Chinese needs the matching fcitx5 input
+method (`fcitx5-mozc`, `fcitx5-hangul`, `fcitx5-chewing`); the profile only ships Bamboo and Pinyin.
+
 ## Layout
 
 | Path | What |

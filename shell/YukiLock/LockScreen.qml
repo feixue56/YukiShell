@@ -296,8 +296,8 @@ Item {
     function fmtDur(ms) { var s = Math.ceil(ms / 1000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60); return (h > 0 ? h + ":" + pad2(m) : pad2(m)) + ":" + pad2(s % 60); }
     function notifAge(t) {
         var d = Math.floor((nowMs2 - t) / 60000);
-        if (d < 1) return "now";
-        if (d < 60) return d + "m ago";
+        if (d < 1) return I18n.tr("now");
+        if (d < 60) return d + I18n.tr("m ago");
         var dt = new Date(t);
         return ls.st.use24h ? pad2(dt.getHours()) + ":" + pad2(dt.getMinutes()) : Qt.formatTime(dt, "h:mm AP");
     }
@@ -375,7 +375,7 @@ Item {
                         required property string modelData
                         width: (liveCard.width - 40 * ls.u) / (ls.clockSt.ringing.kind === "timer" ? 1 : 2); height: 30 * ls.u; radius: height / 2
                         color: modelData === "Stop" ? "#FF9F0A" : Qt.rgba(1, 1, 1, ringBtn.pressed ? 0.32 : 0.2)
-                        Text { anchors.centerIn: parent; text: parent.modelData; color: parent.modelData === "Stop" ? "black" : "white"; font.family: ls.fam; font.pixelSize: 13 * ls.u; font.weight: Font.DemiBold }
+                        Text { anchors.centerIn: parent; text: I18n.tr(parent.modelData); color: parent.modelData === "Stop" ? "black" : "white"; font.family: ls.fam; font.pixelSize: 13 * ls.u; font.weight: Font.DemiBold }
                         MouseArea { id: ringBtn; anchors.fill: parent; onClicked: Quickshell.execDetached(["qs", "-c", "YukiShell", "ipc", "call", "clock", parent.modelData === "Stop" ? "stop" : "snooze"]) }
                     }
                 }
@@ -480,7 +480,7 @@ Item {
             width: parent.width; height: 26 * ls.u
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter; anchors.verticalCenter: parent.verticalCenter
-                text: (ls.lockNotifs.length - 4) + I18n.tr(" more notification") + (ls.lockNotifs.length - 4 === 1 ? "" : "s")
+                text: (ls.lockNotifs.length - 4) + (ls.lockNotifs.length - 4 === 1 ? I18n.tr(" more notification") : I18n.tr(" more notifications"))
                 color: Qt.rgba(1, 1, 1, 0.75); font.family: ls.fam; font.pixelSize: 12 * ls.u; font.weight: Font.Medium
             }
             MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ls.askPassword() }
@@ -1361,7 +1361,7 @@ Item {
             horizontalAlignment: Text.AlignHCenter
             visible: ls.lyrStatus === "loading" || ls.lyrStatus === "none" || ls.lyrStatus === "instrumental" || ls.lyrStatus === "offline"
             text: ls.lyrStatus === "loading" ? I18n.tr("Loading lyrics…") : (ls.lyrStatus === "instrumental" ? I18n.tr("Instrumental")
-                  : (ls.lyrStatus === "offline" ? "Lyrics are unavailable right now" : "No lyrics for this song"))
+                  : (ls.lyrStatus === "offline" ? I18n.tr("Lyrics are unavailable right now") : I18n.tr("No lyrics for this song")))
             color: Qt.rgba(1, 1, 1, 0.55)
             font.family: ls.fam; font.pixelSize: 20 * ls.u; font.weight: Font.DemiBold
         }
@@ -1650,7 +1650,7 @@ Item {
         MorphText {
             horizontalAlignment: Text.AlignHCenter
             anchors.horizontalCenter: parent.horizontalCenter
-            text: ls.st.message !== "" ? ls.st.message : I18n.tr("Enter your password to unlock")
+            text: ls.st.message !== "" ? I18n.tr(ls.st.message) : I18n.tr("Enter your password to unlock")
             color: ls.st.message !== "" ? Qt.rgba(1, 0.78, 0.76, 0.95) : Qt.rgba(1, 1, 1, 0.55)
             font.family: ls.fam; font.pixelSize: 12 * ls.u
             opacity: ls.st.engaged || ls.st.message !== "" ? 1 : 0

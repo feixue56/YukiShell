@@ -16,6 +16,7 @@
 import QtQuick
 import QtQuick.Effects
 import "Fonts.js" as Fonts
+import "I18n.js" as I18n
 
 Item {
     id: w
@@ -79,9 +80,10 @@ Item {
         running: true
         onTriggered: { var d = new Date(); if (d.toDateString() !== w.now.toDateString()) w.now = d; }
     }
-    readonly property var monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-    readonly property var dayNames: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-    readonly property var letters: ["S", "M", "T", "W", "T", "F", "S"]
+    // names in the chosen interface language (Settings → General), Sunday first
+    readonly property var monthNames: { var l = I18n.locale(), a = []; for (var i = 0; i < 12; i++) a.push(l.monthName(i, Locale.LongFormat)); return a; }
+    readonly property var dayNames: { var l = I18n.locale(), a = []; for (var i = 0; i < 7; i++) a.push(l.dayName(i, Locale.LongFormat)); return a; }
+    readonly property var letters: { var l = I18n.locale(), a = []; for (var i = 0; i < 7; i++) a.push(l.dayName(i, Locale.NarrowFormat)); return a; }
     readonly property var cal: {
         var d = w.now, y = d.getFullYear(), m = d.getMonth();
         var first = new Date(y, m, 1).getDay();

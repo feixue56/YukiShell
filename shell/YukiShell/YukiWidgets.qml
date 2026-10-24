@@ -259,7 +259,7 @@ Scope {
                 var t = text.trim();
                 if (t.indexOf("OK:") === 0) {
                     var p = t.substring(3);
-                    if (root.pickTargetId === "") { if (!root.addWidget("image", "normal", root.pickTargetSize, p)) root.pickError = "No free space on the desktop for another widget."; }
+                    if (root.pickTargetId === "") { if (!root.addWidget("image", "normal", root.pickTargetSize, p)) root.pickError = I18n.tr("No free space on the desktop for another widget."); }
                     else root.setSource(root.pickTargetId, p);
                 } else if (t.indexOf("ERR:") === 0) {
                     root.pickError = t.substring(4);
@@ -455,30 +455,30 @@ Scope {
 
     function wmo(code, day) {
         switch (code) {
-        case 0:  return day ? { t: "Sunny", k: "sun" } : { t: "Clear", k: "moon" };
-        case 1:  return day ? { t: "Mostly Sunny", k: "sun" } : { t: "Mostly Clear", k: "moon" };
-        case 2:  return { t: "Partly Cloudy", k: day ? "partly" : "partlyNight" };
-        case 3:  return { t: "Cloudy", k: "cloud" };
-        case 45: case 48: return { t: "Foggy", k: "fog" };
-        case 51: case 53: case 55: return { t: "Drizzle", k: "rain" };
-        case 56: case 57: return { t: "Freezing Drizzle", k: "rain" };
-        case 61: return { t: "Light Rain", k: "rain" };
-        case 63: return { t: "Rain", k: "rain" };
-        case 65: return { t: "Heavy Rain", k: "rain" };
-        case 66: case 67: return { t: "Freezing Rain", k: "rain" };
-        case 71: return { t: "Light Snow", k: "snow" };
-        case 73: return { t: "Snow", k: "snow" };
-        case 75: case 77: return { t: "Heavy Snow", k: "snow" };
-        case 80: case 81: return { t: "Showers", k: "rain" };
-        case 82: return { t: "Heavy Showers", k: "rain" };
-        case 85: case 86: return { t: "Snow Showers", k: "snow" };
-        case 95: case 96: case 99: return { t: "Thunderstorms", k: "storm" };
+        case 0:  return day ? { t: I18n.tr("Sunny"), k: "sun" } : { t: I18n.tr("Clear Sky"), k: "moon" };
+        case 1:  return day ? { t: I18n.tr("Mostly Sunny"), k: "sun" } : { t: I18n.tr("Mostly Clear"), k: "moon" };
+        case 2:  return { t: I18n.tr("Partly Cloudy"), k: day ? "partly" : "partlyNight" };
+        case 3:  return { t: I18n.tr("Cloudy"), k: "cloud" };
+        case 45: case 48: return { t: I18n.tr("Foggy"), k: "fog" };
+        case 51: case 53: case 55: return { t: I18n.tr("Drizzle"), k: "rain" };
+        case 56: case 57: return { t: I18n.tr("Freezing Drizzle"), k: "rain" };
+        case 61: return { t: I18n.tr("Light Rain"), k: "rain" };
+        case 63: return { t: I18n.tr("Rain"), k: "rain" };
+        case 65: return { t: I18n.tr("Heavy Rain"), k: "rain" };
+        case 66: case 67: return { t: I18n.tr("Freezing Rain"), k: "rain" };
+        case 71: return { t: I18n.tr("Light Snow"), k: "snow" };
+        case 73: return { t: I18n.tr("Snow"), k: "snow" };
+        case 75: case 77: return { t: I18n.tr("Heavy Snow"), k: "snow" };
+        case 80: case 81: return { t: I18n.tr("Showers"), k: "rain" };
+        case 82: return { t: I18n.tr("Heavy Showers"), k: "rain" };
+        case 85: case 86: return { t: I18n.tr("Snow Showers"), k: "snow" };
+        case 95: case 96: case 99: return { t: I18n.tr("Thunderstorms"), k: "storm" };
         }
-        return { t: "Cloudy", k: "cloud" };
+        return { t: I18n.tr("Cloudy"), k: "cloud" };
     }
     readonly property var wxInfo: wmo(wxCode, wxDay)
     function hourLabel(iso, first) {
-        if (first) return "Now";
+        if (first) return I18n.tr("Now");
         var h = parseInt(iso.substr(11, 2));
         return (h % 12 === 0 ? 12 : h % 12) + (h < 12 ? "AM" : "PM");
     }
@@ -516,7 +516,7 @@ Scope {
                     var o = JSON.parse(text);
                     if (o.latitude === undefined) throw "no position";
                     root.wxLat = Number(o.latitude); root.wxLon = Number(o.longitude);
-                    root.wxPlace = o.city || o.region || o.country || "Current Location";
+                    root.wxPlace = o.city || o.region || o.country || I18n.tr("Current Location");
                     root.wxLocated = true;
                     wxProc.running = true;
                 } catch (err) { root.wxError = "location lookup failed"; console.log("[yukiwidgets] location:", err, text.substring(0, 120)); }

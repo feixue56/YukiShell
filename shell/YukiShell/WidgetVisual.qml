@@ -3,6 +3,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Services.Mpris
+import "I18n.js" as I18n
 
 Item {
     id: v
@@ -43,7 +44,7 @@ Item {
                 temp: host.wxTemp
                 hi: host.wxHi
                 lo: host.wxLo
-                cond: host.wxReady ? host.wxInfo.t : (host.wxError !== "" ? "Unavailable" : "Loading…")
+                cond: host.wxReady ? host.wxInfo.t : (host.wxError !== "" ? I18n.tr("Unavailable") : I18n.tr("Loading…"))
                 kind: host.wxReady ? host.wxInfo.k : "cloud"
                 isDay: host.wxDay
                 hourly: host.wxHourly
