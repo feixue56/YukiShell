@@ -8,7 +8,7 @@ hl.bind(mod .. " + Q",              hl.dsp.window.close())
 hl.bind(mod .. " + F",              hl.dsp.window.fullscreen())
 hl.bind(mod .. " + T",              hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mod .. " + ALT + space",  hl.dsp.window.float({ action = "toggle" }))
-hl.bind(mod .. " + ALT + D",      hl.dsp.exec_cmd("~/.config/hypr/bin/show-desktop"))
+hl.bind(mod .. " + ALT + D",      hl.dsp.exec_cmd("~/.config/hypr/bin/dashboard"))
 hl.bind(mod .. " + P",              hl.dsp.window.pseudo())
 hl.bind(mod .. " + J",              hl.dsp.layout("togglesplit"))
 

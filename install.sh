@@ -17,6 +17,7 @@ link "$here/kitty/kitty.conf"                   "$cfg/kitty/kitty.conf"
 link "$here/fastfetch/config.jsonc"             "$cfg/fastfetch/config.jsonc"
 link "$here/btop/themes/mocha-glass.theme"      "$cfg/btop/themes/mocha-glass.theme"
 link "$here/cava/config"                        "$cfg/cava/config"
+link "$here/cava/dashboard.conf"               "$cfg/cava/dashboard.conf"
 link "$here/fish/config.fish"                   "$cfg/fish/config.fish"
 for f in cll ll; do link "$here/fish/functions/$f.fish" "$cfg/fish/functions/$f.fish"; done
 for v in 3 4; do

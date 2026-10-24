@@ -15,7 +15,7 @@ hl.window_rule({ name = "pip-float",         match = { title = "^(Picture-in-Pic
 -- Liquid-glass kitty: heavy blur behind a translucent window, frosted white rim instead of the accent border.
 hl.window_rule({
     name  = "glass-kitty",
-    match = { class = "^kitty$" },
+    match = { class = "^(kitty|dash-.*)$" },
     border_color = { colors = { "rgba(ffffff55)", "rgba(cba6f755)", "rgba(ffffff22)" }, angle = 135 },
     opacity  = "1.0 override 1.0 override",
     xray     = false,
