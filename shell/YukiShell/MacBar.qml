@@ -3325,7 +3325,7 @@ Scope {
                 m.push(mi("Search\u2026", "", function () { root.search(); }));
                 if (has) m.push(mi(n + " Help", "", function () { root.helpFor(id, n); }));
                 m.push(msep());
-                m.push(mi("Hyprland Keybinds", "", function () { Quickshell.execDetached(["xdg-open", "https://github.com/0-ss/MacShell#hyprland-configuration-lua"]); }));
+                m.push(mi("Hyprland Keybinds", "", function () { Quickshell.execDetached(["xdg-open", "https://github.com/feixue56/YukiShell#keybinds"]); }));
                 m.push(mi("Reload Hyprland Config", "", function () { Quickshell.execDetached(["hyprctl", "reload"]); }));
                 m.push(msep());
                 m.push(mi("Hyprland Wiki", "", function () { Quickshell.execDetached(["xdg-open", "https://wiki.hypr.land"]); }));
@@ -3713,18 +3713,6 @@ Scope {
             try { root[k] = o[k]; } catch (err) { }
         }
     }
-    function resetSettings() {
-        barEnabled = true;
-        darkMode = true; appearanceMode = "dark"; accent = "#0a84ff"; fontFamily = "Open Runde"; glassOpacity = 0.42; glassBlur = 5; barBgOpacity = 0.10; glassRealtime = false; liveWallGlass = false;
-        barStyle = "liquid"; use24h = true; showDate = true; showSeconds = false; showBatteryPercent = true;
-        showTray = true; showSearch = true;
-        spotlightEnabled = true; ccEnabled = true; notificationsEnabled = true; clockAppEnabled = true; ccStyle = "tiles";
-        barLogoMode = "arch"; barCustomLogoPath = "";
-        barWidgets = ["appleMenu", "appMenus", "workspaces", "volume", "keyboard", "notifications", "wifi", "bluetooth", "privacy", "controlCenter", "clock"];
-        ccControls = ccDefault.slice();
-        uiScaleAuto = true; uiScaleManual = 1.0;
-    }
-
     // inherit look from macdock first, then macbar's own file wins
     FileView {
         id: dockStore

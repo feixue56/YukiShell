@@ -3747,8 +3747,9 @@ Scope {
             Column {
                 id: aboutCol
                 spacing: 10
-                property bool armed: false
-                Timer { id: disarm; interval: 3000; onTriggered: aboutCol.armed = false }
+                readonly property string ghUser: "feixue56"
+                readonly property string ghName: "Phong"
+                readonly property string repoUrl: "https://github.com/" + ghUser + "/YukiShell"
 
                 SCard {
                     t: pal
@@ -3793,8 +3794,54 @@ Scope {
                     }
                 }
 
+                SLabel { t: pal; header: true; text: I18n.tr("Made by") }
                 SCard {
                     t: pal
+                    Item {
+                        width: parent.width; height: 88
+                        Item {
+                            id: gpPic
+                            x: 16; anchors.verticalCenter: parent.verticalCenter
+                            width: 56; height: 56
+                            Item { id: gpMask; anchors.fill: parent; visible: false; layer.enabled: true; Rectangle { anchors.fill: parent; radius: width / 2; color: "black" } }
+                            Image {
+                                anchors.fill: parent
+                                source: Qt.resolvedUrl("assets/credits/feixue56.jpg")
+                                sourceSize: Qt.size(112, 112)
+                                fillMode: Image.PreserveAspectCrop; smooth: true; mipmap: true
+                                layer.enabled: true
+                                layer.effect: MultiEffect { maskEnabled: true; maskSource: gpMask; maskThresholdMin: 0.5; maskSpreadAtMin: 1.0 }
+                            }
+                            Rectangle { anchors.fill: parent; radius: width / 2; color: "transparent"; border.width: 1; border.color: pal.cardBorder }
+                        }
+                        Column {
+                            x: 86; anchors.verticalCenter: parent.verticalCenter
+                            spacing: 2
+                            Text { text: aboutCol.ghName; color: pal.text; font.family: root.fontForWeight(Font.DemiBold, pal.fam); font.pixelSize: 16; font.weight: Font.DemiBold }
+                            Text { text: "@" + aboutCol.ghUser; color: pal.accent; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12 }
+                            Text { text: "github.com/" + aboutCol.ghUser; color: pal.text2; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 11 }
+                        }
+                        SButton {
+                            t: pal
+                            anchors.right: parent.right; anchors.rightMargin: 14; anchors.verticalCenter: parent.verticalCenter
+                            text: I18n.tr("View Profile")
+                            onClicked: Quickshell.execDetached(["xdg-open", "https://github.com/" + aboutCol.ghUser])
+                        }
+                    }
+                }
+
+                SCard {
+                    t: pal
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Source code")
+                        subtitle: "github.com/" + aboutCol.ghUser + "/YukiShell"
+                        SButton {
+                            t: pal
+                            text: I18n.tr("Open")
+                            onClicked: Quickshell.execDetached(["xdg-open", aboutCol.repoUrl])
+                        }
+                    }
                     SRow {
                         t: pal
                         title: I18n.tr("Rice")
@@ -3813,23 +3860,6 @@ Scope {
                             t: pal
                             text: I18n.tr("Open")
                             onClicked: Quickshell.execDetached(["xdg-open", root.configDir])
-                        }
-                    }
-                }
-                SCard {
-                    t: pal
-                    SRow {
-                        t: pal
-                        title: I18n.tr("Reset shell settings")
-                        subtitle: I18n.tr("Restore the shell's settings (appearance, Dock, Menu Bar, widgets, lock screen, input) to their defaults. Pinned apps and your widgets' layout are kept; the rice itself is not touched.")
-                        SButton {
-                            t: pal
-                            destructive: true
-                            text: aboutCol.armed ? I18n.tr("Click to Confirm") : I18n.tr("Reset\u2026")
-                            onClicked: {
-                                if (aboutCol.armed) { aboutCol.armed = false; root.resetSettings(); }
-                                else { aboutCol.armed = true; disarm.restart(); }
-                            }
                         }
                     }
                 }
@@ -3879,6 +3909,16 @@ Scope {
                                 font.underline: crMa.containsMouse
                                 MouseArea { id: crMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: Quickshell.execDetached(["xdg-open", "https://github.com/" + cr.modelData.gh]) }
                             }
+                        }
+                    }
+                    SRow {
+                        t: pal
+                        title: "MacShell"
+                        subtitle: I18n.tr("MIT licence \u2022 github.com/0-ss/MacShell")
+                        SButton {
+                            t: pal
+                            text: I18n.tr("Open")
+                            onClicked: Quickshell.execDetached(["xdg-open", "https://github.com/0-ss/MacShell"])
                         }
                     }
                 }
@@ -3944,27 +3984,6 @@ Scope {
         pinned = defaultPinned;
         store.setText(JSON.stringify(defaultPinned.slice(), null, 2));
         rebuild();
-    }
-
-    function resetSettings() {
-        dockEnabled = true;
-        settingsEnabled = true;
-        if (bar) {
-            bar.resetSettings();
-            bar.uiSounds = true; bar.gamingMode = false; bar.gamingAuto = true; bar.lockArtBackground = true;
-            bar.applyLockClockPreset("glass");
-            bar.wallpaperAppearance = "auto"; bar.notifDnd = false; bar.nightOn = false; bar.keepAwake = false;
-            bar.kbRepeatRate = 35; bar.kbRepeatDelay = 250; bar.mouseSens = 0; bar.mouseNatural = false;
-            bar.tpNatural = true; bar.tpTap = true; bar.tpDwt = true; bar.tpScroll = 0.7;
-        }
-        if (hub && hub.widgets) { hub.widgets.tempUnit = "C"; hub.widgets.locMode = "auto"; hub.widgets.cityName = ""; hub.widgets.widgetScale = 1.0; }
-        Quickshell.execDetached(["sh", "-c", "rm -f \"$HOME/.config/maclock/settings.json\""]);
-        iconSize = 52; magnification = 1.7; magnificationEnabled = true;
-        spacing = 6; margin = 6; cornerRadius = 18;
-        darkMode = true; appearanceMode = "dark"; glassOpacity = 0.42; glassBlur = 5; glassLiquid = 1.0; dockStyle = "blur"; accent = "#0a84ff"; fontFamily = "Open Runde";
-        iconTint = false; iconTintColor = "#0a84ff"; iconTintStrength = 1.0;
-        hideMode = "smart"; hideDelay = 450; monitor = "";
-        showTrash = true; showLabels = true; showIndicators = true; bounceOnLaunch = true; showThumbs = true; windowCapture = true; glassLive = true;
     }
 
     // ── settings persistence (~/.config/macdock/settings.json) ──

@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+*.pre-rice
+*.pre-fork
+*.bak
+*.log
