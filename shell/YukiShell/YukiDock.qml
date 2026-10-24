@@ -3348,9 +3348,9 @@ Scope {
                     }
                 }
                 // ── Clock ──
-                // the clock fonts, loaded straight from their files so the previews never fall back to another face
-                FontLoader { id: fNunito; source: "file://" + Quickshell.env("HOME") + "/.local/share/fonts/Nunito/Nunito.ttf" }
-                FontLoader { id: fSerif; source: "file://" + Quickshell.env("HOME") + "/.local/share/fonts/NotoSerifDisplay/NotoSerifDisplay.ttf" }
+                // the clock fonts, chosen exactly like the lock screen does (LockScreen.qml): Nunito when it is installed, else the bundled
+                // Open Runde; Noto Serif Display for Serif. (They used to be loaded from ~/.local/share/fonts files this install never creates.)
+                readonly property string roundedFam: (typeof Qt.fontFamilies === "function" && Qt.fontFamilies().indexOf("Nunito") >= 0) ? "Nunito" : "Open Runde"
                 SLabel { t: pal; text: I18n.tr("Clock"); font.weight: Font.DemiBold; topPadding: 6 }
                 SCard {
                     t: pal
@@ -3362,11 +3362,11 @@ Scope {
                             spacing: 10
                             Repeater {
                                 model: [
-                                    { id: "glass",   name: "Glass",   fam: fNunito.status === FontLoader.Ready ? fNunito.name : "Nunito", w: 680, tall: false, liquid: false },
-                                    { id: "classic", name: "Classic", fam: fNunito.status === FontLoader.Ready ? fNunito.name : "Nunito",             w: 640, tall: false, liquid: false },
-                                    { id: "serif",   name: "Serif",   fam: fSerif.status === FontLoader.Ready ? fSerif.name : "Noto Serif Display", w: 560, tall: false, liquid: false },
-                                    { id: "liquid",  name: "Liquid",  fam: fNunito.status === FontLoader.Ready ? fNunito.name : "Nunito", w: 560, tall: false, liquid: true },
-                                    { id: "thin",    name: "Thin",    fam: fNunito.status === FontLoader.Ready ? fNunito.name : "Nunito",             w: 220, tall: false, liquid: true }
+                                    { id: "glass",   name: "Glass",   fam: roundedFam, w: 680, tall: false, liquid: false },
+                                    { id: "classic", name: "Classic", fam: roundedFam,             w: 640, tall: false, liquid: false },
+                                    { id: "serif",   name: "Serif",   fam: "Noto Serif Display", w: 560, tall: false, liquid: false },
+                                    { id: "liquid",  name: "Liquid",  fam: roundedFam, w: 560, tall: false, liquid: true },
+                                    { id: "thin",    name: "Thin",    fam: roundedFam,             w: 220, tall: false, liquid: true }
                                 ]
                                 delegate: Column {
                                     id: tile
