@@ -1,0 +1,29 @@
+#!/bin/sh
+# tools/check      static checks for the whole repo; exit status 1 if anything fails
+#   Lua configs, fish, sh/bash scripts, Python, JSON, JS (syntax) · QML (syntax + duplicate ids) · translations (tools/i18n-check.py)
+# Tools that are not installed are skipped with a note. Run it before you commit.
+cd "$(dirname "$0")/.." || exit 1
+fail=0
+have() { command -v "$1" >/dev/null 2>&1; }
+section() { printf '%s ' "$1"; }
+ok()   { echo "ok"; }
+bad()  { echo "FAILED"; fail=1; [ -n "$1" ] && printf '%s\n' "$1" | sed 's/^/    /'; }
+skip() { echo "skipped ($1 not installed)"; }
+
+section "lua    "; if have luac; then out=$(for f in $(git ls-files '*.lua'); do luac -p "$f" 2>&1 | sed "s|^|$f: |"; done); [ -z "$out" ] && ok || bad "$out"; else skip luac; fi
+section "fish   "; if have fish; then out=$(for f in $(git ls-files '*.fish'); do fish -n "$f" 2>&1 | head -3 | sed "s|^|$f: |"; done); [ -z "$out" ] && ok || bad "$out"; else skip fish; fi
+section "shell  "; out=$(for f in $(git ls-files | xargs grep -lE '^#!.*(sh|bash)$' 2>/dev/null); do
+    case "$(head -n1 "$f")" in *bash*) bash -n "$f" 2>&1 ;; *) sh -n "$f" 2>&1 ;; esac | sed "s|^|$f: |"; done); [ -z "$out" ] && ok || bad "$out"
+section "python "; if have python3; then out=$(for f in $(git ls-files '*.py'); do python3 -c "import ast,sys; ast.parse(open(sys.argv[1]).read())" "$f" 2>&1 | tail -1 | sed "s|^|$f: |"; done); [ -z "$out" ] && ok || bad "$out"; else skip python3; fi
+section "json   "; if have python3; then out=$(for f in $(git ls-files '*.json'); do python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$f" 2>&1 | tail -1 | sed "s|^|$f: |"; done); [ -z "$out" ] && ok || bad "$out"; else skip python3; fi
+section "js     "; if have node; then out=$(for f in $(git ls-files '*.js'); do
+    # QML JS libraries start with ".pragma library" and may use ".import"; those two lines are not plain JS
+    sed -e 's/^\.pragma.*//' -e 's/^\.import.*//' "$f" | node -e 'let t="";process.stdin.on("data",d=>t+=d).on("end",()=>{try{new Function(t)}catch(e){console.log(e.message);process.exit(1)}})' 2>&1 | head -2 | sed "s|^|$f: |"; done); [ -z "$out" ] && ok || bad "$out"; else skip node; fi
+section "qml    "
+qlint=$(command -v qmllint || ls /usr/lib/qt6/bin/qmllint 2>/dev/null)
+if [ -n "$qlint" ]; then
+    out=$(for f in $(git ls-files '*.qml'); do "$qlint" "$f" 2>&1 | grep -E "Syntax|syntax\.|duplicate-ids|Error:" | grep -v "onShaderError" | head -3; done)
+    [ -z "$out" ] && ok || bad "$out"
+else skip qmllint; fi
+section "i18n   "; if have python3; then out=$(python3 tools/i18n-check.py 2>&1); if [ $? -eq 0 ]; then ok; else bad "$(printf '%s\n' "$out" | head -12)"; fi; else skip python3; fi
+exit $fail

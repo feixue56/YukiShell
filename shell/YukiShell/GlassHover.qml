@@ -12,7 +12,7 @@ Rectangle {
     property bool open: false       // it is the active one (its popover is open, or it is the current workspace)
     property bool filled: false     // resting glass for something that is in use (a workspace that has windows)
     property bool dark: true
-    property Item area: null
+    property MouseArea area: null
 
     // the icon on top uses `scale: g.lift` for a small overshoot pop
     property real lift: pressed ? 0.92 : (hot ? 1.16 : 1)

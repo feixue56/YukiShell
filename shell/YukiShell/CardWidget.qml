@@ -46,7 +46,7 @@ Item {
     // Small / Medium are slightly enlarged; Large shares the widened footprint without stretching its vertical content.
     readonly property real s: scaleF * (isSmall ? 168 / 158 : (isMedium ? 358 / 338 : 1.0))
     readonly property real radiusPx: 28 * s
-    readonly property bool glassOn: style === "liquid" && glassReady && !preview && wallUrl != ""
+    readonly property bool glassOn: style === "liquid" && glassReady && !preview && wallUrl !== ""
     width: (isSmall ? 158 : (isLarge ? 358 : 338)) * s
     height: (isLarge ? 354 : 168) * scaleF
 

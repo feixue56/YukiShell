@@ -146,10 +146,10 @@ Item {
             id: retry
             interval: 600
             // Canvas has no "load failed" signal: if the cover still is not loaded, try again (up to 8 times)
-            onTriggered: { if (tintSampler.loaded != "" && !tintSampler.isImageLoaded(tintSampler.loaded) && ++tintSampler.tries <= 8) tintSampler.startLoad(); }
+            onTriggered: { if (tintSampler.loaded !== "" && !tintSampler.isImageLoaded(tintSampler.loaded) && ++tintSampler.tries <= 8) tintSampler.startLoad(); }
         }
         onPaint: {
-            if (want == "" || loaded != want || !isImageLoaded(want)) return;
+            if (want === "" || loaded !== want || !isImageLoaded(want)) return;
             var ctx = getContext("2d");
             ctx.clearRect(0, 0, 16, 16);
             ctx.drawImage(want, 0, 0, 16, 16);

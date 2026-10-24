@@ -1294,7 +1294,7 @@ Scope {
                             width: 26; height: 28
                             Rectangle {         // hover: the same faint light as the Control Center pills
                                 anchors.fill: parent; radius: 13
-                                color: (navBtn.ok && navMa.containsMouse) ? (pal.dark ? Qt.rgba(1, 1, 1, 0.07) : Qt.rgba(1, 1, 1, 0.5)) : "transparent"
+                                color: (navBtn.ok && navBtnMa.containsMouse) ? (pal.dark ? Qt.rgba(1, 1, 1, 0.07) : Qt.rgba(1, 1, 1, 0.5)) : "transparent"
                                 Behavior on color { ColorAnimation { duration: 200; easing.type: Easing.OutCubic } }
                             }
                             Text {
@@ -1304,11 +1304,11 @@ Scope {
                                 font.family: Fonts.forWeight(Font.Normal, pal.fam); font.pixelSize: 28
                                 color: navBtn.ok ? pal.text : pal.text3
                                 opacity: navBtn.ok ? 1 : 0.5
-                                scale: (navBtn.ok && navMa.pressed) ? 0.86 : 1
+                                scale: (navBtn.ok && navBtnMa.pressed) ? 0.86 : 1
                                 Behavior on scale { NumberAnimation { duration: 230; easing.type: Easing.OutBack; easing.overshoot: 3.2 } }
                             }
                             MouseArea {
-                                id: navMa
+                                id: navBtnMa
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 enabled: navBtn.ok
