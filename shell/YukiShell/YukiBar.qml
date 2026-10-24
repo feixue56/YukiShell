@@ -3582,6 +3582,7 @@ Scope {
     // shows again. One check per window event (open / close / move / workspace / fullscreen), nothing in between.
     readonly property bool videoWall: wallpaperVideo !== ""
     property var wallPaused: ({})          // output → paused (video wallpaper)
+    property string wallCovList: "?"       // the covered outputs last written to $XDG_RUNTIME_DIR/yukishell-wallpaused
     // output → its desktop is completely hidden behind windows (or one is fullscreen). Always tracked: the desktop
     // widgets stop drawing on covered screens (culling), and a video wallpaper pauses there.
     property var screenCovered: ({})
@@ -3617,6 +3618,12 @@ Scope {
                 if (!root.videoWall) return;
                 for (var k in next) if (next[k] !== (root.wallPaused[k] === true))
                     Quickshell.execDetached([root.wallPauseScript, k, next[k] ? "pause" : "resume"]);
+                // which outputs are covered, for a video player that (re)starts later: yukishell-setwall.sh pauses it straight away
+                var cov = []; for (var n in next) if (next[n]) cov.push(n);
+                if (cov.join(",") !== root.wallCovList) {
+                    root.wallCovList = cov.join(",");
+                    Quickshell.execDetached(["sh", "-c", "printf '%s\\n' \"$@\" > \"${XDG_RUNTIME_DIR:-/tmp}/yukishell-wallpaused\"", "sh"].concat(cov));
+                }
                 root.wallPaused = next;
             }
         }

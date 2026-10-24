@@ -24,10 +24,23 @@ MPV_OPTS="no-audio loop-file=inf profile=fast panscan=1.0 hwdec=vaapi${igpu:+ va
 is_video() { case "$(printf %s "$1" | tr 'A-Z' 'a-z')" in *.mp4|*.webm|*.mkv|*.mov|*.m4v) return 0 ;; esac; return 1; }
 key_of() { printf '%s:%s' "$1" "$(stat -c %Y "$1" 2>/dev/null)" | md5sum | cut -c1-16; }
 
+# A cached copy is only trusted when ffprobe can read a video stream from it. "Non-empty" is not enough: two overlapping runs
+# (a login restore plus the shell re-applying the wallpaper) used to share one temp file and left a big, unplayable mp4
+# that was then trusted for ever, so mpvpaper sat idle on a blank wallpaper.
+valid_video() { [ -s "$1" ] && [ "$(ffprobe -v error -select_streams v:0 -show_entries stream=codec_type -of csv=p=0 "$1" 2>/dev/null | head -n1)" = video ]; }
+# run a command while holding a per-file lock, so a second caller waits for the first conversion instead of racing it
+with_lock() {  # with_lock <lockfile> <command...>
+    l="$1"; shift
+    if command -v flock >/dev/null 2>&1; then ( flock 8; "$@" ) 8>"$l"; else "$@"; fi
+}
+
 frame_for() {
     out="$cache/frames/$(key_of "$1").png"
-    [ -s "$out" ] || ffmpeg -loglevel error -y -ss 1 -i "$1" -frames:v 1 "$out" </dev/null \
-        || ffmpeg -loglevel error -y -i "$1" -frames:v 1 "$out" </dev/null
+    if [ ! -s "$out" ]; then
+        tmp="$out.$$.part.png"     # written aside and renamed, so a half-written frame is never picked up
+        { ffmpeg -loglevel error -y -ss 1 -i "$1" -frames:v 1 "$tmp" </dev/null \
+            || ffmpeg -loglevel error -y -i "$1" -frames:v 1 "$tmp" </dev/null; } && mv -f "$tmp" "$out" || rm -f "$tmp"
+    fi
     printf '%s' "$out"
 }
 
@@ -35,17 +48,26 @@ frame_for() {
 preview_for() {
     k=$(key_of "$1"); mkdir -p "$cache/thumbs"
     t="$cache/thumbs/$k.jpg"; w="$cache/thumbs/$k.webp"
-    [ -s "$t" ] || ffmpeg -loglevel error -y -ss 1 -i "$1" -frames:v 1 -vf "scale=480:-2" "$t" </dev/null
-    [ -s "$w" ] || nice -n 15 ffmpeg -loglevel error -y -t 4 -i "$1" -an -vf "fps=12,scale=360:-2:flags=lanczos" \
-        -c:v libwebp_anim -lossless 0 -q:v 60 -loop 0 "$w" </dev/null
+    if [ ! -s "$t" ]; then
+        ffmpeg -loglevel error -y -ss 1 -i "$1" -frames:v 1 -vf "scale=480:-2" "$t.$$.part.jpg" </dev/null && mv -f "$t.$$.part.jpg" "$t" || rm -f "$t.$$.part.jpg"
+    fi
+    if [ ! -s "$w" ]; then
+        nice -n 15 ffmpeg -loglevel error -y -t 4 -i "$1" -an -vf "fps=12,scale=360:-2:flags=lanczos" \
+            -c:v libwebp_anim -lossless 0 -q:v 60 -loop 0 "$w.$$.part.webp" </dev/null && mv -f "$w.$$.part.webp" "$w" || rm -f "$w.$$.part.webp"
+    fi
 }
 
 # low-res looping animated WebP of the whole clip: what the Liquid Glass (widgets) refracts — it's blurred anyway,
 # so 480 px at 15 fps is plenty, and an image needs no video player inside the shell
+build_glass() {  # build_glass <video> <out.webp>
+    [ -s "$2" ] && return 0
+    tmp="$2.$$.part.webp"
+    nice -n 15 ionice -c3 ffmpeg -loglevel error -y -i "$1" -an -vf "fps=15,scale=480:-2:flags=bilinear" \
+        -c:v libwebp_anim -lossless 0 -q:v 45 -compression_level 3 -loop 0 "$tmp" </dev/null && mv -f "$tmp" "$2" || rm -f "$tmp"
+}
 glass_for() {
     k=$(key_of "$1"); g="$cache/anim/$k-glass.webp"
-    [ -s "$g" ] || nice -n 15 ionice -c3 ffmpeg -loglevel error -y -i "$1" -an -vf "fps=15,scale=480:-2:flags=bilinear" \
-        -c:v libwebp_anim -lossless 0 -q:v 45 -compression_level 3 -loop 0 "$g.part.webp" </dev/null && mv -f "$g.part.webp" "$g"
+    with_lock "$g.lock" build_glass "$1" "$g"
     printf '%s' "$g"
 }
 
@@ -58,16 +80,21 @@ target_width() {
 }
 
 # optimized copy: largest-monitor width, 30 fps, H.264, keyframe every 2 s
+build_anim() {  # build_anim <video> <out.mp4> <width>: re-checks under the lock, so a waiting second caller finds the finished copy
+    valid_video "$2" && return 0
+    rm -f "$2"
+    tmp="$2.$$.part.mp4"       # one temp file per run: concurrent runs can no longer write into each other's output
+    nice -n 15 ionice -c3 ffmpeg -loglevel error -y -i "$1" -an \
+        -vf "scale='min($3,iw)':-2:flags=lanczos,fps=30" \
+        -c:v libx264 -preset faster -crf 21 -pix_fmt yuv420p -g 60 -movflags +faststart "$tmp" </dev/null \
+        && valid_video "$tmp" && mv -f "$tmp" "$2" || rm -f "$tmp"
+}
 anim_for() {
     tw=$(target_width)
     out="$cache/anim/$(key_of "$1")-$tw.mp4"
-    if [ ! -s "$out" ]; then
-        tmp="$out.part.mp4"
-        nice -n 15 ionice -c3 ffmpeg -loglevel error -y -i "$1" -an \
-            -vf "scale='min($tw,iw)':-2:flags=lanczos,fps=30" \
-            -c:v libx264 -preset faster -crf 21 -pix_fmt yuv420p -g 60 -movflags +faststart "$tmp" </dev/null \
-            && mv -f "$tmp" "$out" || { rm -f "$tmp"; printf '%s' "$1"; return; }
-    fi
+    valid_video "$out" || with_lock "$out.lock" build_anim "$1" "$out" "$tw"
+    # could not build a usable copy: play the original (heavier, but never a blank wallpaper)
+    valid_video "$out" || { printf '%s' "$1"; return; }
     printf '%s' "$out"
 }
 
@@ -82,8 +109,10 @@ supfile="$cache/wallsup.pid"
 stop_video() {
     # the supervisor runs in its own process group (setsid): stop the whole group, nothing else
     if [ -f "$supfile" ]; then
-        g=$(cat "$supfile" 2>/dev/null)
-        [ -n "$g" ] && kill -TERM -- "-$g" 2>/dev/null
+        # every supervisor appends its pid; the pid is only trusted if it is still one of ours (pids get reused)
+        while read -r g; do
+            [ -n "$g" ] && tr '\0' ' ' < "/proc/$g/cmdline" 2>/dev/null | grep -q ' wallsup ' && kill -TERM -- "-$g" 2>/dev/null
+        done < "$supfile"
         rm -f "$supfile"
     fi
     # mpvpaper can ignore SIGTERM (and a Game Mode SIGSTOP blocks it): wake it, ask, then force it
@@ -96,6 +125,7 @@ stop_video() {
 # keeps mpvpaper running for as long as this video is the chosen wallpaper (restarts it if it crashes)
 start_video() {
     src="$1"; play="$2"
+    valid_video "$play" || play="$src"      # never hand mpvpaper a file it cannot play: it would stay running and show nothing
     stop_video
     printf '%s\n' "$play" > "$HOME/.config/yukishell/wallpaper-video-play"     # the optimized copy (YukiLock plays this one)
     # one supervised mpvpaper per monitor, each with an IPC socket: YukiShell pauses a monitor's video while windows
@@ -103,13 +133,20 @@ start_video() {
     outs=$(hyprctl -j monitors 2>/dev/null | jq -r '.[].name' 2>/dev/null); [ -n "$outs" ] || outs=ALL
     run="${XDG_RUNTIME_DIR:-/tmp}"
     setsid sh -c '
-        echo $$ > "$5"
-        src="$1"; play="$2"; state="$3"; opts="$4"; run="$6"; shift 6
+        echo $$ >> "$5"
+        src="$1"; play="$2"; state="$3"; opts="$4"; run="$6"; pausebin="$7"; shift 7
         for out in "$@"; do
             (
                 fails=0
                 while [ "$(cat "$state" 2>/dev/null)" = "$src" ] && [ "$fails" -lt 5 ]; do
                     t=$(date +%s)
+                    rm -f "$run/yukishell-mpv-$out.sock"      # a stale socket (player was killed) would fool the wait below
+                    # a fresh player starts playing, but the shell only sends "pause" when ITS state changes: if the desktop is already
+                    # covered, tell the new player as soon as its socket exists (the shell lists the covered outputs in this file)
+                    (
+                        n=0; while [ ! -S "$run/yukishell-mpv-$out.sock" ] && [ "$n" -lt 40 ]; do n=$((n + 1)); sleep 0.25; done
+                        grep -qx "$out" "$run/yukishell-wallpaused" 2>/dev/null && "$pausebin" "$out" pause
+                    ) >/dev/null 2>&1 </dev/null &
                     mpvpaper -o "$opts input-ipc-server=$run/yukishell-mpv-$out.sock" "$out" "$play" >/dev/null 2>&1 </dev/null
                     [ "$(cat "$state" 2>/dev/null)" = "$src" ] || exit 0
                     [ $(( $(date +%s) - t )) -lt 10 ] && fails=$((fails + 1)) || fails=0
@@ -118,8 +155,11 @@ start_video() {
             ) &
         done
         wait
-    ' wallsup "$src" "$play" "$state" "$MPV_OPTS" "$supfile" "$run" $outs >/dev/null 2>&1 </dev/null &
+    ' wallsup "$src" "$play" "$state" "$MPV_OPTS" "$supfile" "$run" "$(dirname "$(readlink -f "$0")")/yukishell-wallpause.sh" $outs >/dev/null 2>&1 </dev/null 8>&- &
 }
+# stopping the old player and starting the new one is one step: two callers at once (the login restore and the shell re-applying the
+# wallpaper) each stopped "the" player, then each started their own, and the desktop ended up decoding the video twice
+change_video() { with_lock "$cache/wallpaper-start.lock" "$@"; }
 
 case "$1" in
     --prepare) [ -f "$2" ] && is_video "$2" && { preview_for "$2"; frame_for "$2" >/dev/null; a=$(anim_for "$2"); glass_for "$a" >/dev/null; }; exit 0 ;;
@@ -141,13 +181,13 @@ if is_video "$f"; then
     (
         play=$(anim_for "$f")
         [ "$(cat "$state" 2>/dev/null)" = "$f" ] || exit 0      # another wallpaper was picked meanwhile
-        start_video "$f" "$play"
+        change_video start_video "$f" "$play"
         g=$(glass_for "$play")
         [ "$(cat "$state" 2>/dev/null)" = "$f" ] && [ -s "$g" ] && printf '%s\n' "$g" > "$HOME/.config/yukishell/wallpaper-video-glass"
     ) >/dev/null 2>&1 </dev/null &
 else
     rm -f "$state" "$HOME/.config/yukishell/wallpaper-video-play" "$HOME/.config/yukishell/wallpaper-video-glass"
-    stop_video
+    change_video stop_video
     awww_ready && awww img "$f" --transition-type grow --transition-duration 0.9 >/dev/null 2>&1
     printf '%s\n' "$f"
 fi
