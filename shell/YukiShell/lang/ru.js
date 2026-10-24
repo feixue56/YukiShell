@@ -121,8 +121,6 @@ var strings = {
     "Keep in Dock": "Оставить в Dock",
     "Kept in Dock": "Закреплено в Dock",
     "Remove from Dock": "Убрать из Dock",
-    "Empty Trash": "Очистить корзину",
-    "Trash": "Корзина",
     "Open Window": "Открыть окно",
     "Open Folder": "Открыть папку",
     "Downloads": "Загрузки",
@@ -287,9 +285,9 @@ var strings = {
     "Show indicators for open applications": "Показывать индикаторы открытых приложений",
     "Animate opening applications": "Анимировать открытие приложений",
     "Icons bounce while an app is launching": "Значки подпрыгивают, пока приложение запускается",
-    "Show Trash in the Dock": "Показывать корзину в Dock",
+    "Show Settings in the Dock": "Показывать «Настройки» в Dock",
     "Show window previews": "Показывать превью окон",
-    "Open windows appear as live previews next to the Trash, each with its app's icon": "Открытые окна видны как живые превью рядом с корзиной, у каждого значок приложения",
+    "Open windows appear as live previews next to the Settings button, each with its app's icon": "Открытые окна видны как живые превью рядом с кнопкой «Настройки», у каждого значок приложения",
     "Changes apply to the Dock immediately.": "Изменения применяются к Dock сразу.",
 
     // Settings: Applications

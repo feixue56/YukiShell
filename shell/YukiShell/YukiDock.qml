@@ -140,7 +140,7 @@ Scope {
     // "smart"  = hide while a non-floating window is open on that monitor's workspace
     // "always" = always auto-hide, "never" = always visible and reserves space
     property string hideMode: "smart"
-    property bool showTrash: true
+    property bool showSettings: true      // the gear button at the end of the Dock that opens the Settings window
     property string fontFamily: "Open Runde"  // bundled in assets/fonts (shell.qml loads it); falls back to the system font if missing
     readonly property string boldFontFamily: hub && hub.boldFontFamily ? hub.boldFontFamily : "Open Runde Semibold"
     // Open Runde: bold text uses its Semibold face; another selected font keeps its own family (and real bold weight)
@@ -150,7 +150,7 @@ Scope {
     property bool showLabels: true       // hover tooltips
     property bool showIndicators: true   // dots under running apps
     property bool bounceOnLaunch: true
-    property bool showThumbs: true       // open windows get a live preview cell next to the Trash
+    property bool showThumbs: true       // open windows get a live preview cell next to the Settings button
     property bool windowCapture: true    // live window capture for those previews (off: the cells show the app icon, nothing is captured). Liquid Glass is not affected
     property int hideDelay: 450          // ms before the dock hides after the pointer leaves
     readonly property var accentChoices: [
@@ -640,7 +640,7 @@ Scope {
             { id: "displays",   sec: 2, name: "Displays",        wg: "sun",        c1: "#3D9BFF", c2: "#0A6CFF", keys: "brightness night shift monitor resolution refresh scale" },
             { id: "battery",    sec: 2, name: (root.bar && !root.bar.hasBattery) ? "Power" : "Battery",         wg: "bolt",       c1: "#4CD964", c2: "#28A745", keys: "power energy charge profile performance game mode gaming fullscreen" },
             // 3 · Desktop
-            { id: "dock",       sec: 3, name: "Desktop & Dock",  glyph: "dock",     c1: "#2C2C2E", c2: "#1C1C1E", keys: "size icon magnification zoom spacing margin distance corner radius round square edge hide auto labels indicators bounce trash monitor preview app switcher alt tab" },
+            { id: "dock",       sec: 3, name: "Desktop & Dock",  glyph: "dock",     c1: "#2C2C2E", c2: "#1C1C1E", keys: "size icon magnification zoom spacing margin distance corner radius round square edge hide auto labels indicators bounce settings gear monitor preview app switcher alt tab" },
             { id: "menubar",    sec: 3, name: "Menu Bar",        glyph: "menubar",  c1: "#3D9BFF", c2: "#0A6CFF", keys: "panel bar height clock date seconds 24 hour battery tray search spotlight week monday style liquid bluetooth screenshots" },
             { id: "controlcenter", sec: 3, name: "Control Center", wg: "cc",       c1: "#8E8E93", c2: "#636366", keys: "modules tiles controls" },
             { id: "widgets",    sec: 3, name: "Widgets",         glyph: "widgets",  c1: "#FF9F0A", c2: "#FF7A00", keys: "desktop widgets weather clock calendar player image photo add remove arrange edit size temperature fahrenheit celsius city location" },
@@ -2363,7 +2363,7 @@ Scope {
                     SRow {
                         t: pal
                         title: I18n.tr("Show window previews")
-                        subtitle: I18n.tr("Open windows appear as live previews next to the Trash, each with its app's icon")
+                        subtitle: I18n.tr("Open windows appear as live previews next to the Settings button, each with its app's icon")
                         SSwitch { t: pal; checked: root.showThumbs; onToggled: v => root.showThumbs = v }
                     }
                     SRow {
@@ -2385,8 +2385,8 @@ Scope {
                     }
                     SRow {
                         t: pal
-                        title: I18n.tr("Show Trash in the Dock")
-                        SSwitch { t: pal; checked: root.showTrash; onToggled: v => root.showTrash = v }
+                        title: I18n.tr("Show Settings in the Dock")
+                        SSwitch { t: pal; checked: root.showSettings; onToggled: v => root.showSettings = v }
                     }
                 }
             }
@@ -4010,10 +4010,11 @@ Scope {
     // ── settings persistence (~/.config/yukidock/settings.json) ──
     readonly property string settingsSig: [dockEnabled, settingsEnabled, iconSize, magnification, magnificationEnabled, spacing, margin,
         cornerRadius, darkMode, appearanceMode, glassOpacity, glassBlur, glassLiquid, dockStyle, wallpaperPath, String(accent), fontFamily, hideMode, hideDelay, monitor,
-        showTrash, showLabels, showIndicators, bounceOnLaunch, showThumbs, windowCapture, glassLive, iconTint, iconTintColor, iconTintStrength].join("|")
+        showSettings, showLabels, showIndicators, bounceOnLaunch, showThumbs, windowCapture, glassLive, iconTint, iconTintColor, iconTintStrength].join("|")
     property bool settingsReady: false
     onSettingsSigChanged: if (settingsReady) saveTimer.restart()
-    onShowTrashChanged: { rebuild(); if (showTrash) trashCheck(); }
+    onShowSettingsChanged: rebuild()
+    onSettingsEnabledChanged: rebuild()
     onShowThumbsChanged: rebuild()
     onWindowCaptureChanged: rebuild()
 
@@ -4025,7 +4026,7 @@ Scope {
             glassRim: glassRim, glassGrain: glassGrain, glassLiquid: glassLiquid, glassBlur: glassBlur,
             accent: String(accent), fontFamily: fontFamily,
             hideMode: hideMode, hideDelay: hideDelay, monitor: monitor,
-            showTrash: showTrash, showLabels: showLabels, showIndicators: showIndicators,
+            showSettings: showSettings, showLabels: showLabels, showIndicators: showIndicators,
             bounceOnLaunch: bounceOnLaunch, showThumbs: showThumbs, windowCapture: windowCapture, glassLive: glassLive,
             iconTint: iconTint, iconTintColor: iconTintColor, iconTintStrength: iconTintStrength
         };
@@ -4036,7 +4037,7 @@ Scope {
         if (!o || typeof o !== "object") return;
         var keys = ["dockEnabled", "settingsEnabled", "iconSize", "magnification", "magnificationEnabled", "spacing", "margin", "cornerRadius",
                     "darkMode", "appearanceMode", "glassOpacity", "dockStyle", "wallpaperPath", "glassDebug", "glassRim", "glassGrain", "glassLiquid", "glassBlur", "accent", "fontFamily", "hideMode", "hideDelay", "monitor",
-                    "showTrash", "showLabels", "showIndicators", "bounceOnLaunch", "showThumbs", "windowCapture", "glassLive", "iconTint", "iconTintColor", "iconTintStrength"];
+                    "showSettings", "showLabels", "showIndicators", "bounceOnLaunch", "showThumbs", "windowCapture", "glassLive", "iconTint", "iconTintColor", "iconTintStrength"];
         for (var i = 0; i < keys.length; i++) {
             if (o[keys[i]] === undefined) continue;
             try { root[keys[i]] = o[keys[i]]; } catch (err) { }
@@ -4058,6 +4059,7 @@ Scope {
 
     // YukiShell's own windows (About This Linux, Settings, Finder, Photos ...) all have the app id "org.quickshell":
     // they show the YukiShell logo and name instead of a generic icon
+    readonly property string settingsIcon: decodeURIComponent(String(Qt.resolvedUrl("assets/yukishell-settings.svg")).replace(/^file:\/\//, ""))
     readonly property string logoPath: decodeURIComponent(String(Qt.resolvedUrl("assets/yukishell-logo.png")).replace(/^file:\/\//, ""))
     function isShellApp(appId) { return appId === "org.quickshell"; }
 
@@ -4093,60 +4095,8 @@ Scope {
         if (icon.charAt(0) === "/") return "file://" + icon;
         return Quickshell.iconPath(icon, "application-x-executable");
     }
-    // icon of a dock cell; the Trash switches to the "full" icon while there is something in it
-    function cellIconSrc(it) {
-        if (it && it.special === "trash" && trashFull) {
-            var p = Quickshell.iconPath("user-trash-full", true);
-            if (p !== "") return p;
-        }
-        return iconSrc(it ? it.icon : "");
-    }
-
-    // ── Trash state: the standard XDG trash (~/.local/share/Trash/files) is what Dolphin's trash:/ shows ──
-    // inotifywait (inotify-tools) reports changes at once; without it the folder is checked every 3 s.
-    property bool trashFull: false
-    property bool trashReady: false           // first check done (it also creates the folder, which inotifywait needs)
-    property bool trashPoll: false            // no inotifywait: poll instead
-    readonly property string trashDir: {
-        var x = Quickshell.env("XDG_DATA_HOME");
-        return ((x && x !== "") ? x : Quickshell.env("HOME") + "/.local/share") + "/Trash/files";
-    }
-    function trashCheck() { if (!trashCheckProc.running) trashCheckProc.running = true; }
-    Process {
-        id: trashCheckProc
-        command: ["sh", "-c", "mkdir -p \"$1\"; if [ -n \"$(ls -A \"$1\" 2>/dev/null | head -n 1)\" ]; then s=1; else s=0; fi; "
-                              + "if command -v inotifywait >/dev/null 2>&1; then w=w; else w=p; fi; echo \"$s $w\"", "sh", root.trashDir]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var t = text.trim().split(" ");
-                root.trashFull = t[0] === "1";
-                root.trashPoll = t[1] === "p";
-                root.trashReady = true;
-            }
-        }
-    }
-    Process {
-        id: trashWatch
-        running: root.showTrash && root.trashReady && !root.trashPoll
-        command: ["inotifywait", "-m", "-q", "-e", "create", "-e", "delete", "-e", "moved_to", "-e", "moved_from", root.trashDir]
-        stdout: SplitParser { onRead: data => trashDebounce.restart() }
-    }
-    // Empty Trash: KDE's ktrash when it exists (it also cleans trashes on other drives and keeps Dolphin's trash icon in sync),
-    // otherwise the standard XDG trash folder is cleared directly. (gio is not used: without gvfs it "succeeds" without doing anything.)
-    function emptyTrash() {
-        Quickshell.execDetached(["sh", "-c",
-            "command -v ktrash6 >/dev/null 2>&1 && ktrash6 --empty && exit 0; "
-            + "command -v ktrash5 >/dev/null 2>&1 && ktrash5 --empty && exit 0; "
-            + "d=\"${XDG_DATA_HOME:-$HOME/.local/share}/Trash\"; "
-            + "chmod -R u+w \"$d/files\" 2>/dev/null; "
-            + "find \"$d/files\" \"$d/info\" -mindepth 1 -delete 2>/dev/null; "
-            + "rm -f \"$d/directorysizes\""]);
-        trashAfterEmpty.restart();
-        if (bar) bar.playSound("trash", 0.8);
-    }
-    Timer { id: trashAfterEmpty; interval: 900; onTriggered: root.trashCheck() }
-    Timer { id: trashDebounce; interval: 150; onTriggered: root.trashCheck() }
-    Timer { interval: 3000; repeat: true; running: root.showTrash && root.trashPoll; onTriggered: root.trashCheck() }
+    // icon of a dock cell
+    function cellIconSrc(it) { return iconSrc(it ? it.icon : ""); }
 
     // bumped (debounced) whenever windows open, close or change focus; thumbnails re-pick their window from it
     property int windowTick: 0
@@ -4172,14 +4122,7 @@ Scope {
 
     function activate(item, forceNew) {
         if (item.kind === "win") { if (item.tl) item.tl.activate(); return; }
-        if (item.special === "trash") {
-            // the file manager first (Dolphin understands trash:/ natively); xdg-open only as the last resort
-            Quickshell.execDetached(["sh", "-c",
-                "if command -v dolphin >/dev/null 2>&1; then exec dolphin trash:/; fi; "
-                + "for fm in nautilus thunar nemo pcmanfm-qt; do if command -v $fm >/dev/null 2>&1; then exec $fm trash:///; fi; done; "
-                + "exec xdg-open trash:///"]);
-            return;
-        }
+        if (item.special === "settings") { root.openPrefs("general"); return; }
         var wins = windowsFor(item.key);
         if (wins.length > 0 && !forceNew) {
             var idx = -1;
@@ -4253,11 +4196,9 @@ Scope {
             m.push({ kind: "item", label: I18n.tr("Settings\u2026"), run: function() { root.openPrefs(); } });
             return m;
         }
-        if (item.special === "trash") {
+        if (item.special === "settings") {
             m.push({ kind: "item", label: I18n.tr("Open"), run: function () { activate(item, false); } });
-            m.push({ kind: "item", label: I18n.tr("Empty Trash"), confirm: true, disabled: !trashFull, run: function () { root.emptyTrash(); } });
-            m.push({ kind: "sep" });
-            m.push({ kind: "item", label: I18n.tr("Settings\u2026"), run: function() { root.openPrefs(); } });
+            m.push({ kind: "item", label: I18n.tr("Desktop & Dock") + "\u2026", run: function () { root.openPrefs("dock"); } });
             return m;
         }
         var wins = windowsFor(item.key);
@@ -4332,7 +4273,7 @@ Scope {
                         entry: e2, running: true, pinned: false });
         }
 
-        // window previews: one cell per open window, in their own section next to the Trash
+        // window previews: one cell per open window, in their own section next to the Settings button
         var winItems = [], liveWins = [];
         if (showThumbs) {
             for (var w = 0; w < tls.length; w++) {
@@ -4355,14 +4296,14 @@ Scope {
         for (var wi = 0; wi < winIdList.length; wi++) if (liveWins.indexOf(winIdList[wi].tl) >= 0) keep.push(winIdList[wi]);
         winIdList = keep;
 
-        if (showTrash || winItems.length > 0) {
+        if (showSettings || winItems.length > 0) {
             list.push({ kind: "sep", key: "sep:win" });
             for (var wj = 0; wj < winItems.length; wj++) list.push(winItems[wj]);
         }
-        if (showTrash && winItems.length > 0) list.push({ kind: "sep", key: "sep:trash" });
-        if (showTrash) {
-            list.push({ kind: "app", key: "__trash", name: "Trash", icon: "user-trash",
-                        entry: null, running: false, pinned: true, special: "trash" });
+        if (showSettings && winItems.length > 0) list.push({ kind: "sep", key: "sep:settings" });
+        if (showSettings && settingsEnabled) {
+            list.push({ kind: "app", key: "__settings", name: "Settings", icon: settingsIcon,
+                        entry: null, running: false, pinned: true, special: "settings" });
         }
 
         var firstBuild = (lastSig === "");
@@ -4566,7 +4507,6 @@ Scope {
         Quickshell.execDetached(["mkdir", "-p", configDir]);
         rebuild();
         refreshBusy();
-        trashCheck();
     }
 
     FileView {
@@ -4729,7 +4669,7 @@ Scope {
                 property bool revealed: false
                 property var menuItem: null
                 property var menuModel: []
-                property string armed: ""            // label of a confirm-type entry that was clicked once (e.g. Empty Trash)
+                property string armed: ""            // label of a confirm-type entry that was clicked once (e.g. Quit)
                 onMenuItemChanged: armed = ""
                 property real menuCx: 0
                 readonly property bool menuOpen: menuItem !== null
@@ -5312,7 +5252,7 @@ Scope {
                                 readonly property bool isDragged: ui.dragging && modelData.key === ui.dragKey
 
                                 // app cells always show their plain icon; only window cells show a live preview
-                                // (with the app's icon as a badge), grouped next to the Trash
+                                // (with the app's icon as a badge), grouped next to the Settings button
                                 readonly property var thumbWin: (!isSep && modelData.kind === "win") ? modelData.tl : null
                                 // the capture only restarts when the window itself changes — refreshed Dock data hands the cell
                                 // the same window again, and re-binding it used to blank the live preview for ~2 s
@@ -5617,7 +5557,7 @@ Scope {
                                     Text {
                                         id: label
                                         anchors.centerIn: parent
-                                        text: cell.isSep ? "" : ((cell.modelData.kind === "win" && cell.modelData.tl && cell.modelData.tl.title) ? cell.modelData.tl.title : cell.modelData.name)
+                                        text: cell.isSep ? "" : ((cell.modelData.kind === "win" && cell.modelData.tl && cell.modelData.tl.title) ? cell.modelData.tl.title : (cell.modelData.special ? I18n.tr(cell.modelData.name) : cell.modelData.name))
                                         color: "white"
                                         font.pixelSize: 13
                                         font.family: root.fontForWeight(Font.Normal, root.fontFamily)
