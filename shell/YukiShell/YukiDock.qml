@@ -5384,21 +5384,19 @@ Scope {
                                             if (ma.containsMouse && !cell.isSep && !ui.dragging && !ui.tearing && !ui.tucked) wiggle.restart();
                                         }
                                     }
-                                    // ── hover plate: a tinted glass tile under the pointer, so the hovered icon is unmistakable ──
-                                    Rectangle {
+                                    // ── hover plate: a Liquid Glass tile under the pointer, so the hovered icon is unmistakable ──
+                                    GlassHover {
                                         id: plate
-                                        opacity: halo.on ? 1 : 0
-                                        visible: opacity > 0.01
-                                        Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                                        hot: halo.on
+                                        pressed: halo.on && ma.pressed
+                                        dark: root.darkMode
+                                        area: ma
                                         x: img.x + (img.width - width) / 2
                                         y: img.y + (img.height - height) / 2
                                         width: img.width * 1.16; height: img.height * 1.16
-                                        radius: width * 0.26
-                                        color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.2)
-                                        border.width: 1
-                                        border.color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.55)
+                                        radius: width * 0.28
                                     }
-                                    // ── hover glow: an accent halo blooms behind the icon ──
+                                    // ── hover glow: a soft light blooms behind the icon ──
                                     Item {
                                         id: halo
                                         readonly property bool on: !cell.isSep && ma.containsMouse && !ui.dragging && !ui.tearing && !ui.menuOpen
@@ -5412,7 +5410,7 @@ Scope {
                                             id: haloCore
                                             anchors.fill: parent
                                             radius: width / 2
-                                            color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.9)
+                                            color: Qt.rgba(1, 1, 1, 0.5)
                                             visible: false
                                         }
                                         MultiEffect {
@@ -5602,7 +5600,7 @@ Scope {
                                     radius: 9
                                     color: Qt.rgba(0.12, 0.12, 0.13, 0.72)
                                     border.width: 1
-                                    border.color: Qt.rgba(root.accent.r * 0.6 + 0.4, root.accent.g * 0.6 + 0.4, root.accent.b * 0.6 + 0.4, 0.42)
+                                    border.color: root.darkMode ? Qt.rgba(1, 1, 1, 0.26) : Qt.rgba(0, 0, 0, 0.14)
                                     // dark hairline just outside, so the label keeps its edge over a bright window behind it
                                     Rectangle {
                                         anchors.fill: parent

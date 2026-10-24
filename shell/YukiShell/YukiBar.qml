@@ -5195,7 +5195,7 @@ Scope {
                                 readonly property bool activeApp: modelData.id === "app"
                                 width: modelData.id === "apple" ? 30 : tl.implicitWidth + 20
                                 height: 28
-                                BarHover { id: mtHl; accent: bpal.accent; hot: mtMa.containsMouse; pressed: mtMa.pressed; open: mt.open }
+                                BarHover { id: mtHl; dark: bpal.dark; area: mtMa; hot: mtMa.containsMouse; pressed: mtMa.pressed; open: mt.open }
                                 Glyph {
                                     visible: mt.modelData.id === "apple" && root.barLogoMode === "arch"
                                     anchors.centerIn: parent
@@ -5279,7 +5279,7 @@ Scope {
                                 readonly property bool cur: wsRow.activeId === modelData
                                 readonly property bool busy: root.wsOccupied(modelData)
                                 width: 22; height: 28
-                                BarHover { id: wsHl; accent: bpal.accent; hot: wsMa.containsMouse; pressed: wsMa.pressed; open: wsi.cur }
+                                BarHover { id: wsHl; dark: bpal.dark; area: wsMa; hot: wsMa.containsMouse; pressed: wsMa.pressed; open: wsi.cur }
                                 Text {
                                     anchors.centerIn: parent
                                     scale: wsi.cur ? 1 : wsHl.lift
@@ -5322,7 +5322,7 @@ Scope {
                                 id: tray
                                 required property var modelData
                                 width: 26; height: 28
-                                BarHover { id: trHl; accent: bpal.accent; hot: trMa.containsMouse; pressed: trMa.pressed; open: ui.pop === "tray" && ui.trayItem === tray.modelData }
+                                BarHover { id: trHl; dark: bpal.dark; area: trMa; hot: trMa.containsMouse; pressed: trMa.pressed; open: ui.pop === "tray" && ui.trayItem === tray.modelData }
                                 Image {
                                     anchors.centerIn: parent
                                     scale: trHl.lift
@@ -5355,7 +5355,7 @@ Scope {
                             id: btBtn
                             visible: root.barWidgetEnabled("bluetooth")
                             width: root.barWidgetEnabled("bluetooth") ? 26 : 0; height: 28
-                            BarHover { id: btHl; accent: bpal.accent; hot: btMa.containsMouse; pressed: btMa.pressed; open: ui.pop === "bt" }
+                            BarHover { id: btHl; dark: bpal.dark; area: btMa; hot: btMa.containsMouse; pressed: btMa.pressed; open: ui.pop === "bt" }
                             Glyph { anchors.centerIn: parent; scale: btHl.lift; width: 15; height: 15; kind: "bluetooth"; color: root.btOn && root.btConnected > 0 ? bpal.fg : bpal.fg2 }
                             MouseArea { id: btMa; anchors.fill: parent; hoverEnabled: true; onClicked: ui.openPop("bt", btBtn.mapToItem(ui, 0, 0).x) }
                         }
@@ -5364,7 +5364,7 @@ Scope {
                             id: volBtn
                             visible: root.barWidgetEnabled("volume")
                             width: root.barWidgetEnabled("volume") ? 28 : 0; height: 28
-                            BarHover { id: volHl; accent: bpal.accent; hot: volMa.containsMouse; pressed: volMa.pressed; open: ui.pop === "vol" }
+                            BarHover { id: volHl; dark: bpal.dark; area: volMa; hot: volMa.containsMouse; pressed: volMa.pressed; open: ui.pop === "vol" }
                             Glyph { anchors.centerIn: parent; scale: volHl.lift; width: 16; height: 16; kind: "speaker"; level: root.volLevel; color: bpal.fg }
                             MouseArea {
                                 id: volMa
@@ -5379,7 +5379,7 @@ Scope {
                             id: kbBtn
                             visible: root.barWidgetEnabled("keyboard") && root.kbLayouts.length !== 1
                             width: root.barWidgetEnabled("keyboard") && root.kbLayouts.length !== 1 ? 34 : 0; height: 28
-                            BarHover { id: kbHl; accent: bpal.accent; hot: kbMouse.containsMouse; pressed: kbMouse.pressed; open: ui.pop === "kb" }
+                            BarHover { id: kbHl; dark: bpal.dark; area: kbMouse; hot: kbMouse.containsMouse; pressed: kbMouse.pressed; open: ui.pop === "kb" }
                             Text {
                                 anchors.centerIn: parent
                                 scale: kbHl.lift
@@ -5403,7 +5403,7 @@ Scope {
                         Item {
                             visible: root.hasBattery
                             width: root.hasBattery ? batRow.width + 14 : 0; height: 28
-                            BarHover { id: batHl; accent: bpal.accent; hot: batMa.containsMouse; pressed: batMa.pressed; open: ui.pop === "cc" }
+                            BarHover { id: batHl; dark: bpal.dark; area: batMa; hot: batMa.containsMouse; pressed: batMa.pressed; open: ui.pop === "cc" }
                             Row {
                                 id: batRow
                                 anchors.centerIn: parent
@@ -5450,7 +5450,7 @@ Scope {
                             id: bellBtn
                             visible: root.barWidgetEnabled("notifications")
                             width: root.barWidgetEnabled("notifications") ? 28 : 0; height: 28
-                            BarHover { id: bellHl; accent: bpal.accent; hot: bellMa.containsMouse; pressed: bellMa.pressed; open: ui.pop === "notif" }
+                            BarHover { id: bellHl; dark: bpal.dark; area: bellMa; hot: bellMa.containsMouse; pressed: bellMa.pressed; open: ui.pop === "notif" }
                             Glyph { anchors.centerIn: parent; scale: bellHl.lift; width: 16; height: 16; kind: "bell"; color: root.notifDnd ? bpal.fg2 : bpal.fg }
                             Rectangle {
                                 visible: root.notifUnread > 0 && !root.notifDnd
@@ -5465,7 +5465,7 @@ Scope {
                             id: wifiBtn
                             visible: root.barWidgetEnabled("wifi")
                             width: root.barWidgetEnabled("wifi") ? 28 : 0; height: 28
-                            BarHover { id: wifiHl; accent: bpal.accent; hot: wifiMa.containsMouse; pressed: wifiMa.pressed; open: ui.pop === "wifi" }
+                            BarHover { id: wifiHl; dark: bpal.dark; area: wifiMa; hot: wifiMa.containsMouse; pressed: wifiMa.pressed; open: ui.pop === "wifi" }
                             Glyph { anchors.centerIn: parent; scale: wifiHl.lift; width: 16; height: 16; kind: root.showEthernet ? "ethernet" : "wifi"; level: root.wifiOn ? (root.wifiLevel || 1) : 3; flag: !root.wifiOn && !root.showEthernet; color: (root.wifiOn || root.showEthernet) ? bpal.fg : bpal.fg2 }
                             MouseArea { id: wifiMa; anchors.fill: parent; hoverEnabled: true; onClicked: ui.openPop("wifi", wifiBtn.mapToItem(ui, 0, 0).x) }
                         }
@@ -5473,7 +5473,7 @@ Scope {
                         Item {
                             visible: root.showSearch
                             width: root.showSearch ? 28 : 0; height: 28
-                            BarHover { id: srchHl; accent: bpal.accent; hot: srchMa.containsMouse; pressed: srchMa.pressed; open: ui.pop === "spot" }
+                            BarHover { id: srchHl; dark: bpal.dark; area: srchMa; hot: srchMa.containsMouse; pressed: srchMa.pressed; open: ui.pop === "spot" }
                             Glyph { anchors.centerIn: parent; scale: srchHl.lift; width: 15; height: 15; kind: "search"; color: bpal.fg }
                             MouseArea { id: srchMa; anchors.fill: parent; hoverEnabled: true; onClicked: { if (root.launcher !== "") { ui.pop = ""; root.search(); } else ui.openPop("spot", 0); } }
                         }
@@ -5485,7 +5485,7 @@ Scope {
                             readonly property bool dotsOn: root.privacyAny && root.barWidgetEnabled("privacy")
                             width: (root.ccEnabled && root.barWidgetEnabled("controlCenter")) ? 30 + (dotsOn ? ccDots.width + 2 : 0) : 0; height: 28
                             Behavior on width { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
-                            BarHover { id: ccHl; accent: bpal.accent; hot: ccMa.containsMouse; pressed: ccMa.pressed; open: ui.pop === "cc" }
+                            BarHover { id: ccHl; dark: bpal.dark; area: ccMa; hot: ccMa.containsMouse; pressed: ccMa.pressed; open: ui.pop === "cc" }
                             Glyph { x: 7; anchors.verticalCenter: parent.verticalCenter; scale: ccHl.lift; width: 16; height: 16; kind: "cc"; color: bpal.fg }
                             // privacy dots like macOS: orange = microphone, green = camera, purple = screen sharing / recording
                             Row {
@@ -5513,7 +5513,7 @@ Scope {
                             visible: root.barWidgetEnabled("clock")
                             width: root.barWidgetEnabled("clock") ? clockText.implicitWidth + 16 : 0
                             height: 28
-                            BarHover { id: clockHl; accent: bpal.accent; hot: clockMa.containsMouse; pressed: clockMa.pressed; open: ui.pop === "cal" }
+                            BarHover { id: clockHl; dark: bpal.dark; area: clockMa; hot: clockMa.containsMouse; pressed: clockMa.pressed; open: ui.pop === "cal" }
                             Text {
                                 id: clockText
                                 anchors.centerIn: parent
