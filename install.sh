@@ -5,6 +5,9 @@ set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 cfg="${XDG_CONFIG_HOME:-$HOME/.config}"
 
+# ./install.sh --doctor: only check what is missing on this machine, change nothing
+[ "${1:-}" = "--doctor" ] && exec "$here/tools/doctor"
+
 link() {  # link <src> <dst>
     mkdir -p "$(dirname "$2")"
     if [ -e "$2" ] && [ ! -L "$2" ]; then mv "$2" "$2.pre-rice"; fi
