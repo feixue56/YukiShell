@@ -3147,32 +3147,285 @@ Scope {
             Column {
                 id: netPane
                 spacing: 10
-                property var devs: []
+                // the connection you are online through (the default route) in detail, live traffic, and every other connection
+                property var info: ({})                 // GENERAL.* / IP4.* / IP6.* of the main device, plus a few extras
+                property var others: []                 // the other devices (VPN, Tailscale, a second card...)
+                property string dev: ""
+                property real rxRate: 0                 // bytes per second
+                property real txRate: 0
+                property var rxHist: []                 // last 60 seconds, for the graphs
+                property var txHist: []
+                property real rxTotal: 0
+                property real txTotal: 0
+                property real lastRx: -1
+                property real lastTx: -1
+                property real lastAt: 0
+                property string publicIp: ""
+                property bool publicBusy: false
+                readonly property bool up: info.state !== undefined && info.state.indexOf("connected") === 0
+                readonly property string kind: info.type || ""
+                function v(k) { return info[k] !== undefined ? info[k] : ""; }
+                function human(b, perSec) {
+                    var u = perSec ? ["B/s", "KB/s", "MB/s", "GB/s"] : ["B", "KB", "MB", "GB", "TB"], i = 0;
+                    while (b >= 1024 && i < u.length - 1) { b /= 1024; i++; }
+                    return (i === 0 ? Math.round(b) : b.toFixed(b < 10 ? 1 : 0)) + " " + u[i];
+                }
+                function mask(prefix) {
+                    var n = parseInt(prefix); if (isNaN(n)) return "";
+                    var out = [];
+                    for (var i = 0; i < 4; i++) { var bits = Math.max(0, Math.min(8, n - i * 8)); out.push(256 - Math.pow(2, 8 - bits)); }
+                    return out.join(".");
+                }
+                function since(ts) {
+                    var sec = Math.floor(Date.now() / 1000) - parseInt(ts);
+                    if (isNaN(sec) || sec < 0) return "";
+                    var d = Math.floor(sec / 86400), h = Math.floor(sec % 86400 / 3600), m = Math.floor(sec % 3600 / 60);
+                    return d > 0 ? d + I18n.tr(" d ") + h + I18n.tr(" h") : (h > 0 ? h + I18n.tr(" h ") + m + I18n.tr(" min") : m + I18n.tr(" min"));
+                }
+                function copy(t) { if (t !== "") Quickshell.execDetached(["wl-copy", t]); }
+                readonly property string ip4: (v("IP4.ADDRESS[1]").split("/")[0]) || ""
+                readonly property string summary: [I18n.tr("Interface") + ": " + dev, I18n.tr("IP address") + ": " + ip4,
+                    I18n.tr("Subnet mask") + ": " + mask(v("IP4.ADDRESS[1]").split("/")[1]), I18n.tr("Router") + ": " + v("IP4.GATEWAY"),
+                    I18n.tr("DNS servers") + ": " + [v("IP4.DNS[1]"), v("IP4.DNS[2]"), v("IP4.DNS[3]")].filter(function (x) { return x !== ""; }).join(", "),
+                    "IPv6: " + v("IP6.ADDRESS[1]").split("/")[0], I18n.tr("MAC address") + ": " + v("GENERAL.HWADDR")].join("\n")
+
                 Component.onCompleted: netProc.running = true
                 Timer { interval: 4000; repeat: true; running: prefsWindow.visible; onTriggered: if (!netProc.running) netProc.running = true }
                 Process {
                     id: netProc
-                    command: ["sh", "-c", "nmcli -t -f DEVICE,TYPE,STATE,CONNECTION dev 2>/dev/null | grep -vE ':(loopback|wifi-p2p|bridge):' | while IFS=: read -r d t s c; do ip=$(ip -4 -o addr show \"$d\" 2>/dev/null | awk '{print $4}' | head -1); printf '%s\\t%s\\t%s\\t%s\\t%s\\n' \"$d\" \"$t\" \"$s\" \"$c\" \"$ip\"; done"]
+                    // the device of the default route (what you are online through), else the first connected one
+                    command: ["sh", "-c",
+                        "d=$(ip -4 route show default 2>/dev/null | awk '{print $5; exit}'); "
+                        + "[ -n \"$d\" ] || d=$(nmcli -t -f DEVICE,TYPE,STATE dev 2>/dev/null | awk -F: '$3 ~ /^connected/ && $2 != \"loopback\" {print $1; exit}'); "
+                        + "[ -n \"$d\" ] || d=$(nmcli -t -f DEVICE,TYPE dev 2>/dev/null | awk -F: '$2 == \"ethernet\" || $2 == \"wifi\" {print $1; exit}'); "
+                        + "echo \"DEV:$d\"; [ -n \"$d\" ] || exit 0; "
+                        + "nmcli -t -f GENERAL.TYPE,GENERAL.STATE,GENERAL.HWADDR,GENERAL.MTU,GENERAL.CONNECTION,GENERAL.VENDOR,GENERAL.PRODUCT,GENERAL.DRIVER,IP4.ADDRESS,IP4.GATEWAY,IP4.DNS,IP6.ADDRESS,IP6.GATEWAY dev show \"$d\" 2>/dev/null; "
+                        + "nmcli -t -f DHCP4.OPTION dev show \"$d\" 2>/dev/null | sed -n 's/.*dhcp_lease_time = \\([0-9]*\\).*/LEASE:\\1/p'; "
+                        + "echo \"SPEED:$(cat /sys/class/net/$d/speed 2>/dev/null)\"; echo \"DUPLEX:$(cat /sys/class/net/$d/duplex 2>/dev/null)\"; "
+                        + "c=$(nmcli -t -f GENERAL.CONNECTION dev show \"$d\" 2>/dev/null | cut -d: -f2-); "
+                        + "nmcli -t -f NAME,TIMESTAMP con show --active 2>/dev/null | while IFS= read -r l; do [ \"${l%:*}\" = \"$c\" ] && echo \"SINCE:${l##*:}\"; done; "
+                        + "nmcli -t -f DEVICE,TYPE,STATE,CONNECTION dev 2>/dev/null | grep -vE ':(loopback|wifi-p2p|bridge):' | while IFS=: read -r od ot os oc; do "
+                        + "[ \"$od\" = \"$d\" ] && continue; oi=$(ip -4 -o addr show \"$od\" 2>/dev/null | awk '{print $4}' | head -1); printf 'OTHER:%s\\t%s\\t%s\\t%s\\t%s\\n' \"$od\" \"$ot\" \"$os\" \"$oc\" \"$oi\"; done"]
                     stdout: StdioCollector {
                         onStreamFinished: {
-                            var out = [], l = text.split("\n");
-                            for (var i = 0; i < l.length; i++) { var f = l[i].split("\t"); if (f.length >= 3 && f[0] !== "") out.push({ dev: f[0], type: f[1], state: f[2], con: f[3] || "", ip: f[4] || "" }); }
-                            netPane.devs = out;
+                            var m = {}, o = [], l = text.split("\n");
+                            for (var i = 0; i < l.length; i++) {
+                                var k = l[i].indexOf(":"); if (k < 0) continue;
+                                var key = l[i].substring(0, k), val = l[i].substring(k + 1).trim();
+                                if (key === "OTHER") { var f = val.split("\t"); o.push({ dev: f[0], type: f[1] || "", state: f[2] || "", con: f[3] || "", ip: f[4] || "" }); }
+                                else if (key === "DEV") netPane.dev = val;
+                                else if (key === "GENERAL.TYPE") m.type = val;
+                                else if (key === "GENERAL.STATE") m.state = val.replace(/^[0-9]+ \(|\)$/g, "");
+                                else m[key] = val;
+                            }
+                            netPane.info = m; netPane.others = o;
                         }
                     }
                 }
+                // traffic: the interface's byte counters once a second while Settings is open
+                Timer { interval: 1000; repeat: true; triggeredOnStart: true; running: prefsWindow.visible && netPane.dev !== ""; onTriggered: if (!rateProc.running) rateProc.running = true }
+                Process {
+                    id: rateProc
+                    command: ["sh", "-c", "cat /sys/class/net/\"$1\"/statistics/rx_bytes /sys/class/net/\"$1\"/statistics/tx_bytes 2>/dev/null", "sh", netPane.dev]
+                    stdout: StdioCollector {
+                        onStreamFinished: {
+                            var f = text.trim().split("\n"); if (f.length < 2) return;
+                            var rx = parseFloat(f[0]), tx = parseFloat(f[1]), now = Date.now();
+                            if (netPane.lastRx >= 0 && rx >= netPane.lastRx && tx >= netPane.lastTx) {
+                                var dt = Math.max(0.2, (now - netPane.lastAt) / 1000);
+                                netPane.rxRate = (rx - netPane.lastRx) / dt; netPane.txRate = (tx - netPane.lastTx) / dt;
+                                var a = netPane.rxHist.slice(-59), b = netPane.txHist.slice(-59);
+                                a.push(netPane.rxRate); b.push(netPane.txRate);
+                                netPane.rxHist = a; netPane.txHist = b;
+                            }
+                            netPane.lastRx = rx; netPane.lastTx = tx; netPane.lastAt = now;
+                            netPane.rxTotal = rx; netPane.txTotal = tx;
+                        }
+                    }
+                }
+                onDevChanged: { lastRx = -1; rxHist = []; txHist = []; rxRate = 0; txRate = 0; }
+                Process {
+                    id: pubProc
+                    command: ["sh", "-c", "curl -fsS --max-time 6 https://api.ipify.org 2>/dev/null || echo ?"]
+                    stdout: StdioCollector { onStreamFinished: { netPane.publicIp = text.trim() === "?" ? I18n.tr("Couldn't reach the lookup service") : text.trim(); netPane.publicBusy = false; } }
+                }
+
+                // --- the connection ---
                 SCard {
                     t: pal
+                    Item {
+                        width: parent.width; height: 96
+                        Rectangle {
+                            id: netBadge
+                            x: 16; anchors.verticalCenter: parent.verticalCenter
+                            width: 56; height: 56; radius: 28
+                            gradient: Gradient {
+                                GradientStop { position: 0; color: netPane.up ? "#3D9BFF" : "#8E8E93" }
+                                GradientStop { position: 1; color: netPane.up ? "#0A6CFF" : "#636366" }
+                            }
+                            WGlyph { anchors.centerIn: parent; width: 28; height: 28; kind: netPane.kind === "wifi" ? "wifi" : "ethernet"; color: "white" }
+                        }
+                        Column {
+                            x: 86; anchors.verticalCenter: parent.verticalCenter
+                            width: parent.width - x - statusPill.width - 30
+                            spacing: 2
+                            Text {
+                                text: netPane.dev === "" ? I18n.tr("No network adapter") : (netPane.kind === "wifi" ? I18n.tr("Wi-Fi") : (netPane.kind === "ethernet" ? I18n.tr("Ethernet") : netPane.dev))
+                                color: pal.text; font.family: root.fontForWeight(Font.DemiBold, pal.fam); font.pixelSize: 17; font.weight: Font.DemiBold
+                            }
+                            Text {
+                                width: parent.width; elide: Text.ElideRight
+                                text: netPane.up ? I18n.tr("Connected") + (netPane.v("GENERAL.CONNECTION") !== "" ? " · " + netPane.v("GENERAL.CONNECTION") : "")
+                                                 : (netPane.kind === "ethernet" ? I18n.tr("Cable unplugged") : I18n.tr("Not Connected"))
+                                color: pal.text2; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12
+                            }
+                            Text {
+                                visible: netPane.up
+                                width: parent.width; elide: Text.ElideRight
+                                text: [parseInt(netPane.v("SPEED")) >= 1000 ? (parseInt(netPane.v("SPEED")) / 1000) + " Gb/s" : (parseInt(netPane.v("SPEED")) > 0 ? netPane.v("SPEED") + " Mb/s" : ""),
+                                       netPane.v("DUPLEX") === "full" ? I18n.tr("full duplex") : "",
+                                       netPane.v("SINCE") !== "" ? I18n.tr("connected for ") + netPane.since(netPane.v("SINCE")) : ""].filter(function (x) { return x !== ""; }).join(" · ")
+                                color: pal.text3; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 11
+                            }
+                        }
+                        Rectangle {
+                            id: statusPill
+                            anchors.right: parent.right; anchors.rightMargin: 16; anchors.verticalCenter: parent.verticalCenter
+                            width: pillText.implicitWidth + 22; height: 24; radius: 12
+                            color: netPane.up ? Qt.rgba(0.19, 0.82, 0.35, 0.16) : Qt.rgba(0.56, 0.56, 0.58, 0.16)
+                            Row {
+                                anchors.centerIn: parent; spacing: 6
+                                Rectangle { width: 7; height: 7; radius: 3.5; anchors.verticalCenter: parent.verticalCenter; color: netPane.up ? "#30D158" : pal.text3 }
+                                Text { id: pillText; text: netPane.up ? I18n.tr("Online") : I18n.tr("Offline"); color: netPane.up ? "#30D158" : pal.text2; font.family: root.fontForWeight(Font.DemiBold, pal.fam); font.pixelSize: 11; font.weight: Font.DemiBold }
+                            }
+                        }
+                    }
+                    // live traffic: two tiles with the speed right now, a 60-second graph and what went through since the link came up
+                    Item {
+                        visible: netPane.up
+                        width: parent.width; height: visible ? 128 : 0
+                        Rectangle { x: 14; width: parent.width - 14; height: 1; color: pal.sep }
+                        Row {
+                            x: 14; y: 14; spacing: 10
+                            Repeater {
+                                model: [{ down: true }, { down: false }]
+                                delegate: Rectangle {
+                                    id: tile
+                                    required property var modelData
+                                    readonly property bool down: modelData.down
+                                    readonly property color tint: down ? "#30D158" : pal.accent
+                                    readonly property var hist: down ? netPane.rxHist : netPane.txHist
+                                    width: (netPane.width - 38) / 2; height: 100; radius: 10
+                                    color: Qt.rgba(tint.r, tint.g, tint.b, 0.08)
+                                    border.width: 1; border.color: Qt.rgba(tint.r, tint.g, tint.b, 0.22)
+                                    Column {
+                                        x: 12; y: 10; spacing: 1
+                                        Text { text: (tile.down ? "↓  " + I18n.tr("Download") : "↑  " + I18n.tr("Upload")); color: tile.tint; font.family: root.fontForWeight(Font.DemiBold, pal.fam); font.pixelSize: 11; font.weight: Font.DemiBold }
+                                        Text { text: netPane.human(tile.down ? netPane.rxRate : netPane.txRate, true); color: pal.text; font.family: root.fontForWeight(Font.DemiBold, pal.fam); font.pixelSize: 20; font.weight: Font.DemiBold }
+                                        Text { text: (tile.down ? I18n.tr("Received ") : I18n.tr("Sent ")) + netPane.human(tile.down ? netPane.rxTotal : netPane.txTotal, false); color: pal.text3; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 11 }
+                                    }
+                                    Canvas {
+                                        id: graph
+                                        anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom
+                                        anchors.margins: 1
+                                        height: 34
+                                        onPaint: {
+                                            var c = getContext("2d"), h = tile.hist, w = width, ht = height;
+                                            c.reset();
+                                            if (h.length < 2) return;
+                                            var mx = 1; for (var i = 0; i < h.length; i++) mx = Math.max(mx, h[i]);
+                                            var step = w / 59, x0 = w - (h.length - 1) * step;
+                                            c.beginPath(); c.moveTo(x0, ht);
+                                            for (var j = 0; j < h.length; j++) c.lineTo(x0 + j * step, ht - 2 - (ht - 6) * h[j] / mx);
+                                            c.lineTo(w, ht); c.closePath();
+                                            c.fillStyle = Qt.rgba(tile.tint.r, tile.tint.g, tile.tint.b, 0.18); c.fill();
+                                            c.beginPath();
+                                            for (var k = 0; k < h.length; k++) { var y = ht - 2 - (ht - 6) * h[k] / mx; if (k === 0) c.moveTo(x0, y); else c.lineTo(x0 + k * step, y); }
+                                            c.strokeStyle = tile.tint; c.lineWidth = 1.5; c.stroke();
+                                        }
+                                        Connections { target: tile; function onHistChanged() { graph.requestPaint(); } }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // --- details ---
+                SLabel { t: pal; header: true; text: I18n.tr("Details"); visible: netPane.dev !== "" }
+                SCard {
+                    t: pal
+                    visible: netPane.dev !== ""
+                    SRow {
+                        t: pal; title: I18n.tr("IP address"); subtitle: netPane.ip4 !== "" ? netPane.ip4 : I18n.tr("None")
+                        SButton { t: pal; text: I18n.tr("Copy"); visible: netPane.ip4 !== ""; onClicked: netPane.copy(netPane.ip4) }
+                    }
+                    SRow { t: pal; visible: netPane.ip4 !== ""; title: I18n.tr("Subnet mask"); subtitle: netPane.mask(netPane.v("IP4.ADDRESS[1]").split("/")[1]) + "  (/" + (netPane.v("IP4.ADDRESS[1]").split("/")[1] || "") + ")" }
+                    SRow { t: pal; visible: netPane.v("IP4.GATEWAY") !== ""; title: I18n.tr("Router"); subtitle: netPane.v("IP4.GATEWAY") }
+                    SRow {
+                        t: pal; visible: netPane.v("IP4.DNS[1]") !== ""; title: I18n.tr("DNS servers")
+                        subtitle: [netPane.v("IP4.DNS[1]"), netPane.v("IP4.DNS[2]"), netPane.v("IP4.DNS[3]")].filter(function (x) { return x !== ""; }).join(", ")
+                    }
+                    SRow {
+                        t: pal; visible: netPane.v("IP6.ADDRESS[1]") !== ""; title: "IPv6"
+                        subtitle: [netPane.v("IP6.ADDRESS[1]"), netPane.v("IP6.ADDRESS[2]")].filter(function (x) { return x !== ""; }).map(function (x) { return x.split("/")[0]; }).join("\n")
+                        SButton { t: pal; text: I18n.tr("Copy"); onClicked: netPane.copy(netPane.v("IP6.ADDRESS[1]").split("/")[0]) }
+                    }
+                    SRow {
+                        t: pal; visible: netPane.v("LEASE") !== ""; title: I18n.tr("DHCP lease time")
+                        subtitle: netPane.since(Math.floor(Date.now() / 1000) - parseInt(netPane.v("LEASE")))
+                    }
+                    SRow {
+                        t: pal; title: I18n.tr("Public IP address")
+                        subtitle: netPane.publicIp !== "" ? netPane.publicIp : I18n.tr("Asks api.ipify.org, only when you press Look Up")
+                        Row {
+                            spacing: 6
+                            SButton { t: pal; text: I18n.tr("Copy"); visible: /^[0-9a-f.:]+$/i.test(netPane.publicIp); onClicked: netPane.copy(netPane.publicIp) }
+                            SButton {
+                                t: pal; text: netPane.publicBusy ? I18n.tr("Looking up…") : I18n.tr("Look Up")
+                                onClicked: { if (netPane.publicBusy) return; netPane.publicBusy = true; pubProc.running = true; }
+                            }
+                        }
+                    }
+                }
+                SLabel { t: pal; header: true; text: I18n.tr("Hardware"); visible: netPane.dev !== "" }
+                SCard {
+                    t: pal
+                    visible: netPane.dev !== ""
+                    SRow {
+                        t: pal; title: I18n.tr("MAC address"); subtitle: netPane.v("GENERAL.HWADDR")
+                        SButton { t: pal; text: I18n.tr("Copy"); onClicked: netPane.copy(netPane.v("GENERAL.HWADDR")) }
+                    }
+                    SRow { t: pal; title: I18n.tr("Adapter"); subtitle: (netPane.v("GENERAL.PRODUCT").replace(/\s*\(.*\)\s*$/, "") || netPane.dev) + (netPane.v("GENERAL.VENDOR") !== "" ? "\n" + netPane.v("GENERAL.VENDOR") : "") }
+                    SRow { t: pal; title: I18n.tr("Interface"); subtitle: netPane.dev + (netPane.v("GENERAL.DRIVER") !== "" ? " · " + I18n.tr("driver ") + netPane.v("GENERAL.DRIVER") : "") + (netPane.v("GENERAL.MTU") !== "" ? " · MTU " + netPane.v("GENERAL.MTU") : "") }
+                }
+
+                // --- everything else: VPN, Tailscale, a second adapter ---
+                SLabel { t: pal; header: true; text: I18n.tr("Other Connections"); visible: netPane.others.length > 0 }
+                SCard {
+                    t: pal
+                    visible: netPane.others.length > 0
                     Repeater {
-                        model: netPane.devs
+                        model: netPane.others
                         delegate: SRow {
+                            id: oRow
                             required property var modelData
                             t: pal
                             readonly property bool up: modelData.state.indexOf("connected") === 0
-                            title: ({ ethernet: I18n.tr("Ethernet"), wifi: I18n.tr("Wi-Fi"), tun: modelData.dev === "tailscale0" ? I18n.tr("Tailscale") : I18n.tr("VPN") })[modelData.type] || modelData.dev
-                            subtitle: (up ? I18n.tr("Connected") : I18n.tr("Not Connected")) + (modelData.con !== "" ? " · " + modelData.con : "") + (modelData.ip !== "" ? " · " + modelData.ip : "")
-                            Rectangle { width: 10; height: 10; radius: 5; color: parent.up ? "#30D158" : pal.text3 }
+                            title: ({ ethernet: I18n.tr("Ethernet"), wifi: I18n.tr("Wi-Fi"), tun: modelData.dev === "tailscale0" ? I18n.tr("Tailscale") : I18n.tr("VPN"), wireguard: "WireGuard" })[modelData.type] || modelData.dev
+                            subtitle: (up ? I18n.tr("Connected") : I18n.tr("Not Connected")) + (modelData.ip !== "" ? " · " + modelData.ip.split("/")[0] : "") + " · " + modelData.dev
+                            Rectangle { width: 10; height: 10; radius: 5; color: oRow.up ? "#30D158" : pal.text3 }
                         }
+                    }
+                }
+
+                Row {
+                    spacing: 8
+                    visible: netPane.dev !== ""
+                    SButton { t: pal; text: I18n.tr("Copy All Details"); onClicked: netPane.copy(netPane.summary) }
+                    SButton {
+                        t: pal; text: I18n.tr("Edit Connections…")
+                        onClicked: { prefsWindow.visible = false; Quickshell.execDetached(["sh", "-c", ((root.bar && root.bar.terminal) || "kitty") + " -e nmtui"]); }
                     }
                 }
             }
