@@ -9731,7 +9731,7 @@ Scope {
                                 width: 18; height: 18
                                 kind: "search"; color: panelPal.fg2
                             }
-                            // placeholder: blur-morphs between "Spotlight Search" and the hovered button's name
+                            // placeholder: blur-morphs between "Search" and the hovered button's name
                             MorphText {
                                 x: spInput.x + 3
                                 width: spInput.width
@@ -9740,7 +9740,7 @@ Scope {
                                 animateWidth: false
                                 duration: 460
                                 blurMax: 48
-                                text: ui.spHoverLabel !== "" ? ui.spHoverLabel : I18n.tr("Spotlight Search")
+                                text: ui.spHoverLabel !== "" ? ui.spHoverLabel : I18n.tr("Search")
                                 color: panelPal.fg2
                                 font.family: root.fontForWeight(Font.Normal, panelPal.fam); font.pixelSize: 17
                                 elide: Text.ElideRight
@@ -9818,7 +9818,7 @@ Scope {
                                 on: ui.spMode === modelData.id
                                 HoverHandler {
                                     id: btnHover
-                                    // crossing the gap to the next button must not flash "Spotlight Search": only go back
+                                    // crossing the gap to the next button must not flash "Search": only go back
                                     // to it once the pointer has been off every button for 0.35 s
                                     onHoveredChanged: {
                                         if (hovered) { spHoverClear.stop(); ui.spHoverLabel = modelData.label; }
