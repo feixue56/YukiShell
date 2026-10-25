@@ -164,6 +164,25 @@ ShellRoot {
         Timer { id: wpKick; interval: 250; onTriggered: sharedHub.refreshWallpaper() }
         function refreshWallpaper() { if (!wpProc.running) wpProc.running = true; }
 
+        // Every Liquid Glass refracts a backdrop: a placeholder gradient with the wallpaper drawn over it once its image has loaded.
+        // Shown before that, the glass bent the bright blue / purple / orange placeholder for a moment after each (re)start. So the
+        // glass only switches on once the wallpaper is decoded (here, ahead of time, at the size the backdrops ask for, so theirs is
+        // a cache hit), or after 2.5 s whatever happens; until then the plain translucent style shows.
+        property bool wallpaperReady: false
+        readonly property string firstWallpaperUrl: {
+            if (!bar) return "";
+            var s = Quickshell.screens.length > 0 ? Quickshell.screens[0].name : "";
+            return bar.fileUrl(bar.wallpaperFor(s));
+        }
+        Image {
+            visible: false
+            asynchronous: true
+            source: sharedHub.firstWallpaperUrl
+            sourceSize.width: Quickshell.screens.length > 0 ? Quickshell.screens[0].width : 1920
+            onStatusChanged: if (status === Image.Ready || status === Image.Error) sharedHub.wallpaperReady = true
+        }
+        Timer { interval: 2500; running: true; onTriggered: sharedHub.wallpaperReady = true }
+
         // window + monitor geometry for the Liquid Glass backdrops
         Process {
             id: geoProc

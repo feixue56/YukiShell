@@ -459,6 +459,44 @@ Scope {
     property string wxPlace: ""
     property var wxHourly: []
     property var wxDaily: []
+    property string wxCoordsFor: ""          // wxKey the coordinates above belong to
+
+    // The last good forecast (and the city's coordinates) are kept in ~/.cache/yukishell/weather.json: after a restart the widget
+    // shows them at once and refreshes in the background, instead of "Loading..." and, when the first request of the session
+    // failed (no network yet, a DNS hiccup), "Unavailable" for the next 15 minutes.
+    readonly property string wxKey: (locMode === "city" ? "city:" + cityName.trim().toLowerCase() : "auto") + ":" + tempUnit
+    FileView {
+        id: wxCacheFile
+        path: Quickshell.env("HOME") + "/.cache/yukishell/weather.json"
+        printErrors: false
+        onLoaded: root.wxFromCache()
+    }
+    function wxFromCache() {
+        try {
+            var c = JSON.parse(wxCacheFile.text());
+            if (!c || c.key !== wxKey || wxReady) return;
+            wxCoordsFor = c.key;
+            wxLat = c.lat; wxLon = c.lon; wxPlace = c.place; wxLocated = c.located;
+            wxTemp = c.temp; wxCode = c.code; wxDay = c.day; wxHi = c.hi; wxLo = c.lo;
+            wxHourly = c.hourly || []; wxDaily = c.daily || [];
+            wxCity = c.place; wxReady = true; wxError = "";
+        } catch (e) {}
+    }
+    function wxSave() {
+        wxCacheFile.setText(JSON.stringify({ key: wxKey, at: Date.now(), lat: wxLat, lon: wxLon, place: wxPlace, located: wxLocated,
+            temp: wxTemp, code: wxCode, day: wxDay, hi: wxHi, lo: wxLo, hourly: wxHourly, daily: wxDaily }));
+    }
+    // a failed lookup is tried again soon (5 s, 15 s, 30 s, 1 min, then every 2 min) rather than at the next 15-minute refresh;
+    // meanwhile a forecast we already have stays on screen
+    property int wxFails: 0
+    function wxFailed(why) {
+        if (!wxReady) wxError = why;
+        wxRetry.interval = [5000, 15000, 30000, 60000][Math.min(wxFails, 3)] || 120000;
+        if (wxFails >= 4) wxRetry.interval = 120000;
+        wxFails++;
+        wxRetry.restart();
+    }
+    Timer { id: wxRetry; onTriggered: root.refresh() }
 
     function wmo(code, day) {
         switch (code) {
@@ -498,7 +536,11 @@ Scope {
     function refresh() {
         if (!ready || count("weather") === 0) return;
         if (locProc.running || geoProc.running || wxProc.running) return;
-        if (locMode === "city" && cityName.trim() !== "") { geoProc.running = true; }
+        if (locMode === "city" && cityName.trim() !== "") {
+            // the city's position doesn't change: once known (cache or an earlier lookup), go straight to the forecast
+            if (wxPlace !== "" && !wxLocated && wxCoordsFor === wxKey) wxProc.running = true;
+            else geoProc.running = true;
+        }
         else { locProc.running = true; }
     }
     function refreshSoon() { if (ready) refreshDebounce.restart(); }
@@ -514,6 +556,7 @@ Scope {
     // automatic location (IP): ipwho.is, falling back to ipapi.co
     Process {
         id: locProc
+        stderr: StdioCollector { onStreamFinished: if (text.trim() !== "") console.log("[yukiwidgets] location curl:", text.trim().substring(0, 200)) }
         command: ["sh", "-c",
             "o=$(curl -fsS --max-time 8 https://ipwho.is/ 2>/dev/null); "
             + "case \"$o\" in *'\"latitude\"'*) printf '%s' \"$o\";; *) curl -fsS --max-time 8 https://ipapi.co/json/;; esac"]
@@ -526,13 +569,14 @@ Scope {
                     root.wxPlace = o.city || o.region || o.country || I18n.tr("Current Location");
                     root.wxLocated = true;
                     wxProc.running = true;
-                } catch (err) { root.wxError = "location lookup failed"; console.log("[yukiwidgets] location:", err, text.substring(0, 120)); }
+                } catch (err) { root.wxFailed("location lookup failed"); console.log("[yukiwidgets] location:", err, text.substring(0, 120)); }
             }
         }
     }
     // a city typed in Settings
     Process {
         id: geoProc
+        stderr: StdioCollector { onStreamFinished: if (text.trim() !== "") console.log("[yukiwidgets] geocoding curl:", text.trim().substring(0, 200)) }
         command: ["curl", "-fsS", "--max-time", "8", "-G", "https://geocoding-api.open-meteo.com/v1/search",
                   "--data-urlencode", "name=" + root.cityName.trim(), "-d", "count=1", "-d", "language=en", "-d", "format=json"]
         stdout: StdioCollector {
@@ -542,13 +586,20 @@ Scope {
                     root.wxLat = Number(r.latitude); root.wxLon = Number(r.longitude);
                     root.wxPlace = r.name;
                     root.wxLocated = false;
+                    root.wxCoordsFor = root.wxKey;
                     wxProc.running = true;
-                } catch (err) { root.wxError = "city not found"; console.log("[yukiwidgets] geocoding:", err); }
+                } catch (err) {
+                    // an empty answer is a network problem (try again soon); an answer without results is a city that doesn't exist
+                    if (text.trim() !== "" && text.indexOf("results") < 0) { root.wxError = "city not found"; root.wxReady = false; }
+                    else root.wxFailed("location lookup failed");
+                    console.log("[yukiwidgets] geocoding:", err);
+                }
             }
         }
     }
     Process {
         id: wxProc
+        stderr: StdioCollector { onStreamFinished: if (text.trim() !== "") console.log("[yukiwidgets] forecast curl:", text.trim().substring(0, 200)) }
         command: ["curl", "-fsS", "--max-time", "10", "-G", "https://api.open-meteo.com/v1/forecast",
                   "-d", "latitude=" + root.wxLat, "-d", "longitude=" + root.wxLon,
                   "-d", "current=temperature_2m,weather_code,is_day",
@@ -579,7 +630,9 @@ Scope {
                     root.wxCity = root.wxPlace;
                     root.wxReady = true;
                     root.wxError = "";
-                } catch (err) { root.wxError = "weather lookup failed"; console.log("[yukiwidgets] forecast:", err, text.substring(0, 120)); }
+                    root.wxFails = 0;
+                    root.wxSave();
+                } catch (err) { root.wxFailed("weather lookup failed"); console.log("[yukiwidgets] forecast:", err, text.substring(0, 120)); }
             }
         }
     }
@@ -590,7 +643,7 @@ Scope {
     readonly property string glassShaderSrc: decodeURIComponent(Qt.resolvedUrl("liquidglass.frag").toString().replace("file://", ""))
     readonly property string glassShaderOut: configDir + "/liquidglass.frag.qsb"
     onAnyLiquidChanged: if (anyLiquid) startGlass()
-    onReadyChanged: if (ready && anyLiquid) startGlass()
+    onReadyChanged: { if (ready) wxFromCache(); if (ready && anyLiquid) startGlass(); }
     function startGlass() {
         if (!ready || glassState === "ready" || glassState === "building" || glassState === "failed") return;
         glassState = "building";
@@ -601,6 +654,8 @@ Scope {
         id: qsbProc
         command: ["sh", "-c",
             "mkdir -p \"$(dirname \"$2\")\"; "
+            // already compiled from this very source (it is newer than the .frag): nothing to do, the glass is ready at once
+            + "[ -s \"$2\" ] && [ \"$2\" -nt \"$1\" ] && exit 0; "
             + "for q in qsb qsb6 qsb-qt6 /usr/lib/qt6/bin/qsb /usr/lib64/qt6/bin/qsb /usr/lib/qt/bin/qsb; do "
             + "  if command -v \"$q\" >/dev/null 2>&1; then \"$q\" --qt6 -o \"$2\" \"$1\" && exit 0; fi; "
             + "done; "

@@ -4107,7 +4107,15 @@ Scope {
 
     // --- LIQUID GLASS BACKEND (same pipeline as yukidock) ---
     property string glassState: "idle"       // idle -> building -> ready | failed
-    readonly property bool liquidActive: barStyle === "liquid" && glassState === "ready" && !gaming
+    // liquidBase: the glass can run. The backdrops (what the glass refracts) load from then on, behind the plain style;
+    // liquidActive (the glass actually shown) follows once the wallpaper is decoded and the backdrops had a moment to fill, so a
+    // (re)start never shows the glass bending an empty or half-loaded backdrop (a dark or colourful flash)
+    readonly property bool liquidBase: barStyle === "liquid" && glassState === "ready" && !gaming
+    property bool glassWarm: false
+    readonly property bool glassWarmWanted: liquidBase && (!hub || hub.wallpaperReady)
+    onGlassWarmWantedChanged: { if (glassWarmWanted) glassWarmT.restart(); else { glassWarmT.stop(); glassWarm = false; } }
+    Timer { id: glassWarmT; interval: 350; onTriggered: root.glassWarm = true }
+    readonly property bool liquidActive: liquidBase && glassWarm
     readonly property string glassShaderSrc: decodeURIComponent(Qt.resolvedUrl("liquidglass.frag").toString().replace("file://", ""))
     readonly property string glassShaderOut: configDir + "/liquidglass.frag.qsb"
     readonly property url glassShaderUrl: "file://" + glassShaderOut
@@ -4124,6 +4132,8 @@ Scope {
         id: qsbProc
         command: ["sh", "-c",
             "mkdir -p \"$(dirname \"$2\")\"; "
+            // already compiled from this very source (it is newer than the .frag): nothing to do, the glass is ready at once
+            + "[ -s \"$2\" ] && [ \"$2\" -nt \"$1\" ] && exit 0; "
             + "for q in qsb qsb6 qsb-qt6 /usr/lib/qt6/bin/qsb /usr/lib64/qt6/bin/qsb /usr/lib/qt/bin/qsb; do "
             + "  if command -v \"$q\" >/dev/null 2>&1; then \"$q\" --qt6 -o \"$2\" \"$1\" && exit 0; fi; "
             + "done; "
@@ -4137,7 +4147,7 @@ Scope {
 
     // wallpaper the glass refracts (override -> Noctalia settings.toml -> awww/swww/hyprpaper)
     readonly property var wallpaperMap: hub ? hub.wallpaperMap : ({})
-    Binding { target: root.hub; property: "barWantsWallpaper"; value: root.liquidActive }
+    Binding { target: root.hub; property: "barWantsWallpaper"; value: root.liquidBase }
     function wallpaperFor(screenName) {
         var p = wallpaperPath !== "" ? wallpaperPath
               : (wallpaperMap["wallpaper.monitors." + screenName] || wallpaperMap["wallpaper.last"]
@@ -5298,7 +5308,7 @@ Scope {
                 // ready-made, current window pixels.
                 Loader {
                     id: glassBackdrop
-                    active: root.liquidActive
+                    active: root.liquidBase
                     sourceComponent: backdropComp
                     onLoaded: item.region = Qt.binding(function () { return ui.glassRect; })
                 }
@@ -5372,9 +5382,12 @@ Scope {
                         width: win.modelData.width
                         height: win.modelData.height
 
+                        // placeholder for a wallpaper that can't be found or loaded. Not shown while it is still loading: the glass then
+                        // stays clear instead of flashing these colours after every restart
                         Rectangle {
                             z: -3
                             anchors.fill: parent
+                            visible: bdWall.status === Image.Error || (bdWall.source == "" && !!root.hub && root.hub.wallpaperReady)
                             gradient: Gradient {
                                 orientation: Gradient.Horizontal
                                 GradientStop { position: 0.0; color: "#2f6bff" }
@@ -5383,6 +5396,7 @@ Scope {
                             }
                         }
                         Image {
+                            id: bdWall
                             z: -2
                             anchors.fill: parent
                             visible: status === Image.Ready
@@ -8910,7 +8924,7 @@ Scope {
 
                 Loader {
                     id: swBackdrop
-                    active: root.liquidActive          // stays loaded (warm) so the window opens on ready-made frames
+                    active: root.liquidBase          // stays loaded (warm) so the window opens on ready-made frames
                     sourceComponent: backdropComp
                     onLoaded: { item.onDemand = true; item.hostShown = Qt.binding(function () { return swWin.visible; });
                                 item.region = Qt.binding(function () { return Qt.rect(swPanel.x - 96, swPanel.y - 96, swPanel.width + 192, swPanel.height + 192); }); }
@@ -9083,7 +9097,7 @@ Scope {
 
                 Loader {
                     id: wpBackdrop
-                    active: root.liquidActive          // stays loaded (warm) so the window opens on ready-made frames
+                    active: root.liquidBase          // stays loaded (warm) so the window opens on ready-made frames
                     sourceComponent: backdropComp
                     onLoaded: { item.onDemand = true; item.hostShown = Qt.binding(function () { return wpWin.visible; });
                                 item.region = Qt.binding(function () { return Qt.rect(wpPanel.x - 96, wpPanel.y - 96, wpPanel.width + 192, wpPanel.height + 192); }); }
@@ -9502,7 +9516,7 @@ Scope {
 
                 Loader {
                     id: spotBackdrop
-                    active: root.liquidActive          // stays loaded (warm) so the window opens on ready-made frames
+                    active: root.liquidBase          // stays loaded (warm) so the window opens on ready-made frames
                     sourceComponent: backdropComp
                     onLoaded: { item.onDemand = true; item.hostShown = Qt.binding(function () { return !root.gaming && spotWin.openish; });
                                 item.region = Qt.binding(function () { return Qt.rect(spot.x - 128, spot.y - 128, spot.width + 256, spot.height + 256); }); }

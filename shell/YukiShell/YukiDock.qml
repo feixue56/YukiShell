@@ -5910,7 +5910,14 @@ Scope {
     // --- Liquid glass backend ---
     // glassState: "idle" -> "building" (qsb running) -> "ready" | "failed". "failed" falls back to Normal Blur.
     property string glassState: "idle"
-    readonly property bool liquidActive: dockStyle === "liquid" && glassState === "ready" && !(bar && bar.gaming)
+    // liquidBase: the glass can run, its backdrop loads from then on; liquidActive (shown) waits for the decoded wallpaper and a
+    // moment for the backdrop to fill, so a (re)start doesn't flash an empty backdrop through the glass (same as YukiBar)
+    readonly property bool liquidBase: dockStyle === "liquid" && glassState === "ready" && !(bar && bar.gaming)
+    property bool glassWarm: false
+    readonly property bool glassWarmWanted: liquidBase && (!hub || hub.wallpaperReady)
+    onGlassWarmWantedChanged: { if (glassWarmWanted) glassWarmT.restart(); else { glassWarmT.stop(); glassWarm = false; } }
+    Timer { id: glassWarmT; interval: 350; onTriggered: root.glassWarm = true }
+    readonly property bool liquidActive: liquidBase && glassWarm
     // Settings' own glass (back / forward pill, knobs of switches and sliders): available whenever the shader is built,
     // whatever the Dock style is
     readonly property bool settingsGlass: glassState === "ready" && !(bar && bar.gaming)
@@ -5934,6 +5941,8 @@ Scope {
         id: qsbProc
         command: ["sh", "-c",
             "mkdir -p \"$(dirname \"$2\")\"; "
+            // already compiled from this very source (it is newer than the .frag): nothing to do, the glass is ready at once
+            + "[ -s \"$2\" ] && [ \"$2\" -nt \"$1\" ] && exit 0; "
             + "for q in qsb qsb6 qsb-qt6 /usr/lib/qt6/bin/qsb /usr/lib64/qt6/bin/qsb /usr/lib/qt/bin/qsb; do "
             + "  if command -v \"$q\" >/dev/null 2>&1; then \"$q\" --qt6 -o \"$2\" \"$1\" && exit 0; fi; "
             + "done; "
@@ -5956,6 +5965,8 @@ Scope {
         id: dockQsbProc
         command: ["sh", "-c",
             "mkdir -p \"$(dirname \"$2\")\"; "
+            // already compiled from this very source (it is newer than the .frag): nothing to do, the glass is ready at once
+            + "[ -s \"$2\" ] && [ \"$2\" -nt \"$1\" ] && exit 0; "
             + "for q in qsb qsb6 qsb-qt6 /usr/lib/qt6/bin/qsb /usr/lib64/qt6/bin/qsb /usr/lib/qt/bin/qsb; do "
             + "  if command -v \"$q\" >/dev/null 2>&1; then \"$q\" --qt6 -o \"$2\" \"$1\" && exit 0; fi; "
             + "done; "
@@ -5969,7 +5980,7 @@ Scope {
     // wallpaper the glass refracts. Sources, in order: wallpaperPath override, Noctalia's settings.toml
     // ([wallpaper.monitors.<name>] -> [wallpaper.last] -> [wallpaper.default]), then awww/swww/hyprpaper.
     readonly property var wallpaperMap: hub ? hub.wallpaperMap : ({})
-    Binding { target: root.hub; property: "dockWantsWallpaper"; value: root.liquidActive }
+    Binding { target: root.hub; property: "dockWantsWallpaper"; value: root.liquidBase }
     onWallpaperMapChanged: console.log("[yukidock-glass] wallpaper sources:", JSON.stringify(wallpaperMap))
     function wallpaperFor(screenName) {
         var p = wallpaperPath !== "" ? wallpaperPath
@@ -6409,7 +6420,7 @@ Scope {
                 // Built from per-window captures (not a screen capture) so the Dock never ends up refracting itself.
                 Loader {
                     id: glassBackdrop
-                    active: root.liquidActive
+                    active: root.liquidBase
                     sourceComponent: Item {
                         id: bd
                         x: 0
@@ -6417,9 +6428,12 @@ Scope {
                         width: win.modelData.width
                         height: win.modelData.height
 
-                        // placeholder until a wallpaper loads: deliberately colourful so a missing wallpaper is obvious
+                        // placeholder for a missing wallpaper: deliberately colourful so that is obvious. Not shown while the wallpaper is
+                        // still loading (the glass then stays clear instead of flashing these colours after every restart)
                         Rectangle {
                             anchors.fill: parent
+                            visible: wpShown.status !== Image.Ready
+                                     && (wpNext.status === Image.Error || (wpNext.source == "" && !!root.hub && root.hub.wallpaperReady))
                             gradient: Gradient {
                                 orientation: Gradient.Horizontal
                                 GradientStop { position: 0.0; color: "#2f6bff" }

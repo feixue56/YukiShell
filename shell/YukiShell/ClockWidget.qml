@@ -178,8 +178,10 @@ Item {
                 width: w.width + 2 * (gl.padPx + gl.margin)
                 height: w.height + 2 * (gl.padPx + gl.margin)
 
+                // the placeholder only shows when the wallpaper can't be loaded (while it loads, the glass stays clear)
                 Rectangle {
                     anchors.fill: parent
+                    visible: wallImg.status === Image.Error
 
                     gradient: Gradient {
                         orientation: Gradient.Horizontal
@@ -190,6 +192,7 @@ Item {
                 }
 
                 Image {
+                    id: wallImg
                     x: -(w.screenX - gl.padPx - gl.margin)
                     y: -(w.screenY - gl.padPx - gl.margin)
                     width: w.screenW
