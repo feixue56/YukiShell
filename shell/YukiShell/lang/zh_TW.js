@@ -187,6 +187,8 @@ var strings = {
     "Hide ": "隱藏 ",
     "Hide delay": "隱藏延遲",
     "Hides only while a tiled window needs the space": "僅當平鋪視窗需要空間時才隱藏",
+    "Hides whenever the workspace has a window open": "工作區有視窗開啟時隱藏",
+    "Windows": "視窗",
     "High Power": "高效能",
     "Highlights in the Dock menu and this window": "Dock 選單和此視窗中的強調顯示",
     "Home folder": "主檔案夾",

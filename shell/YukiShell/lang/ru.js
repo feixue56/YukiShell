@@ -269,6 +269,8 @@ var strings = {
     "Floating": "Парит",
     "Automatically hide and show the Dock": "Автоматически скрывать и показывать Dock",
     "Hides only while a tiled window needs the space": "Скрывается, только когда месту нужно окну",
+    "Hides whenever the workspace has a window open": "Скрывается, когда на рабочем столе открыто окно",
+    "Windows": "Окна",
     "Always hidden until the pointer touches the screen edge": "Всегда скрыт, пока указатель не коснётся края экрана",
     "Always visible and reserves screen space": "Всегда виден и занимает место на экране",
     "Smart": "Умно",

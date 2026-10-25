@@ -2858,14 +2858,15 @@ Scope {
                         t: pal
                         title: I18n.tr("Automatically hide and show the Dock")
                         subtitle: root.hideMode === "smart" ? I18n.tr("Hides only while a tiled window needs the space")
+                                : root.hideMode === "windows" ? I18n.tr("Hides whenever the workspace has a window open")
                                 : (root.hideMode === "always" ? "Always hidden until the pointer touches the screen edge"
                                                               : I18n.tr("Always visible and reserves screen space"))
                         SSegmented {
                             t: pal
-                            model: ["Smart", "Always", "Never"]
+                            model: ["Smart", I18n.tr("Windows"), "Always", "Never"]
                             segWidth: 64
-                            current: root.hideMode === "smart" ? 0 : (root.hideMode === "always" ? 1 : 2)
-                            onPicked: i => root.hideMode = ["smart", "always", "never"][i]
+                            current: ["smart", "windows", "always", "never"].indexOf(root.hideMode)
+                            onPicked: i => root.hideMode = ["smart", "windows", "always", "never"][i]
                         }
                     }
                     SRow {
@@ -5319,7 +5320,8 @@ Scope {
     // 120 ms after the LAST raw event (every title change and every capture of the shell's own restarted that timer), so the Dock
     // slid in / out a quarter of a second after the workspace had already changed, or not at all while events kept coming.
     readonly property var monData: hub ? hub.monData : []
-    function computeBusy(mons, clients) {
+    // anyWin: every window counts ("windows" mode: the Dock hides on any workspace that is not empty), else only tiled ones ("smart")
+    function computeBusy(mons, clients, anyWin) {
         var busy = {};
         if (!Array.isArray(mons) || !Array.isArray(clients)) return busy;
         for (var m = 0; m < mons.length; m++) {
@@ -5329,7 +5331,7 @@ Scope {
             if (mon.specialWorkspace && mon.specialWorkspace.id !== undefined && mon.specialWorkspace.id !== 0) ids.push(mon.specialWorkspace.id);
             for (var c = 0; c < clients.length; c++) {
                 var cl = clients[c];
-                if (!cl || cl.floating || !cl.mapped || cl.hidden) continue;
+                if (!cl || (cl.floating && !anyWin) || !cl.mapped || cl.hidden) continue;
                 if (cl.monitor !== mon.id) continue;
                 if (!cl.workspace || cl.workspace.id === undefined) continue;
                 if (ids.indexOf(cl.workspace.id) >= 0) { busy[mon.name] = true; break; }
@@ -5337,7 +5339,7 @@ Scope {
         }
         return busy;
     }
-    readonly property var busyMonitors: computeBusy(hub ? hub.monData : [], hub ? hub.glassClients : [])
+    readonly property var busyMonitors: computeBusy(hub ? hub.monData : [], hub ? hub.glassClients : [], hideMode === "windows")
     Connections {
         target: Hyprland
         function onRawEvent(event) { tickDebounce.restart(); }
@@ -5518,7 +5520,7 @@ Scope {
                 property real menuCx: 0
                 readonly property bool menuOpen: menuItem !== null
                 readonly property bool wantsHide: root.hideMode === "always"
-                    || (root.hideMode === "smart" && root.busyMonitors[win.modelData.name] === true)
+                    || ((root.hideMode === "smart" || root.hideMode === "windows") && root.busyMonitors[win.modelData.name] === true)
                 property bool dragging: false
                 property int dragIndex: -1
                 property int dragTarget: -1

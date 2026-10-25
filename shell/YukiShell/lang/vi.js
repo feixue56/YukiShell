@@ -187,6 +187,8 @@ var strings = {
     "Hide ": "Ẩn ",
     "Hide delay": "Độ trễ ẩn",
     "Hides only while a tiled window needs the space": "Chỉ ẩn khi một cửa sổ xếp ô cần không gian",
+    "Hides whenever the workspace has a window open": "Ẩn khi không gian làm việc có cửa sổ đang mở",
+    "Windows": "Cửa sổ",
     "High Power": "Hiệu năng cao",
     "Highlights in the Dock menu and this window": "Phần được tô sáng trong menu Dock và cửa sổ này",
     "Home folder": "Thư mục nhà",

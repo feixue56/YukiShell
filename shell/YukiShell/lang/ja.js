@@ -187,6 +187,8 @@ var strings = {
     "Hide ": "隠す： ",
     "Hide delay": "非表示までの遅延",
     "Hides only while a tiled window needs the space": "タイル表示のウインドウが場所を必要とするときだけ隠す",
+    "Hides whenever the workspace has a window open": "ウインドウがあるときは常に隠す",
+    "Windows": "ウインドウ",
     "High Power": "高パワー",
     "Highlights in the Dock menu and this window": "Dock のメニューとこのウインドウのハイライト",
     "Home folder": "ホームフォルダ",
