@@ -184,6 +184,10 @@ Scope {
     //    flips it between light and dark by itself.
     // The choice is made by worst-case contrast (white text on the brightest part vs dark text on the darkest part, spread
     // included), with hysteresis so it never flickers, and falls back to the system look when both read equally well.
+    // web links: assets/open-url.py opens them and switches to the browser window they went to (xdg-open alone left a running
+    // browser's new tab on whatever workspace that browser was, so the click looked like it did nothing)
+    readonly property string openUrlScript: decodeURIComponent(String(Qt.resolvedUrl("assets/open-url.py")).replace(/^file:\/\//, ""))
+    function openUrl(u) { Quickshell.execDetached([openUrlScript, u]); }
     readonly property string toneScript: decodeURIComponent(String(Qt.resolvedUrl("assets/tone.sh")).replace(/^file:\/\//, ""))
     // cur: 1 = dark text now (bright backdrop), -1 = white text now, 0 = undecided; v/sd = brightness / spread 0..1
     function pickTone(cur, v, sd, fresh) {
@@ -2972,7 +2976,7 @@ Scope {
         var c = (id || "").toLowerCase().replace(/[^a-z0-9._+-]/g, "");
         if (c === "") return;
         var q = encodeURIComponent(n + " linux help").replace(/'/g, "%27");
-        sh("if man -w " + c + " >/dev/null 2>&1; then " + terminal + " -e man " + c + "; else xdg-open 'https://duckduckgo.com/?q=" + q + "'; fi");
+        sh("if man -w " + c + " >/dev/null 2>&1; then " + terminal + " -e man " + c + "; else '" + openUrlScript + "' 'https://duckduckgo.com/?q=" + q + "'; fi");
     }
     function emoji() {
         sh("for c in emote bemoji smile rofimoji wofi-emoji; do command -v $c >/dev/null 2>&1 && exec $c; done");
@@ -3166,7 +3170,7 @@ Scope {
     function clipOpen(en) {
         var id = parseInt(en.id);
         if (isNaN(id)) return;
-        if (en.kind === "url") { Quickshell.execDetached(["xdg-open", /^www\./i.test(en.text) ? "https://" + en.text : en.text]); return; }
+        if (en.kind === "url") { root.openUrl(/^www\./i.test(en.text) ? "https://" + en.text : en.text); return; }
         var ext = en.kind === "image" ? (/(png|jpe?g|webp|gif|bmp)/i.exec(en.label) || ["png"])[0].toLowerCase() : "txt";
         Quickshell.execDetached(["sh", "-c", 'd="${XDG_RUNTIME_DIR:-/tmp}/yukishell-clip"; mkdir -p "$d"; f="$d/clip-$1.$2"; cliphist decode "$1" > "$f" && exec xdg-open "$f"',
                                  "sh", String(id), ext]);
@@ -3444,7 +3448,7 @@ Scope {
         else { var expr=s.replace(/^=\s*/,""); var v=calcValue(expr); if(v!==null && (s.charAt(0)==="=" || /[+*/%xX×÷()]/.test(s))) out.unshift({title:String(Number(v.toPrecision(10))),sub:I18n.tr("Calculator · Return to copy"),glyph:"search",run:function(){Quickshell.execDetached(["wl-copy",String(v)]);}}); }
         var wins=windowItems(q); for(var j=0;j<wins.length&&out.length<6;j++)out.push(wins[j]);
         var acts=actionItems(q); for(var k=0;k<acts.length&&out.length<6;k++)if(acts[k].title.toLowerCase().indexOf(s)===0)out.push(acts[k]);
-        if(s.length>0 && out.length<7) out.push({title:I18n.tr("Search the web for “")+q.trim()+"”",sub:I18n.tr("Web Search · Return to open"),glyph:"search",run:function(){Quickshell.execDetached(["xdg-open","https://search.brave.com/search?q="+encodeURIComponent(q.trim())]);}});
+        if(s.length>0 && out.length<7) out.push({title:I18n.tr("Search the web for “")+q.trim()+"”",sub:I18n.tr("Web Search · Return to open"),glyph:"search",run:function(){root.openUrl("https://search.brave.com/search?q="+encodeURIComponent(q.trim()));}});
         return out.slice(0,8);
     }
 
@@ -3594,11 +3598,11 @@ Scope {
                 m.push(mi("Search\u2026", hk("Spotlight"), function () { root.search(); }));
                 if (has) m.push(mi(n + " Help", "", function () { root.helpFor(id, n); }));
                 m.push(msep());
-                m.push(mi("Hyprland Keybinds", "", function () { Quickshell.execDetached(["xdg-open", "https://github.com/xuefeng1331/YukiShell#keybinds"]); }));
+                m.push(mi("Hyprland Keybinds", "", function () { root.openUrl("https://github.com/xuefeng1331/YukiShell#keybinds"); }));
                 m.push(mi("Reload Hyprland Config", hk("Reload Hyprland Config"), function () { Quickshell.execDetached(["hyprctl", "reload"]); }));
                 m.push(msep());
-                m.push(mi("Hyprland Wiki", "", function () { Quickshell.execDetached(["xdg-open", "https://wiki.hypr.land"]); }));
-                m.push(mi("Quickshell Documentation", "", function () { Quickshell.execDetached(["xdg-open", "https://quickshell.org/docs"]); }));
+                m.push(mi("Hyprland Wiki", "", function () { root.openUrl("https://wiki.hypr.land"); }));
+                m.push(mi("Quickshell Documentation", "", function () { root.openUrl("https://quickshell.org/docs"); }));
             }
         }
         return m;

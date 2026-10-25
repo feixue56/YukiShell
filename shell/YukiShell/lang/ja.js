@@ -254,7 +254,7 @@ var strings = {
     "Loose": "ゆったり",
     "Low Power": "低電力",
     "Lower values keep some of the original icon colours": "値を低くすると元のアイコンの色が一部残ります",
-    "Made by": "制作",
+    "Forked by": "フォーク作成",
     "Magnification": "拡大",
     "Magnification amount": "拡大率",
     "Main display": "メインディスプレイ",

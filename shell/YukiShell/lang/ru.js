@@ -687,7 +687,7 @@ var strings = {
     "Light Snow": "Небольшой снег",
     "Loading…": "Загрузка…",
     "MIT licence • github.com/0-ss/MacShell": "Лицензия MIT • github.com/0-ss/MacShell",
-    "Made by": "Автор",
+    "Forked by": "Форк сделал",
     "Memory": "Память",
     "More Info…": "Подробнее…",
     "Mostly Clear": "Преимущественно ясно",

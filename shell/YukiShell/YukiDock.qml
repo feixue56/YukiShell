@@ -4656,7 +4656,7 @@ Scope {
                     }
                 }
 
-                SLabel { t: pal; header: true; text: I18n.tr("Made by") }
+                SLabel { t: pal; header: true; text: I18n.tr("Forked by") }
                 SCard {
                     t: pal
                     Item {
@@ -4687,7 +4687,7 @@ Scope {
                             t: pal
                             anchors.right: parent.right; anchors.rightMargin: 14; anchors.verticalCenter: parent.verticalCenter
                             text: I18n.tr("View Profile")
-                            onClicked: Quickshell.execDetached(["xdg-open", "https://github.com/" + aboutCol.ghUser])
+                            onClicked: root.openUrl("https://github.com/" + aboutCol.ghUser)
                         }
                     }
                 }
@@ -4701,7 +4701,7 @@ Scope {
                         SButton {
                             t: pal
                             text: I18n.tr("Open")
-                            onClicked: Quickshell.execDetached(["xdg-open", aboutCol.repoUrl])
+                            onClicked: root.openUrl(aboutCol.repoUrl)
                         }
                     }
                     SRow {
@@ -4737,7 +4737,7 @@ Scope {
                             { img: "assets/credits/vsoultann.png", name: "vSuol", gh: "vsoultann",
                               role: "Contributor to MacShell: the Settings app" }
                         ]
-                        // same layout as the "Made by" card above: avatar, name, @handle, then what they did, and a View Profile button
+                        // same layout as the "Forked by" card above: avatar, name, @handle, then what they did, and a View Profile button
                         delegate: Item {
                             id: cr
                             required property var modelData
@@ -4772,7 +4772,7 @@ Scope {
                                 t: pal
                                 anchors.right: parent.right; anchors.rightMargin: 14; anchors.verticalCenter: parent.verticalCenter
                                 text: I18n.tr("View Profile")
-                                onClicked: Quickshell.execDetached(["xdg-open", "https://github.com/" + cr.modelData.gh])
+                                onClicked: root.openUrl("https://github.com/" + cr.modelData.gh)
                             }
                         }
                     }
@@ -4783,7 +4783,7 @@ Scope {
                         SButton {
                             t: pal
                             text: I18n.tr("Open")
-                            onClicked: Quickshell.execDetached(["xdg-open", "https://github.com/0-ss/MacShell"])
+                            onClicked: root.openUrl("https://github.com/0-ss/MacShell")
                         }
                     }
                 }
@@ -4791,6 +4791,8 @@ Scope {
         }
     }
 
+    // web links open through the bar's helper, which also switches to the browser's workspace (YukiBar.openUrl)
+    function openUrl(u) { if (bar && bar.openUrl) bar.openUrl(u); else Quickshell.execDetached(["xdg-open", u]); }
     readonly property real effMag: magnificationEnabled ? magnification : 1
     readonly property int bgHeight: iconSize + topPad + bottomPad
     readonly property int sepWidth: 9

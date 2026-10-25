@@ -254,7 +254,7 @@ var strings = {
     "Loose": "宽松",
     "Low Power": "低电量模式",
     "Lower values keep some of the original icon colours": "较低的值会保留部分原始图标颜色",
-    "Made by": "制作者",
+    "Forked by": "分叉作者",
     "Magnification": "放大",
     "Magnification amount": "放大倍数",
     "Main display": "主显示器",

@@ -254,7 +254,7 @@ var strings = {
     "Loose": "느슨하게",
     "Low Power": "저전력",
     "Lower values keep some of the original icon colours": "값이 낮을수록 원래 아이콘 색상이 일부 남습니다",
-    "Made by": "제작",
+    "Forked by": "포크 제작",
     "Magnification": "확대",
     "Magnification amount": "확대 정도",
     "Main display": "주 디스플레이",

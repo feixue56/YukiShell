@@ -308,7 +308,7 @@ Scope {
                         text: (root.info.osname || "Linux") + " " + I18n.tr("Website")
                         color: pal.text2
                         font.family: root.fontForWeight(Font.Normal, root.fam); font.pixelSize: 11; font.underline: true
-                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: Quickshell.execDetached(["xdg-open", root.info.home || "https://www.kernel.org"]) }
+                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: (root.bar && root.bar.openUrl ? root.bar.openUrl(root.info.home || "https://www.kernel.org") : Quickshell.execDetached(["xdg-open", root.info.home || "https://www.kernel.org"])) }
                     }
                 }
                 Item { width: 1; height: 10 }

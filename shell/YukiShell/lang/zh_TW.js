@@ -254,7 +254,7 @@ var strings = {
     "Loose": "寬鬆",
     "Low Power": "低耗電量",
     "Lower values keep some of the original icon colours": "較低的值會保留部分原始圖像顏色",
-    "Made by": "製作者",
+    "Forked by": "分叉作者",
     "Magnification": "放大",
     "Magnification amount": "放大倍數",
     "Main display": "主顯示器",

@@ -254,7 +254,7 @@ var strings = {
     "Loose": "Thưa",
     "Low Power": "Tiết kiệm điện",
     "Lower values keep some of the original icon colours": "Giá trị thấp hơn giữ lại một phần màu gốc của biểu tượng",
-    "Made by": "Thực hiện bởi",
+    "Forked by": "Fork bởi",
     "Magnification": "Phóng to",
     "Magnification amount": "Mức phóng to",
     "Main display": "Màn hình chính",
