@@ -384,9 +384,12 @@ Item {
     }
 
     // --- content ---
+    // m:ss, or h:mm:ss once the track / video is an hour or longer (decided by its length, so elapsed and remaining match;
+    // with no known length, by the value itself)
     function fmt(sec) {
-        var s = Math.max(0, Math.floor(sec)), m = Math.floor(s / 60);
-        return m + ":" + ("0" + (s % 60)).slice(-2);
+        var s = Math.max(0, Math.floor(sec)), m = Math.floor(s / 60), ss = ("0" + (s % 60)).slice(-2);
+        if (Math.max(length, sec) < 3600) return m + ":" + ss;
+        return Math.floor(m / 60) + ":" + ("0" + (m % 60)).slice(-2) + ":" + ss;
     }
     readonly property real progress: length > 0 ? Math.max(0, Math.min(1, position / length)) : 0
     // lyrics view is only for the wide cards (the small one has no room)
