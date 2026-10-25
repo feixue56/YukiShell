@@ -151,7 +151,7 @@ Scope {
     // popovers and the Control Center scale with the same slider (smaller bar -> smaller panels, down to 70 %)
     readonly property real barPopupScale: Math.max(0.5, Math.min(1.25, (1 + (barHeight - 28) / 60) * uiScale))
     property real glassOpacity: 0.42
-    property string barStyle: "liquid"        // "liquid" = Apple Liquid Glass popovers, "blur" = flat translucent
+    property string barStyle: "liquid"        // "liquid" = Liquid Glass popovers, "blur" = flat translucent
     property real glassRim: 0.45
     property real glassGrain: 0.015
     property real glassLiquid: 1.0

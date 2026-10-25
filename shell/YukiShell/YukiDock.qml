@@ -11,7 +11,7 @@
 //
 // Dock style (Dock Preferences → Appearance):
 //   Normal Blur         – the original translucent tint; blur comes from the Hyprland layer rule below.
-//   Apple Liquid Glass  – real-time refraction shader (liquidglass.frag, next to this file). It is compiled
+//   Liquid Glass        – real-time refraction shader (liquidglass.frag, next to this file). It is compiled
 //                         with `qsb` (package qt6-shadertools) on first use and cached in ~/.config/yukidock/.
 //                         The backdrop it refracts is the wallpaper + the live windows behind the Dock;
 //                         set "wallpaperPath" in settings.json if the wallpaper isn't auto-detected.
@@ -123,7 +123,7 @@ Scope {
     // the dock keeps one fixed look (dark): switching the system between Light and Dark does not change its colours
     readonly property bool dockDark: true
     property string appearanceMode: "dark"      // light | dark | auto (kept in step with the Menu Bar, see setAppearance)
-    property string dockStyle: "blur"   // "blur" = Normal Blur, "liquid" = Apple Liquid Glass
+    property string dockStyle: "blur"   // "blur" = Normal Blur, "liquid" = Liquid Glass
     // Liquid Glass tuning (settings.json): rim = edge highlight, grain = noise, liquid = refraction depth
     property real glassRim: 0.45
     property real glassGrain: 0.03
@@ -1800,7 +1800,7 @@ Scope {
                                   : I18n.tr("Style of the menus and popovers")
                         SSegmented {
                             t: pal
-                            model: ["Normal Blur", "Apple Liquid Glass"]
+                            model: ["Normal Blur", "Liquid Glass"]
                             segWidth: 128
                             current: (root.bar && root.bar.barStyle === "liquid") ? 1 : 0
                             onPicked: i => { if (root.bar) root.bar.barStyle = (i === 1 ? "liquid" : "blur"); }
@@ -1809,7 +1809,7 @@ Scope {
                     SRow {
                         t: pal
                         title: I18n.tr("Liquid Glass bar")
-                        subtitle: I18n.tr("The menu bar strip itself is Liquid Glass, refracting the wallpaper and windows under it (needs Apple Liquid Glass style)")
+                        subtitle: I18n.tr("The menu bar strip itself is Liquid Glass, refracting the wallpaper and windows under it (needs Liquid Glass style)")
                         SSwitch {
                             t: pal
                             checked: root.bar ? root.bar.barGlass : true
@@ -2532,7 +2532,7 @@ Scope {
                                      : I18n.tr("Blur of the desktop, or refracting Liquid Glass"))
                         SSegmented {
                             t: pal
-                            model: ["Normal Blur", "Apple Liquid Glass"]
+                            model: ["Normal Blur", "Liquid Glass"]
                             segWidth: 128
                             current: root.dockStyle === "liquid" ? 1 : 0
                             onPicked: i => root.dockStyle = (i === 1 ? "liquid" : "blur")
@@ -5550,7 +5550,7 @@ Scope {
                     y: ui.height - root.margin - height + (ui.tucked ? height + root.margin + 6 : 0)
                     Behavior on y { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
 
-                    // ── Apple Liquid Glass: real-time refraction of the backdrop (see liquidglass.frag) ──
+                    // ── Liquid Glass: real-time refraction of the backdrop (see liquidglass.frag) ──
                     Loader {
                         id: glassLayer
                         anchors.fill: parent
