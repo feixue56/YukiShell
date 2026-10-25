@@ -46,7 +46,7 @@ Item {
         x: pu.width - width
         // macOS: the current item sits right on the button; if that would leave the window, the menu shifts to fit,
         // and a menu taller than the window scrolls (no separate popup window: those fought Hyprland's pointer grabs)
-        // Qt keeps the popup inside the window (8 px margin): it shifts up and, if still too tall, shrinks — the list scrolls
+        // Qt keeps the popup inside the window (8 px margin): it shifts up and, if still too tall, shrinks - the list scrolls
         margins: 8
         height: pu.model.length * rowH + 12
         y: -(6 + pu.current * rowH)

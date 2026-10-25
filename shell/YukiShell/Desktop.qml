@@ -1,4 +1,4 @@
-// Desktop — the files, folders and apps sitting on your desktop, exactly as macOS shows them.
+// Desktop - the files, folders and apps sitting on your desktop, exactly as macOS shows them.
 //
 // Everything in ~/Desktop appears here. Drag an icon to move it (positions live in ~/.config/yukishell/desktop.json),
 // double-click to open, drop one icon onto another to make a folder, right-click for the menu.
@@ -23,7 +23,7 @@ Scope {
 
     readonly property bool enabled: dock ? dock.desktopIcons : true
     property var items: []                  // { name, path, isDir, isApp, exec, icon, kind }
-    property var places: ({})               // name → { x, y }
+    property var places: ({})               // name -> { x, y }
     property string selected: ""
 
     readonly property int cellW: 96
@@ -167,7 +167,7 @@ Scope {
                                   : (icon.modelData.isDir ? (root.dock ? root.dock.folderIcon : Quickshell.iconPath("folder"))
                                   : (icon.modelData.isApp ? root.appIcon(icon.modelData.path) : Quickshell.iconPath("text-x-generic", "application-x-executable")))
                             onStatusChanged: if (status === Image.Error) source = Quickshell.iconPath("application-x-executable", true)
-                            // Settings → Icons → Tinted, for app icons (pictures and folders keep their colours)
+                            // Settings -> Icons -> Tinted, for app icons (pictures and folders keep their colours)
                             layer.enabled: icon.modelData.isApp === true && root.dock !== null && root.dock.iconsTinted
                             layer.effect: MultiEffect {
                                 colorization: root.dock ? root.dock.iconColorize : 0
@@ -235,7 +235,7 @@ Scope {
                     }
                 }
 
-                // right-click menu — the macOS one: a soft card, inset highlight, separators, and it springs open
+                // right-click menu - the macOS one: a soft card, inset highlight, separators, and it springs open
                 Item {
                     id: dctx
                     property var item: undefined
@@ -375,7 +375,7 @@ Scope {
     // a .desktop file's icon, read out of the file itself
     property var appIcons: ({})
     function appIcon(path) {
-        // through the Dock, so Settings → Icons → Dark gives the desktop the same real dark icons
+        // through the Dock, so Settings -> Icons -> Dark gives the desktop the same real dark icons
         if (appIconNames[path] !== undefined && dock && dock.iconSrc) { var dk = dock.iconLook; return dock.iconSrc(appIconNames[path]); }
         if (appIcons[path] !== undefined) return appIcons[path];
         iconQueue.push(path);

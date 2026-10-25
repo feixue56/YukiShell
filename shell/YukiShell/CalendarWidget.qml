@@ -1,11 +1,11 @@
 // macOS  style Calendar widget (month grid, today in red).
-//   size:  "small" 158x158 · "medium" 338x158 · "large" 338x354   (macOS point sizes, times scaleF) – same as the Weather widget
-//   style: "liquid" – Liquid Glass: the wallpaper behind the widget is blurred + refracted by liquidglass.frag, using the
+//   size:  "small" 158x158 · "medium" 338x158 · "large" 338x354   (macOS point sizes, times scaleF) - same as the Weather widget
+//   style: "liquid" - Liquid Glass: the wallpaper behind the widget is blurred + refracted by liquidglass.frag, using the
 //                     Appearance sliders (Translucency / Blur / Liquid strength)
-//          "normal" – solid card
-//   mode:  "auto"  – follows the shell's Dark / Light setting (Settings → Appearance)
-//          "light" – bright glass, dark text
-//          "dark"  – dark glass, white text
+//          "normal" - solid card
+//   mode:  "auto"  - follows the shell's Dark / Light setting (Settings -> Appearance)
+//          "light" - bright glass, dark text
+//          "dark"  - dark glass, white text
 //
 //   small  : month name + month grid
 //   medium : weekday + big day number + month on the left, month grid on the right
@@ -21,7 +21,7 @@ import "I18n.js" as I18n
 Item {
     id: w
 
-    // ── look ──
+    // --- look ---
     property string style: "liquid"
     property string size: "small"
     property string mode: "auto"        // "auto" | "light" | "dark"
@@ -31,7 +31,7 @@ Item {
     property real screenY: y
     property int weekStart: 0           // 0 = Sunday, 1 = Monday
 
-    // ── liquid glass inputs (the Appearance sliders) ──
+    // --- liquid glass inputs (the Appearance sliders) ---
     property bool glassReady: false     // liquidglass.frag.qsb compiled
     property url shaderUrl: ""
     property url wallUrl: ""
@@ -49,10 +49,10 @@ Item {
     property bool darkGlass: true       // the shell's Dark / Light setting (used by mode "auto")
     property bool preview: false        // inside the Settings gallery: no wallpaper, simplified glass
 
-    // ── desktop edit mode ──
+    // --- desktop edit mode ---
     property bool editing: false
 
-    signal glassFailed()                // the shader did not compile / load → YukiWidgets falls back to the frosted card
+    signal glassFailed()                // the shader did not compile / load -> YukiWidgets falls back to the frosted card
 
     readonly property bool isSmall: size === "small"
     readonly property bool isMedium: size === "medium"
@@ -64,7 +64,7 @@ Item {
     width: (isSmall ? 158 : (isLarge ? 358 : 338)) * s
     height: (isLarge ? 354 : 168) * scaleF
 
-    // ── light / dark ──
+    // --- light / dark ---
     readonly property bool dark: mode === "dark" || (mode !== "light" && darkGlass)
     readonly property color fg: dark ? Qt.rgba(1, 1, 1, 0.96) : Qt.rgba(0, 0, 0, 0.86)
     readonly property color fgSub: dark ? Qt.rgba(1, 1, 1, 0.55) : Qt.rgba(0, 0, 0, 0.45)
@@ -73,7 +73,7 @@ Item {
     // glass tint: stronger than the Weather widget's, so black (light mode) / white (dark mode) text stays readable on any wallpaper
     readonly property real tint: Math.min(0.92, dark ? 0.25 + glassOpacity * 0.8 : 0.45 + glassOpacity * 0.9)
 
-    // ── date ──
+    // --- date ---
     property var now: new Date()
     Timer {   // roll over at midnight (and pick up clock / time-zone changes)
         interval: 30000
@@ -81,7 +81,7 @@ Item {
         running: true
         onTriggered: { var d = new Date(); if (d.toDateString() !== w.now.toDateString()) w.now = d; }
     }
-    // names in the chosen interface language (Settings → General), Sunday first
+    // names in the chosen interface language (Settings -> General), Sunday first
     readonly property var monthNames: { var l = I18n.locale(), a = []; for (var i = 0; i < 12; i++) a.push(l.monthName(i, Locale.LongFormat)); return a; }
     readonly property var dayNames: { var l = I18n.locale(), a = []; for (var i = 0; i < 7; i++) a.push(l.dayName(i, Locale.LongFormat)); return a; }
     readonly property var letters: { var l = I18n.locale(), a = []; for (var i = 0; i < 7; i++) a.push(l.dayName(i, Locale.NarrowFormat)); return a; }
@@ -92,7 +92,7 @@ Item {
                  lead: (first - w.weekStart + 7) % 7, days: new Date(y, m + 1, 0).getDate() };
     }
 
-    // ───────────────────────── background ─────────────────────────
+    // --- background ---
     // Normal: solid card
     Rectangle {
         anchors.fill: parent
@@ -123,7 +123,7 @@ Item {
         }
     }
 
-    // Liquid Glass: wallpaper crop → blur → refraction shader (the same maths as the Dock and the Weather widget)
+    // Liquid Glass: wallpaper crop -> blur -> refraction shader (the same maths as the Dock and the Weather widget)
     Loader {
         id: glassLoader
         anchors.fill: parent
@@ -251,7 +251,7 @@ Item {
         lineW: 0.8
     }
 
-    // ───────────────────────── content ─────────────────────────
+    // --- content ---
     readonly property real pad: 15 * s
 
     // The month grid: weekday letters, then up to 6 rows of days. Today sits in a red circle.
@@ -323,7 +323,7 @@ Item {
         }
     }
 
-    // ── small: month name above the grid ──
+    // --- small: month name above the grid ---
     Text {
         visible: w.isSmall
         x: 13 * w.s
@@ -335,7 +335,7 @@ Item {
         font.weight: Font.Bold
     }
 
-    // ── medium: weekday, big day number and month on the left ──
+    // --- medium: weekday, big day number and month on the left ---
     Rectangle {   // divider
         visible: w.isMedium
         x: 164 * w.s; y: 16 * w.s
@@ -377,7 +377,7 @@ Item {
         font.weight: Font.DemiBold
     }
 
-    // ── large: month + year header, hairline under the weekday row ──
+    // --- large: month + year header, hairline under the weekday row ---
     Row {
         visible: w.isLarge
         x: w.pad

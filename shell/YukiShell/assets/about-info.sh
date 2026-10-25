@@ -13,7 +13,7 @@ clean_vendor() { printf %s "$1" | sed -e 's/,\? *\(Inc\|INC\|Corporation\|CORPOR
 
 [ -r /etc/os-release ] && . /etc/os-release || { [ -r /usr/lib/os-release ] && . /usr/lib/os-release; }
 
-# ── model ──
+# --- model ---
 vendor=$(dmi sys_vendor); pname=$(dmi product_name); pver=$(dmi product_version)
 bvendor=$(dmi board_vendor); bname=$(dmi board_name)
 model=""
@@ -41,7 +41,7 @@ case "$virt" in ""|none) ;; *) kind="Virtual Machine" ;; esac
 printf 'model=%s\n' "$model"
 printf 'sub=%s\n' "$kind${vend:+ · $vend}"
 
-# ── processor ──
+# --- processor ---
 cpu=$(awk -F: '/^model name/ {print $2; exit}' /proc/cpuinfo 2>/dev/null)
 [ -n "$cpu" ] || cpu=$(lscpu 2>/dev/null | sed -n 's/^Model name: *//p' | head -n1)
 [ -n "$cpu" ] || cpu=$(awk -F: '/^(Hardware|Processor|cpu model)/ {print $2; exit}' /proc/cpuinfo 2>/dev/null)
@@ -53,7 +53,7 @@ if [ "${cores:-0}" -gt 0 ] 2>/dev/null && [ "${threads:-0}" -gt 0 ] 2>/dev/null;
     if [ "$cores" = "$threads" ]; then printf 'cpusub=%s cores\n' "$cores"; else printf 'cpusub=%s cores, %s threads\n' "$cores" "$threads"; fi
 fi
 
-# ── graphics ──
+# --- graphics ---
 gpu=""
 if command -v lspci >/dev/null 2>&1; then
     gpu=$(lspci -mm 2>/dev/null | awk -F'"' 'tolower($2) ~ /vga|3d|display/ {
@@ -72,19 +72,19 @@ if [ -z "$gpu" ]; then
 fi
 printf 'gpu=%s\n' "${gpu:-Unknown}"
 
-# ── memory (MemTotal is a little below the installed size: round up to the usual module sizes) ──
+# --- memory (MemTotal is a little below the installed size: round up to the usual module sizes) ---
 awk '/^MemTotal/ {
     g = $2 / 1048576
     n = split("1 2 3 4 6 8 12 16 24 32 48 64 96 128 192 256 384 512 768 1024", s, " ")
     r = int(g + 0.5)
     for (i = 1; i <= n; i++) if (s[i] >= g) { r = s[i]; break }
     printf "mem=%d GB\n", r }' /proc/meminfo
-# ── storage: the disk holding / ──
+# --- storage: the disk holding / ---
 df -B1 --output=size,avail / 2>/dev/null | awk 'NR==2 {
     t=$1; a=$2
     printf "disk=%s\ndisksub=%s available\n", f(t), f(a) }
     function f(b) { if (b >= 1e12) return sprintf("%.1f TB", b/1e12); return sprintf("%d GB", int(b/1e9 + 0.5)) }'
-# ── system ──
+# --- system ---
 printf 'kernel=%s\n' "$(uname -r)"
 osname="${NAME:-Linux}"
 osname=$(printf %s "$osname" | sed -e 's/ GNU\/Linux$//; s/ Linux$//')

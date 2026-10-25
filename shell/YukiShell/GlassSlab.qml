@@ -38,7 +38,7 @@ Item {
     readonly property bool own: src === null
     readonly property real ownM: 40     // margin of the slab's own backdrop (room for the refraction to reach into)
 
-    // ── own flat backdrop (only built when no texture is handed in) ──
+    // --- own flat backdrop (only built when no texture is handed in) ---
     Item {
         id: ownLayer
         visible: gs.own && gs.glass
@@ -56,7 +56,7 @@ Item {
         visible: false
     }
 
-    // ── fallback: plain frosted pane ──
+    // --- fallback: plain frosted pane ---
     Rectangle {
         visible: !gs.glass
         anchors.fill: parent
@@ -66,7 +66,7 @@ Item {
         border.color: gs.dark ? Qt.rgba(1, 1, 1, 0.14) : Qt.rgba(0, 0, 0, 0.06)
     }
 
-    // ── the glass itself ──
+    // --- the glass itself ---
     Loader {
         anchors.fill: parent
         active: gs.glass && gs.shaderUrl.toString() !== ""

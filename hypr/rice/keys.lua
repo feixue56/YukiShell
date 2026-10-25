@@ -4,7 +4,7 @@
 --   bind("SUPER + Return", hl.dsp.exec_cmd("kitty"), "Open Terminal")
 --
 -- It is hl.bind with a description (the description is the shortcut's name everywhere), and two extras:
---   * what the user picked in System Settings → Keyboard → Keyboard Shortcuts replaces the keys given here. Those choices live in
+--   * what the user picked in System Settings -> Keyboard -> Keyboard Shortcuts replaces the keys given here. Those choices live in
 --     ~/.config/yukishell/keybinds.tsv, one "description<TAB>keys" line each; empty keys mean "no shortcut".
 --   * every shortcut is written to ~/.cache/yukishell/keybinds.tsv ("description<TAB>default keys<TAB>1 if it can be changed"), the list
 --     Settings edits. opts.fixed = true keeps one out of the editor: a group of keys that belong together, or a key the shell itself waits for.

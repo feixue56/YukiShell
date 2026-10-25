@@ -1,5 +1,5 @@
 #!/bin/sh
-# Set the YukiShell wallpaper: a picture (awww) or an animated one (video → mpvpaper on every monitor).
+# Set the YukiShell wallpaper: a picture (awww) or an animated one (video -> mpvpaper on every monitor).
 #   yukishell-setwall.sh <file>        apply it
 #   yukishell-setwall.sh --restore     re-apply the saved animated wallpaper at login (no-op if none)
 #   yukishell-setwall.sh --prepare <video>   only build the cached files (thumbnail frame + optimized copy)
@@ -61,7 +61,7 @@ preview_for() {
     fi
 }
 
-# low-res looping animated WebP of the whole clip: what the Liquid Glass (widgets) refracts — it's blurred anyway,
+# low-res looping animated WebP of the whole clip: what the Liquid Glass (widgets) refracts - it's blurred anyway,
 # so 480 px at 15 fps is plenty, and an image needs no video player inside the shell
 build_glass() {  # build_glass <video> <out.webp>
     [ -s "$2" ] && return 0
@@ -134,7 +134,7 @@ start_video() {
     stop_video
     printf '%s\n' "$play" > "$HOME/.config/yukishell/wallpaper-video-play"     # the optimized copy (YukiLock plays this one)
     # one supervised mpvpaper per monitor, each with an IPC socket: YukiShell pauses a monitor's video while windows
-    # cover it (or the screen is locked) and resumes it when the desktop shows again — no decoding nobody can see
+    # cover it (or the screen is locked) and resumes it when the desktop shows again - no decoding nobody can see
     outs=$(hyprctl -j monitors 2>/dev/null | jq -r '.[].name' 2>/dev/null); [ -n "$outs" ] || outs=ALL
     run="${XDG_RUNTIME_DIR:-/tmp}"
     setsid sh -c '

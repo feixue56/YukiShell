@@ -1,4 +1,4 @@
-// TLGlyph — the symbol inside a window button, drawn the way macOS draws them: a thin × on the red one, a − on the
+// TLGlyph - the symbol inside a window button, drawn the way macOS draws them: a thin × on the red one, a − on the
 // amber one and, on the green one, the two little triangles of "full screen" pointing at opposite corners.
 // Each symbol is a deep shade of its own button, not plain black.
 import QtQuick

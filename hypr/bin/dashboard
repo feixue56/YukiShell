@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Super+Alt+D: toggle the dashboard — fff on the left, tty-clock top-right, cava bottom-right (kitty windows, tiled).
+# Super+Alt+D: toggle the dashboard - fff on the left, tty-clock top-right, cava bottom-right (kitty windows, tiled).
 # Press again to close them. Windows are tagged by class (dash-*) so nothing else is touched.
 count() { hyprctl -j clients | python3 -c 'import json,sys; print(sum(c["class"].startswith("dash-") for c in json.load(sys.stdin)))'; }
 

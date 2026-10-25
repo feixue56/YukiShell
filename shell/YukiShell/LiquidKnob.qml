@@ -1,5 +1,5 @@
-// LiquidKnob — the knob of every switch and slider outside the Control Center (those use the original CCSlider).
-// At rest it is a solid white pill. While it is held (glass → 1) it stretches sideways into a glass pill, the way iOS 26
+// LiquidKnob - the knob of every switch and slider outside the Control Center (those use the original CCSlider).
+// At rest it is a solid white pill. While it is held (glass -> 1) it stretches sideways into a glass pill, the way iOS 26
 // / macOS Tahoe controls do: clear glass with a fine bright rim for Liquid Glass (the track shows through, magnified),
 // frosted white for Frosted / Blur, and a plain white pill that only stretches for Opaque.
 import QtQuick
@@ -7,7 +7,7 @@ import QtQuick.Effects
 
 Item {
     id: k
-    property real glass: 0                 // 0 solid … 1 fully glass (may overshoot a little: springs)
+    property real glass: 0                 // 0 solid ... 1 fully glass (may overshoot a little: springs)
     property string material: "liquid"     // liquid | frosted | blur | opaque | custom
     property real restW: 20
     property real restH: 20
@@ -75,7 +75,7 @@ Item {
             }
         }
     }
-    // chromatic fringe: real glass splits light at its edge — a hint of red on one side, blue on the other
+    // chromatic fringe: real glass splits light at its edge - a hint of red on one side, blue on the other
     Rectangle {
         visible: k.liquid && k.lens > 0.01
         opacity: k.lens * 0.5

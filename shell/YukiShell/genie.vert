@@ -14,7 +14,7 @@ layout(std140, binding = 0) uniform buf {
     mat4 qt_Matrix;
     float qt_Opacity;
     float progress;
-    vec4 win;       // the window:       x, y, width (.z), height (.w) — item coordinates = screen coordinates
+    vec4 win;       // the window:       x, y, width (.z), height (.w) - item coordinates = screen coordinates
     vec4 target;    // its slot in the Dock: same layout
 };
 

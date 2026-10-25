@@ -1,4 +1,4 @@
-// WallSlice — a piece of a shared LiveWall (see LiveWall.qml), for glass that sits in the same window as that LiveWall. It draws the
+// WallSlice - a piece of a shared LiveWall (see LiveWall.qml), for glass that sits in the same window as that LiveWall. It draws the
 // part of `wall` at `sx, sy` (in the wall's own coordinates) at its own size, without a decoder of its own: the desktop widgets used to run
 // one video player each, twice over (the widgets and their copies in the bar's backdrop): with the bar, Dock and popups that was
 // 15 players for one wallpaper.

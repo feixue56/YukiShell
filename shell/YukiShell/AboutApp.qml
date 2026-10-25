@@ -1,4 +1,4 @@
-//0.3.9// About This Linux — the "About This Mac" window for YukiShell.
+//0.3.9// About This Linux - the "About This Mac" window for YukiShell.
 //
 //   qs -c YukiShell ipc call about open | close | toggle        (the Apple menu's "About This Linux" opens it too)
 //
@@ -81,7 +81,7 @@ Scope {
     Window {
         id: win
         title: "About This Linux"
-        readonly property real uiS: root.bar ? root.bar.uiScale : 1      // UI scale (Settings → Menu Bar)
+        readonly property real uiS: root.bar ? root.bar.uiScale : 1      // UI scale (Settings -> Menu Bar)
         readonly property int wantH: Math.round((Math.ceil(content.implicitHeight) + 40 + 26) * uiS)
         readonly property int wantW: Math.round(300 * uiS)
         width: wantW
@@ -200,7 +200,7 @@ Scope {
                 width: parent.width - 40
                 spacing: 0
 
-                // ── logo ──
+                // --- logo ---
                 Item {
                     width: parent.width; height: 118
                     Image {
@@ -216,7 +216,7 @@ Scope {
                 }
                 Item { width: 1; height: 20 }
 
-                // ── name ──
+                // --- name ---
                 Text {
                     width: parent.width
                     horizontalAlignment: Text.AlignHCenter
@@ -238,7 +238,7 @@ Scope {
                 }
                 Item { width: 1; height: 22 }
 
-                // ── specs ──
+                // --- specs ---
                 Column {
                     width: parent.width
                     spacing: 5
@@ -279,7 +279,7 @@ Scope {
                 }
                 Item { width: 1; height: 18 }
 
-                // ── More Info… ──
+                // --- More Info... ---
                 Item {
                     width: parent.width; height: 24
                     Rectangle {
@@ -299,7 +299,7 @@ Scope {
                 }
                 Item { width: 1; height: 20 }
 
-                // ── links and legal ──
+                // --- links and legal ---
                 Item {
                     width: parent.width; height: siteTxt.implicitHeight
                     Text {

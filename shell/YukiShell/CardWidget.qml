@@ -8,7 +8,7 @@ import QtQuick.Effects
 Item {
     id: w
 
-    // ── look ──
+    // --- look ---
     property string style: "liquid"
     property string size: "small"
     property string mode: "auto"        // "auto" | "light" | "dark"
@@ -18,7 +18,7 @@ Item {
     property real screenY: y
     property Component content: null    // ExtraWidgets.comp(type)
 
-    // ── liquid glass inputs (the Appearance sliders) ──
+    // --- liquid glass inputs (the Appearance sliders) ---
     property bool glassReady: false     // liquidglass.frag.qsb compiled
     property url shaderUrl: ""
     property url wallUrl: ""
@@ -36,10 +36,10 @@ Item {
     property bool darkGlass: true       // the shell's Dark / Light setting (used by mode "auto")
     property bool preview: false        // inside the Settings gallery: no wallpaper, simplified glass
 
-    // ── desktop edit mode ──
+    // --- desktop edit mode ---
     property bool editing: false
 
-    signal glassFailed()                // the shader did not compile / load → YukiWidgets falls back to the frosted card
+    signal glassFailed()                // the shader did not compile / load -> YukiWidgets falls back to the frosted card
 
     readonly property bool isSmall: size === "small"
     readonly property bool isMedium: size === "medium"
@@ -51,7 +51,7 @@ Item {
     width: (isSmall ? 158 : (isLarge ? 358 : 338)) * s
     height: (isLarge ? 354 : 168) * scaleF
 
-    // ── light / dark ──
+    // --- light / dark ---
     readonly property bool dark: mode === "dark" || (mode !== "light" && darkGlass)
     readonly property color fg: dark ? Qt.rgba(1, 1, 1, 0.96) : Qt.rgba(0, 0, 0, 0.86)
     readonly property color fgSub: dark ? Qt.rgba(1, 1, 1, 0.55) : Qt.rgba(0, 0, 0, 0.45)
@@ -59,7 +59,7 @@ Item {
     // glass tint: stronger than the Weather widget's, so black (light mode) / white (dark mode) text stays readable on any wallpaper
     readonly property real tint: Math.min(0.92, dark ? 0.25 + glassOpacity * 0.8 : 0.45 + glassOpacity * 0.9)
 
-    // ───────────────────────── background ─────────────────────────
+    // --- background ---
     // Normal: solid card
     Rectangle {
         anchors.fill: parent
@@ -90,7 +90,7 @@ Item {
         }
     }
 
-    // Liquid Glass: wallpaper crop → blur → refraction shader (the same maths as the Dock and the Weather widget)
+    // Liquid Glass: wallpaper crop -> blur -> refraction shader (the same maths as the Dock and the Weather widget)
     Loader {
         id: glassLoader
         anchors.fill: parent
@@ -218,7 +218,7 @@ Item {
         lineW: 0.8
     }
 
-    // ───────────────────────── content ─────────────────────────
+    // --- content ---
     Loader {
         id: body
         // what the contents read: the size they are drawn at, and the text colours for this card

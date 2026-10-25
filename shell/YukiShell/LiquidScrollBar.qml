@@ -1,4 +1,4 @@
-// LiquidScrollBar — macOS-style overlay scroller for any Flickable / ListView / GridView.
+// LiquidScrollBar - macOS-style overlay scroller for any Flickable / ListView / GridView.
 // It fades in while the view scrolls or the pointer is near, and fades out a moment after. Hovering widens it into
 // a glass capsule (clear with a bright rim for Liquid Glass, frosted for Frosted / Blur, solid for Opaque); drag it to scroll.
 //   LiquidScrollBar { flick: myList; anchors { right: myList.right; top: myList.top; bottom: myList.bottom } }

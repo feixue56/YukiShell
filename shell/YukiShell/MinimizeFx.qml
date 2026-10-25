@@ -1,5 +1,5 @@
-// MinimizeFx — what you see when a window is minimised or brought back: the macOS genie (the window pours into
-// its place in the Dock), a quick 0.35 s fade, or nothing at all (Settings → Desktop & Dock).
+// MinimizeFx - what you see when a window is minimised or brought back: the macOS genie (the window pours into
+// its place in the Dock), a quick 0.35 s fade, or nothing at all (Settings -> Desktop & Dock).
 //
 // A full-screen, click-through overlay holds a still capture of the window and plays the effect on it; the real
 // window is moved away (or brought back) at the moment that hides the hand-over.
@@ -16,7 +16,7 @@ Scope {
     property var job: null
     property real progress: 0
     readonly property bool busy: job !== null
-    property real speed: 0.42                  // Magic Lamp duration, seconds (Settings → Desktop & Dock)
+    property real speed: 0.42                  // Magic Lamp duration, seconds (Settings -> Desktop & Dock)
     readonly property int genieMs: Math.round(Math.max(0.2, Math.min(1.2, speed)) * 1000)
     readonly property int fadeMs: 350
 

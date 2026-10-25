@@ -9,7 +9,7 @@ Item {
     // no cover (or it failed to load) but a player is there: show the player's icon instead of the note
     readonly property bool iconFallback: wd.hasPlayer && wd.appIcon !== "" && !wd.preview
 
-    // ── idle placeholder look (the embossed music note, drawn live: no image file) ──
+    // --- idle placeholder look (the embossed music note, drawn live: no image file) ---
     property color idleBgTop: "#3b3b40"
     property color idleBgBottom: "#27272b"
     property color noteTop: "#e9e9ed"

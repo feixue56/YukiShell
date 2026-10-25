@@ -22,7 +22,7 @@ Item {
 
     focus: true
 
-    // ── entrance: start once the wallpaper is decoded (or after a short timeout), so it never fades in from black
+    // --- entrance: start once the wallpaper is decoded (or after a short timeout), so it never fades in from black
     Timer { id: showTimer; interval: 450; running: true; onTriggered: ls.shown = true }
     Connections {
         target: wall
@@ -33,7 +33,7 @@ Item {
     opacity: shown && !leaving ? 1 : 0
     Behavior on opacity { NumberAnimation { duration: ls.leaving ? 420 : 650; easing.type: Easing.OutQuint } }
 
-    // ═════════════ BACKDROP ═════════════
+    // --- Backdrop ---
     Rectangle { anchors.fill: parent; color: "#0b0b10" }
 
     Item {
@@ -187,7 +187,7 @@ Item {
         visible: false
     }
 
-    // ═════════════ STATUS (top right) ═════════════
+    // --- STATUS (top right) ---
     Row {
         visible: ls.isPrimary
         anchors.top: parent.top; anchors.right: parent.right
@@ -253,7 +253,7 @@ Item {
         }
     }
 
-    // ═════════════ NOTIFICATIONS + LIVE ACTIVITY (top right, under the status) ═════════════
+    // --- NOTIFICATIONS + LIVE ACTIVITY (top right, under the status) ---
     // Notifications are hidden like macOS ("Show previews: When Unlocked"): app icon, app name, "Notification", time.
     // Clicking one asks for the password: the field glows and fades (1 s). YukiShell writes the list.
     FileView {
@@ -419,7 +419,7 @@ Item {
                 Image {
                     x: 14 * ls.u; anchors.verticalCenter: parent.verticalCenter
                     width: 34 * ls.u; height: width
-                    // apps without an icon (YukiShell's own, notify-send…) get the system notifications icon
+                    // apps without an icon (YukiShell's own, notify-send...) get the system notifications icon
                     source: nc.icon && status !== Image.Error ? nc.icon : "image://icon/preferences-system-notifications"
                     sourceSize: Qt.size(96, 96)
                     smooth: true; mipmap: true
@@ -435,7 +435,7 @@ Item {
                     text: ls.notifAge(nc.time); color: Qt.rgba(1, 1, 1, 0.6); font.family: ls.fam; font.pixelSize: 12 * ls.u
                 }
                 // one MouseArea for tap AND swipe: it keeps the pointer for the whole drag (preventStealing), and the card
-                // is only cleared when the button is actually released — an interrupted drag springs back
+                // is only cleared when the button is actually released - an interrupted drag springs back
                 MouseArea {
                     id: ncMa
                     anchors.fill: parent
@@ -487,7 +487,7 @@ Item {
         }
     }
 
-    // ═════════════ CLOCK ═════════════
+    // --- Clock ---
     Item {
         id: clock
         anchors.horizontalCenter: parent.horizontalCenter
@@ -534,9 +534,9 @@ Item {
             width: timeTxt.implicitWidth + 40
             height: timeTxt.implicitHeight
             // room captured around the digits: the morph scales / realigns a little past the text box, and the glass
-            // refracts past its edges — without it the clock got cropped mid-animation
+            // refracts past its edges - without it the clock got cropped mid-animation
             readonly property real mp: Math.max(48 * ls.u, ls.clockPx * 0.5)
-            // the digits morph into each new minute (fade + slight scale) …
+            // the digits morph into each new minute (fade + slight scale) ...
             MorphText {
                 id: timeTxt
                 anchors.centerIn: parent
@@ -561,7 +561,7 @@ Item {
                 sourceItem: timeTxt; hideSource: true; visible: false; smooth: true
                 sourceRect: Qt.rect(-timeItem.mp, -timeItem.mp, timeTxt.width + 2 * timeItem.mp, timeTxt.height + 2 * timeItem.mp)
             }
-            // … and the glass digits go soft and come back into focus while that happens (blur + morph)
+            // ... and the glass digits go soft and come back into focus while that happens (blur + morph)
             MultiEffect {
                 id: timeMaskFx
                 width: timeMaskRaw.sourceRect.width; height: timeMaskRaw.sourceRect.height
@@ -606,7 +606,7 @@ Item {
                 property vector2d itemSize: Qt.vector2d(width, height)
                 property vector2d srcSize: Qt.vector2d(ls.width, ls.height)
                 property vector2d srcOffset: Qt.vector2d(fp.x, fp.y)
-                // Apple's two clock materials (Settings → Lock Screen → Clock): Solid = vibrancy, Glass = Liquid Glass
+                // Apple's two clock materials (Settings -> Lock Screen -> Clock): Solid = vibrancy, Glass = Liquid Glass
                 property real mode: ls.ckGlass ? 1 : 0
                 property real intensity: ls.ckGlass ? ls.ckIntensity : 0.55 + 0.4 * ls.ckIntensity
                 property real refract: (6 + 4 * (1 - ls.ckIntensity)) * ls.u
@@ -629,7 +629,7 @@ Item {
         }
     }
 
-    // ═════════════ COVER HAND-OVER ═════════════
+    // --- Cover hand-over ---
     // Two picture slots. A new cover loads into the back slot; once it's there (or after 1.5 s) the bubble's cover
     // "burns" over to it (burn.frag) and the blurred album background cross-fades, both in step.
     readonly property string coverUrl: media.pl && media.pl.trackArtUrl ? media.pl.trackArtUrl : ""
@@ -668,7 +668,7 @@ Item {
     readonly property Item coverNew: coverIdx === 0 ? coverA : coverB
     readonly property Item coverOld: coverIdx === 0 ? coverB : coverA
 
-    // ═════════════ NOW PLAYING ═════════════
+    // --- Now playing ---
     readonly property var player: {
         var ps = Mpris.players.values, best = null;
         for (var i = 0; i < ps.length; i++) {
@@ -680,16 +680,16 @@ Item {
     readonly property bool hasMedia: player !== null && player !== undefined && (player.trackTitle || "") !== ""
     // Apple "artwork mode" (tap the cover: it leaves the bubble, as wide as the bubble) and Apple Music style lyrics
     // (lyrics button). Only one at a time.
-    // npMode: "" | "art" | "lyrics" | "artlyrics" (big cover on the left, lyrics on the right — Apple Music full screen)
+    // npMode: "" | "art" | "lyrics" | "artlyrics" (big cover on the left, lyrics on the right - Apple Music full screen)
     readonly property bool artMode: (ls.st.npMode === "art" || ls.st.npMode === "artlyrics") && hasMedia && isPrimary && !leaving
     readonly property bool lyricsMode: (ls.st.npMode === "lyrics" || ls.st.npMode === "artlyrics") && hasMedia && isPrimary && !leaving
     readonly property bool sideMode: ls.st.npMode === "artlyrics" && hasMedia && isPrimary && !leaving
-    // 0 → 1: cover + bubble slide left, the lyrics move beside them
+    // 0 -> 1: cover + bubble slide left, the lyrics move beside them
     property real sideT: sideMode ? 1 : 0
     Behavior on sideT { NumberAnimation { id: sideAnim; duration: 650; easing.type: Easing.OutQuint } }
     readonly property real sideGap: 32 * u
     readonly property real sideLyrW: Math.min(560 * u, width - 372 * u - sideGap - 96 * u)
-    // 0 → 1 springs; the cover, the bubble, the lyrics and the clock all follow them, so they move as one
+    // 0 -> 1 springs; the cover, the bubble, the lyrics and the clock all follow them, so they move as one
     property real artT: artMode ? 1 : 0
     Behavior on artT { NumberAnimation { id: artAnim; duration: 650; easing.type: Easing.OutQuint } }
     property real lyrT: lyricsMode ? 1 : 0
@@ -698,7 +698,7 @@ Item {
     function clamp01(v) { return Math.max(0, Math.min(1, v)); }
     // how much the clock gives way (follows the cover / lyrics ease-out)
     readonly property real squash: Math.max(artT, lyrT)
-    // ── clock style (Settings → Lock Screen → Clock) ──
+    // --- clock style (Settings -> Lock Screen -> Clock) ---
     //   font: rounded (default; Nunito, falls back to the bundled Open Runde) | serif (Noto Serif Display) | inter (Open Runde)
     //   material: solid (vibrancy) | glass (Liquid Glass)
     readonly property var ckCfg: (ls.st.clockCfg && !ls.st.clockCfg.__ignore) ? ls.st.clockCfg : ({})
@@ -711,7 +711,7 @@ Item {
     readonly property string ckFamily: !ckFontOk ? "Open Runde"
         : (ckFont === "serif" ? "Noto Serif Display" : (ckFont === "inter" ? "Open Runde" : "Nunito"))
     readonly property int ckWeight: (typeof ckCfg.w === "number" && ckCfg.w >= 100 && ckCfg.w <= 1000) ? ckCfg.w : 680
-    // material: "solid" (vibrancy) | "glass" (Liquid Glass); older settings: liquid → clear glass, frosted → frosted glass
+    // material: "solid" (vibrancy) | "glass" (Liquid Glass); older settings: liquid -> clear glass, frosted -> frosted glass
     readonly property bool ckGlass: ckCfg.m !== "solid"
     readonly property real ckIntensity: typeof ckCfg.i === "number" ? Math.max(0, Math.min(1, ckCfg.i))
                                        : (ckCfg.m === "liquid" ? 0.12 : (ckCfg.m === "solid" ? 0.8 : 0.6))
@@ -864,7 +864,7 @@ Item {
             }
             Rectangle { anchors.fill: parent; radius: art.r; color: Qt.rgba(1, 1, 1, 0.12) }
             TapHandler {
-                // cover tap: bubble ↔ big cover; with lyrics open the cover joins them on the left (and leaves again)
+                // cover tap: bubble <-> big cover; with lyrics open the cover joins them on the left (and leaves again)
                 onTapped: {
                     var m = ls.st.npMode;
                     ls.st.npMode = m === "" ? "art" : m === "art" ? "" : m === "lyrics" ? "artlyrics" : "lyrics";
@@ -1085,7 +1085,7 @@ Item {
         }
     }
 
-    // ═════════════ LYRICS (Apple Music style) ═════════════
+    // --- LYRICS (Apple Music style) ---
     // estimated playback position: MPRIS is polled twice a second, the lyrics need it smooth
     property real posBase: 0
     property real posAt: 0
@@ -1156,7 +1156,7 @@ Item {
         'tmp=$(mktemp); answered=0; r=""',
         // titles like "Song (feat. X)" / "Song - Remastered 2011": also try the bare title
         'bare=$(printf "%s" "$t" | sed -E "s/ *[(\\[][^)\\]]*[)\\]]//g; s/ +- +(.*[Rr]emaster.*|[Ll]ive.*|[Rr]adio [Ee]dit.*)$//")',
-        // ── 1. NetEase Cloud Music: fast, not rate-limited. Same title + same length (±4 s) or it doesn't count.
+        // --- 1. NetEase Cloud Music: fast, not rate-limited. Same title + same length (±4 s) or it doesn't count.
         'ne() { code=$(curl -s --max-time 6 -A "Mozilla/5.0" -o "$tmp" -w "%{http_code}" -G "https://music.163.com/api/search/get" --data-urlencode "s=$1" -d type=1 -d limit=10); [ "$code" = 200 ] || return 1; answered=1',
         '  id=$(jq -r --arg t "$bare" --argjson d "$d" \'def n: ascii_downcase | gsub("[^\\\\p{L}\\\\p{N}]"; ""); ($t | n) as $q | [.result.songs[]? | select((.name | n) as $nm | ($nm == $q) or ($nm | startswith($q)) or ($q | startswith($nm))) | select($d == 0 or (((.duration / 1000) - $d) | fabs) <= 4)][0].id // empty\' "$tmp")',
         '  [ -n "$id" ] || return 1',
@@ -1164,7 +1164,7 @@ Item {
         '  l=$(jq -r ".lrc.lyric // empty" "$tmp"); case "$l" in *"[0"*|*"[1"*) ;; *) return 1;; esac',
         '  r=$(jq -nc --arg l "$l" "{syncedLyrics: \\$l}"); }',
         'ne "$a $bare" || ne "$bare"',
-        // ── 2. LRCLIB (rate-limited per second: wait and retry briefly), length-checked too
+        // --- 2. LRCLIB (rate-limited per second: wait and retry briefly), length-checked too
         'ua="YukiLock/1.0 (https://github.com/xuefeng1331/YukiShell)"; api=https://lrclib.net/api',
         'req() { n=0; while [ $n -lt 2 ]; do code=$(curl -s --max-time 8 -A "$ua" -o "$tmp" -w "%{http_code}" -G "$@"); case "$code" in 200) answered=1; return 0;; 404) answered=1; return 1;; 429) n=$((n+1)); sleep 1.5;; *) return 1;; esac; done; return 1; }',
         'pick=\'[.[] | select(.syncedLyrics != null or .plainLyrics != null) | select($d == 0 or (((.duration // 0) - $d) | fabs) <= 4)] | ([.[] | select(.syncedLyrics != null)][0] // .[0]) // empty\'',
@@ -1173,7 +1173,7 @@ Item {
         '[ -z "$r" ] && [ "$bare" != "$t" ] && lsearch --data-urlencode "track_name=$bare" --data-urlencode "artist_name=$a"',
         '[ -z "$r" ] && lsearch --data-urlencode "q=$a $bare"',
         'rm -f "$tmp"',
-        // ── 3. Genius: token-free, rich lyrics source
+        // --- 3. Genius: token-free, rich lyrics source
         'if [ -z "$r" ] || [ "$(printf "%s" "$r" | jq -r ".syncedLyrics // empty" 2>/dev/null)" = "" ]; then',
         '  g=$(python3 "$HOME/.config/quickshell/YukiLock/genius-lyrics.py" "$a" "$bare" "$c" 2>/dev/null || true)',
         '  if [ -n "$g" ] && [ "$g" != "{}" ]; then',
@@ -1367,7 +1367,7 @@ Item {
         }
     }
 
-    // ═════════════ USER + PASSWORD (bottom) ═════════════
+    // --- USER + PASSWORD (bottom) ---
     Column {
         id: login
         visible: ls.isPrimary
@@ -1518,7 +1518,7 @@ Item {
             }
 
             // password dots: one entry per character, so only the dot you just typed animates in (and only the one you
-            // deleted animates out) — the row slides over smoothly as it grows / shrinks; the rest never move or blink
+            // deleted animates out) - the row slides over smoothly as it grows / shrinks; the rest never move or blink
             ListModel { id: dotModel }
             function syncDots() {
                 var want = ls.st.pass.length, alive = 0, i;
@@ -1646,7 +1646,7 @@ Item {
             }
         }
 
-        // hint / error line (blur-morphs between "Enter your password…" and "Incorrect password")
+        // hint / error line (blur-morphs between "Enter your password..." and "Incorrect password")
         MorphText {
             horizontalAlignment: Text.AlignHCenter
             anchors.horizontalCenter: parent.horizontalCenter
@@ -1658,7 +1658,7 @@ Item {
         }
     }
 
-    // ═════════════ INPUT ═════════════
+    // --- Input ---
     // Every monitor takes the keyboard; the text lives in the shared state, so typing works whichever surface has focus.
     Timer { id: capsSoon; interval: 60; onTriggered: ls.st.checkCaps() }
     property bool enterHeld: false

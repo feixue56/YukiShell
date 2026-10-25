@@ -31,7 +31,7 @@ void main()
     float d = sdRoundRect(p - c, c - pad, cornerR);      // 0 on the outline, < 0 inside
 
     // everything stays INSIDE the shape: a crisp line just inside the outline (anti-aliased over ~0.6 px at the
-    // edge) and a faint inner sheen — no halo spilling outside
+    // edge) and a faint inner sheen - no halo spilling outside
     float inside = 1.0 - smoothstep(-0.3, 0.6, d);
     float line = exp(-max(-d, 0.0) / 1.0) * inside;
     float halo = exp(min(d, 0.0) / 5.0) * 0.14 * inside;

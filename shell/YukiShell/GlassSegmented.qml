@@ -53,12 +53,12 @@ Item {
     readonly property real kh0: height - 2 * inset
     readonly property int count: model ? model.length : 0
 
-    // ── layout of the options (positions are read back from the row, so every width, fixed or from the text, works) ──
+    // --- layout of the options (positions are read back from the row, so every width, fixed or from the text, works) ---
     property int geoTick: 0
     function segX(i) { var it = rep.itemAt(i); return it ? segRow.x + it.x : inset; }
     function segW(i) { var it = rep.itemAt(i); return it ? it.width : 0; }
 
-    // ── the marker: its two edges run on their own (pixels inside this item) ──
+    // --- the marker: its two edges run on their own (pixels inside this item) ---
     property real pL: inset
     property real pR: inset
     property int tgtIdx: -1
@@ -114,7 +114,7 @@ Item {
     onCountChanged: if (ready) snap()
     Component.onCompleted: Qt.callLater(function () { geoTick++; snap(); ready = true; })
 
-    // ── track ──
+    // --- track ---
     Rectangle {
         anchors.fill: parent
         radius: height / 2
@@ -122,7 +122,7 @@ Item {
         border.width: 1; border.color: g.trackBorder
     }
 
-    // ── thin dividers between the options (hidden next to the marker) ──
+    // --- thin dividers between the options (hidden next to the marker) ---
     Repeater {
         model: Math.max(0, g.count - 1)
         delegate: Rectangle {
@@ -137,7 +137,7 @@ Item {
         }
     }
 
-    // ── the marker, plain (the glass one fades in over it while it moves) ──
+    // --- the marker, plain (the glass one fades in over it while it moves) ---
     Item {
         id: pill
         visible: g.tgtIdx >= 0
@@ -182,7 +182,7 @@ Item {
         }
     }
 
-    // ── the labels ──
+    // --- the labels ---
     Row {
         id: segRow
         x: g.inset; y: g.inset
@@ -211,7 +211,7 @@ Item {
         }
     }
 
-    // ── what the lens sees (hidden copy of the track and the labels, on a backdrop) ──
+    // --- what the lens sees (hidden copy of the track and the labels, on a backdrop) ---
     readonly property real m: 22
     Item {
         id: lyr
@@ -244,7 +244,7 @@ Item {
         visible: false
     }
 
-    // ── the marker, glass ──
+    // --- the marker, glass ---
     Item {
         id: lens
         visible: g.tgtIdx >= 0
@@ -290,7 +290,7 @@ Item {
         }
     }
 
-    // ── mouse: click an option, or press the marker and drag it across the options ──
+    // --- mouse: click an option, or press the marker and drag it across the options ---
     MouseArea {
         id: ma
         anchors.fill: parent

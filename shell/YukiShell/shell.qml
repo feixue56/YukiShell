@@ -33,7 +33,7 @@ ShellRoot {
         property var monData: []
         property var glassClients: []
         property var wallpaperMap: ({})
-        // ── see-through windows in the glass ──
+        // --- see-through windows in the glass ---
         // Hyprland hands the shell its window pictures drawn over opaque black, so a see-through kitty (or a faded Dolphin) showed up
         // in the Dock / menu glass as a dark slab. winAlpha(addr) says how transparent each window really is: hypr/bin/toggle-opacity
         // writes what it changed to $XDG_RUNTIME_DIR/yukishell-winalpha.json ({ addr: { bg, win } }); a kitty it never touched has
@@ -79,7 +79,7 @@ ShellRoot {
         // (the shell was busy in between, e.g. tearing down its own Settings window), the closed window comes back and stays until the shell
         // restarts. A ghost never gets a Wayland handle (live windows get theirs within milliseconds), so a window that has had none for
         // 2 s is treated as gone. If NO window has a handle the mapping is unavailable and nothing is hidden.
-        property var tlNoHandle: ({})                 // address → when it was first seen without a Wayland handle
+        property var tlNoHandle: ({})                 // address -> when it was first seen without a Wayland handle
         property int tlGhosts: 0
         function tlGhost(t) {
             var a = t.address;
@@ -110,7 +110,7 @@ ShellRoot {
         property bool dockWantsWallpaper: false
         property bool widgetsWantWallpaper: false
 
-        // ── screen recording / screen sharing: the window captures sit out ──
+        // --- screen recording / screen sharing: the window captures sit out ---
         // A recorder (wf-recorder, a screen share) and the glass's live ScreencopyViews all pull frames from Hyprland at the same
         // time. With dozens of captures running, the compositor cut the Wayland connection ("invalid object NN") and the shell
         // crashed. While something records, the glass keeps its last frames (and refreshes slowly, only while a popover is open);
@@ -120,7 +120,7 @@ ShellRoot {
         onWantQuietChanged: { if (wantQuiet) { quietRelease.stop(); captureQuiet = true; } else quietRelease.restart(); }
         Timer { id: quietRelease; interval: 1500; onTriggered: sharedHub.captureQuiet = false }
 
-        // ── capture hold: the Dock's window PREVIEWS (thumbnails) are not captured while windows are being opened / closed ──
+        // --- capture hold: the Dock's window PREVIEWS (thumbnails) are not captured while windows are being opened / closed ---
         // (Liquid Glass backdrops are NOT affected: they capture exactly as in the older version, see tlFor below.)
         // Crash: opening / closing many windows quickly ended with
         //   wl_display#1: error 0: invalid object NNN
@@ -206,7 +206,7 @@ ShellRoot {
             }
         }
 
-        // ── window capture gate (shared by the Menu Bar and the Dock glass) ──
+        // --- window capture gate (shared by the Menu Bar and the Dock glass) ---
         // A window is only handed to a ScreencopyView 0.2 s after it appeared (shorter than the open animation, so nobody sees it),
         // and windows that appear together (opening a batch of apps, a game launcher...) are admitted ONE EVERY 110 ms instead of
         // all at once. Hyprland answers every live capture with a frame request; starting a dozen of them in the same instant
@@ -284,7 +284,7 @@ ShellRoot {
             ipcOk = true;
             tlSeed();
             // fingerprint the GEOMETRY only: a window retitling itself (a terminal, a browser tab, a player) is no
-            // reason to wake the 60 Hz path — that kept it hot (and the main thread busy) the whole time
+            // reason to wake the 60 Hz path - that kept it hot (and the main thread busy) the whole time
             var gk = [], j, c;
             for (j = 0; j < cl.length; j++) {
                 c = cl[j];

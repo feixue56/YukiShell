@@ -1,4 +1,4 @@
-// LiveWall — the animated wallpaper (video) for the Liquid Glass backdrops. The glass of the Dock, the menus, the widgets and the
+// LiveWall - the animated wallpaper (video) for the Liquid Glass backdrops. The glass of the Dock, the menus, the widgets and the
 // Settings window refracts a picture of the wallpaper; for an animated wallpaper this item plays a video (muted) on top of that
 // picture, so the glass shows the wallpaper moving in real time.
 // `video` is what the shell hands in as bar.glassVideo: "" while "Animated wallpaper in glass" is off (the default), otherwise a small
@@ -61,7 +61,7 @@ Item {
                 Component.onCompleted: play()
                 onMediaStatusChanged: { if (mediaStatus === MediaPlayer.BufferedMedia || mediaStatus === MediaPlayer.LoadedMedia) syncT.restart(); }
             }
-            // ── following mpv's clock ──
+            // --- following mpv's clock ---
             // A seek lands a little late (the decoder starts from the keyframe before the target), so the target is the clock's position
             // plus `lead`, and `lead` learns from how far off the previous seek ended up. A copy within 50 ms (3 frames at 60 fps) is left
             // alone: the reported position moves in whole frames, so smaller differences are mostly measurement noise, and a seek costs a

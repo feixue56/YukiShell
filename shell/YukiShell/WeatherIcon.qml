@@ -68,7 +68,7 @@ Canvas {
         ctx.beginPath();
         ctx.arc(cx, cy, r, 0, 2 * Math.PI);
         ctx.fill();
-        // bite out of the disc → crescent
+        // bite out of the disc -> crescent
         ctx.globalCompositeOperation = "destination-out";
         ctx.beginPath();
         ctx.arc(cx + 0.55 * r, cy - 0.35 * r, 0.82 * r, 0, 2 * Math.PI);

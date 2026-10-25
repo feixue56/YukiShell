@@ -1,8 +1,8 @@
 // macOS Tahoe style Weather widget.
 //   size:  "small" 158x158 · "medium" 338x158 · "large" 338x354   (macOS point sizes, times scaleF)
-//   style: "liquid" – Liquid Glass: the wallpaper behind the widget is blurred + refracted by liquidglass.frag, using the
+//   style: "liquid" - Liquid Glass: the wallpaper behind the widget is blurred + refracted by liquidglass.frag, using the
 //                     Appearance sliders (Translucency / Blur / Liquid strength)
-//          "normal" – solid card (same as the Calendar widget)
+//          "normal" - solid card (same as the Calendar widget)
 //   The look (glass, tint, text colours, border) is the same as the Clock and Calendar widgets: it follows the shell's
 //   Dark / Light setting.
 //
@@ -15,7 +15,7 @@ import "Fonts.js" as Fonts
 Item {
     id: w
 
-    // ── look ──
+    // --- look ---
     property string style: "liquid"
     property string size: "small"
     property real scaleF: 1.0
@@ -23,7 +23,7 @@ Item {
     property real screenX: x
     property real screenY: y
 
-    // ── data (from YukiWidgets) ──
+    // --- data (from YukiWidgets) ---
     property string city: "—"
     property bool located: true         // show the little location arrow (automatic location)
     property bool hasData: false
@@ -37,7 +37,7 @@ Item {
     property var hourly: []             // [{ h: "Now", t: 58, k: "sun" }, ...]
     property var daily: []              // [{ d: "Today", lo: 56, hi: 79, k: "sun" }, ...]
 
-    // ── liquid glass inputs (the Appearance sliders) ──
+    // --- liquid glass inputs (the Appearance sliders) ---
     property bool glassReady: false     // liquidglass.frag.qsb compiled
     property url shaderUrl: ""
     property url wallUrl: ""
@@ -55,10 +55,10 @@ Item {
     property bool darkGlass: true
     property bool preview: false        // inside the Settings gallery: no wallpaper, simplified glass
 
-    // ── desktop edit mode ──
+    // --- desktop edit mode ---
     property bool editing: false
 
-    signal glassFailed()                // the shader did not compile / load → YukiWidgets falls back to the frosted card
+    signal glassFailed()                // the shader did not compile / load -> YukiWidgets falls back to the frosted card
 
     readonly property bool isSmall: size === "small"
     readonly property bool isMedium: size === "medium"
@@ -73,7 +73,7 @@ Item {
     // The cloud glyphs are not shown: only the sun / moon get an icon.
     function showIcon(k) { return k === "sun" || k === "moon"; }
 
-    // ── light / dark (same rules as the Clock and Calendar widgets) ──
+    // --- light / dark (same rules as the Clock and Calendar widgets) ---
     readonly property bool dark: darkGlass
     readonly property color fg: dark ? Qt.rgba(1, 1, 1, 0.96) : Qt.rgba(0, 0, 0, 0.86)
     readonly property color fgSub: dark ? Qt.rgba(1, 1, 1, 0.62) : Qt.rgba(0, 0, 0, 0.52)
@@ -84,7 +84,7 @@ Item {
     // glass tint: the same as Clock / Calendar, so dark (light mode) / white (dark mode) text stays readable on any wallpaper
     readonly property real tint: Math.min(0.92, dark ? 0.25 + glassOpacity * 0.8 : 0.45 + glassOpacity * 0.9)
 
-    // ───────────────────────── background ─────────────────────────
+    // --- background ---
     // Normal: solid card
     Rectangle {
         anchors.fill: parent
@@ -115,7 +115,7 @@ Item {
         }
     }
 
-    // Liquid Glass: wallpaper crop → blur → refraction shader (the same maths as the Dock)
+    // Liquid Glass: wallpaper crop -> blur -> refraction shader (the same maths as the Dock)
     Loader {
         id: glassLoader
         anchors.fill: parent
@@ -243,7 +243,7 @@ Item {
         lineW: 0.8
     }
 
-    // ───────────────────────── content ─────────────────────────
+    // --- content ---
     readonly property real pad: 15 * s
 
     // city (+ location arrow)
@@ -337,7 +337,7 @@ Item {
     }
 
 
-    // ── medium: hourly forecast on the right ──
+    // --- medium: hourly forecast on the right ---
     Rectangle {   // divider
         visible: w.isMedium
         x: 164 * w.s; y: 16 * w.s
@@ -359,7 +359,7 @@ Item {
         }
     }
 
-    // ── large: hourly strip + 5-day list ──
+    // --- large: hourly strip + 5-day list ---
     Rectangle { visible: w.isLarge; x: w.pad; y: 134 * w.s; width: w.width - 2 * w.pad; height: 1; color: w.line }
     Row {
         visible: w.isLarge

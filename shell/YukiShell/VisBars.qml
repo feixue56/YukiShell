@@ -53,7 +53,7 @@ Item {
         return Math.min(1, Math.pow(Math.max(0, v), 0.85));
     }
 
-    // ── bars / mirror ──
+    // --- bars / mirror ---
     Repeater {
         model: vb.style === "wave" ? 0 : vb.count
         delegate: Rectangle {
@@ -73,7 +73,7 @@ Item {
         }
     }
 
-    // ── wave: the 32 values joined by a smooth curve, filled below ──
+    // --- wave: the 32 values joined by a smooth curve, filled below ---
     readonly property var wavePts: {
         if (vb.style !== "wave") return [];
         var n = 32, y = [], pts = [], i, k;

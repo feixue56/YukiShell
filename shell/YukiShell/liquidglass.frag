@@ -117,7 +117,7 @@ void main()
         return;
     }
 
-    // ── soft drop shadow (only visible outside the glass) ──
+    // --- soft drop shadow (only visible outside the glass) ---
     float sds    = roundBox(q - vec2(0.0, 3.0), hs, r);
     float shadow = 0.30 * shadowAmt * (1.0 - smoothstep(-2.0, 9.0, sds));
     if (sd > 1.0) {
@@ -125,7 +125,7 @@ void main()
         return;
     }
 
-    // ── distance to edge + outward edge direction ──
+    // --- distance to edge + outward edge direction ---
     float t = max(-sd, 0.0);
     vec2 d2 = abs(q) - (hs - r);
     vec2 sg = vec2(q.x >= 0.0 ? 1.0 : -1.0, q.y >= 0.0 ? 1.0 : -1.0);
@@ -133,7 +133,7 @@ void main()
     vec2 g  = (length(m) > 1e-4) ? normalize(m) * sg
                                  : ((d2.x > d2.y) ? vec2(sg.x, 0.0) : vec2(0.0, sg.y));
 
-    // ── convex squircle bezel → surface normal ──
+    // --- convex squircle bezel -> surface normal ---
     float bz   = max(bezel, 1.0) * 1.45;           // wider bezel: the glass reads thicker
     float u    = clamp(t / bz, 0.0, 1.0);
     float om   = 1.0 - u;
@@ -142,7 +142,7 @@ void main()
     slope = min(slope, 7.0);
     vec3 n = normalize(vec3(g * slope, 1.0));
 
-    // ── refraction: glass n≈1.5, ray enters straight down ──
+    // --- refraction: glass n≈1.5, ray enters straight down ---
     vec3 rd   = refract(vec3(0.0, 0.0, -1.0), n, 1.0 / 1.5);
     vec2 disp = rd.xy / max(-rd.z, 0.2) * thickness * 1.35;
 
@@ -152,14 +152,14 @@ void main()
 
     vec3 col = blurredDisp(ps, disp, dispersion * 0.6, rad);
 
-    // ── colour grading: vibrancy, tint, milky lift ──
+    // --- colour grading: vibrancy, tint, milky lift ---
     float l = dot(col, vec3(0.2126, 0.7152, 0.0722));
     col = mix(vec3(l), col, saturation);
     vec3 tintC = mix(vec3(1.0), vec3(0.09, 0.09, 0.10), dark);
     col = mix(col, tintC, tintMix);
     col += mix(0.055, 0.020, dark);
 
-    // ── depth: soft top sheen, darker lower inner edge ──
+    // --- depth: soft top sheen, darker lower inner edge ---
     float ty = clamp((q.y + hs.y) / glassSize.y, 0.0, 1.0);
     col += (1.0 - ty) * mix(0.040, 0.030, dark);
     float innerK = 1.0 - clamp(flatInner, 0.0, 1.0);
@@ -169,7 +169,7 @@ void main()
     // colour of the rim / border: white, or (rimTint) a brighter shade of what the glass looks like at this spot
     vec3 rimCol = mix(vec3(0.96, 0.98, 1.0), clamp(col * 1.5 + 0.12, 0.0, 1.0), rimTint);
 
-    // ── specular rim, light from the top-left ──
+    // --- specular rim, light from the top-left ---
     vec2  L      = normalize(vec2(-0.55, -0.83));
     float facing = dot(g, L);
     float spec   = pow(max(facing, 0.0), 1.6) + 0.55 * pow(max(-facing, 0.0), 2.2);

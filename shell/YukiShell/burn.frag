@@ -47,9 +47,9 @@ void main()
     // burn map: large ragged blobs (fbm) where the paper goes first, plus fine fibres along the edge
     vec2 np = uv * vec2(itemSize.x / itemSize.y, 1.0) * 3.2 + seed * 17.0;
     float m = fbm(np) * 0.82 + noise(np * 9.0) * 0.18;
-    // spread the range so 0 → nothing burned, 1 → everything burned
+    // spread the range so 0 -> nothing burned, 1 -> everything burned
     float t = progress * 1.25 - 0.12;
-    float reveal = smoothstep(m - 0.05, m + 0.05, t);     // soft, ragged edge — no colour, just the shape
+    float reveal = smoothstep(m - 0.05, m + 0.05, t);     // soft, ragged edge - no colour, just the shape
 
     vec4 o = texture(oldTex, uv), n = texture(newTex, uv);
     fragColor = mix(o, n, reveal) * cov * qt_Opacity;

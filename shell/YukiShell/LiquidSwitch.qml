@@ -1,4 +1,4 @@
-// LiquidSwitch — the on/off switch used everywhere in the shell, after the iOS 26 / macOS Tahoe switch:
+// LiquidSwitch - the on/off switch used everywhere in the shell, after the iOS 26 / macOS Tahoe switch:
 //   one tap is one motion: the knob swells into a clear glass lens as it leaves, crosses as glass (stretching a
 //   little, the track colour following it) and is the solid white knob again as it lands
 //   holding it keeps it glass, and it can be dragged across
@@ -17,7 +17,7 @@ Item {
     width: 38; height: 22
     opacity: enabled ? 1 : 0.4
 
-    // ONE motion, like the iOS 26 switch: a single value (along) moves the knob, and everything else follows it —
+    // ONE motion, like the iOS 26 switch: a single value (along) moves the knob, and everything else follows it  - 
     // the knob turns to glass and swells as it leaves, is most glassy half way, and is solid again as it lands;
     // the stretch and the track colour ride on the same curve. Holding it (press / drag) keeps it glass.
     property real along: checked ? 1 : 0

@@ -2,7 +2,7 @@
 # Wallpaper appearance for light/dark wallpaper pairs (macOS: Automatic / Light / Dark / Dynamic).
 #   yukishell-dynwall.sh <light> <dark> <light|dark|dynamic> [sunriseMin sunsetMin]
 # dynamic: light during the day, dark at night, and around sunrise / sunset it steps through blended images
-# (light → dark over ~75 min), like macOS's time-of-day dynamic wallpapers. Applies with a fade only when the
+# (light -> dark over ~75 min), like macOS's time-of-day dynamic wallpapers. Applies with a fade only when the
 # image actually changes, and prints the image in use (the Liquid Glass refracts it).
 light="$1"; dark="$2"; mode="$3"; rise="${4:-390}"; set_="${5:-1110}"
 cache="$HOME/.cache/yukishell/dynamic"; mkdir -p "$cache"

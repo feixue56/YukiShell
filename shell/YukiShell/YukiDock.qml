@@ -1,17 +1,17 @@
-// yukidock v2 — a macOS-style dock for Hyprland, built on Quickshell. vSuol
+// yukidock v2 - a macOS-style dock for Hyprland, built on Quickshell. vSuol
 //
 // Part of the combined yukibar + yukidock shell (see shell.qml). Keep this file, YukiBar.qml, shell.qml and
 // liquidglass.frag together in ~/.config/quickshell/yukibar/ and run:  qs -c YukiShell
 // Pins are saved to ~/.config/yukidock/pinned.json once you use "Keep in Dock".
 //
-// Settings are saved to ~/.config/yukidock/settings.json (right-click the dock → Dock Preferences…).
+// Settings are saved to ~/.config/yukidock/settings.json (right-click the dock -> Dock Preferences...).
 // The preferences window is frameless; make it float in Hyprland, e.g. (hyprland.conf syntax):
 //   windowrule = float, title:^(Dock Preferences)$
 //   windowrule = center, title:^(Dock Preferences)$
 //
-// Dock style (Dock Preferences → Appearance):
-//   Normal Blur         – the original translucent tint; blur comes from the Hyprland layer rule below.
-//   Liquid Glass        – real-time refraction shader (liquidglass.frag, next to this file). It is compiled
+// Dock style (Dock Preferences -> Appearance):
+//   Normal Blur         - the original translucent tint; blur comes from the Hyprland layer rule below.
+//   Liquid Glass        - real-time refraction shader (liquidglass.frag, next to this file). It is compiled
 //                         with `qsb` (package qt6-shadertools) on first use and cached in ~/.config/yukidock/.
 //                         The backdrop it refracts is the wallpaper + the live windows behind the Dock;
 //                         set "wallpaperPath" in settings.json if the wallpaper isn't auto-detected.
@@ -51,7 +51,7 @@ Scope {
     }
     property string userName: Quickshell.env("USER") || ""
 
-    // ═════ Displays: which monitor is the main one (resolution / refresh / position live in hypr/rice/monitor.lua) ═════
+    // --- Displays: which monitor is the main one (resolution / refresh / position live in hypr/rice/monitor.lua) ---
     property var displays: ({ primary: "" })                   // the main display, saved in ~/.config/yukishell/displays.json
     property var monList: []                                  // hyprctl monitors (live)
     FileView {
@@ -108,7 +108,7 @@ Scope {
         }
     }
 
-    // ───────────── CONFIG ───────────── Lachowski
+    // --- Config --- Lachowski
     property string monitor: ""          // "" = every monitor, or e.g. "DP-1"
     property int iconSize: 52
     property real magnification: 1.7     // peak icon scale
@@ -117,7 +117,7 @@ Scope {
     property int topPad: 8
     property int bottomPad: 9            // room under icons (running dots live here)
     property int cornerRadius: 18
-    readonly property real uiS: bar ? bar.uiScale : 1      // UI scale (Settings → Menu Bar): Settings / About windows follow it
+    readonly property real uiS: bar ? bar.uiScale : 1      // UI scale (Settings -> Menu Bar): Settings / About windows follow it
     property int margin: 6
     property bool darkMode: true
     // the dock keeps one fixed look (dark): switching the system between Light and Dark does not change its colours
@@ -179,12 +179,12 @@ Scope {
         "code", "discord", "spotify", "steam", "obsidian"
     ]   // used until you change pins from the dock; unknown ids are skipped
     property var pinned: defaultPinned
-    // ──────────────────────────────────
+    // ----------------------------------------
 
-    // ═════════════════════════════════════════════════════════════════
-    //  SETTINGS UI  —  macOS "System Settings" look
+    // ----------------------------------------
+    //  SETTINGS UI  -  macOS "System Settings" look
     //  (inline components; they receive the palette through `t`)
-    // ═════════════════════════════════════════════════════════════════
+    // ----------------------------------------
 
     // Rounded, inset group box (the white/grey "card" in System Settings)
     component SCard: Rectangle {
@@ -583,7 +583,7 @@ Scope {
         }
     }
 
-    // ─────────────────────────── FILE CHOOSER ───────────────────────────
+    // --- File chooser ---
     // Big-thumbnail picture / folder chooser used by Settings, the desktop widgets and the wallpaper picker (replaces zenity / kdialog).
     //   root.filePicker.pick({ mode: "image" | "folder", title: "...", startDir: "/path" }, function (path) { /* "" = cancelled */ })
     readonly property var filePicker: filePickerWin
@@ -597,7 +597,7 @@ Scope {
         extraPlaces: root.bar ? root.bar.wpDirsEff.map(function (d) { return { label: d.replace(Quickshell.env("HOME"), "~"), path: d }; }) : []
     }
 
-    // ─────────────────────────── THE WINDOW ───────────────────────────
+    // --- The window ---
     Window {
         id: prefsWindow
         title: "YukiShell Settings"
@@ -638,7 +638,7 @@ Scope {
             readonly property string mon: ok ? g.mon : ""
         }
 
-        // ── navigation state ──
+        // --- navigation state ---
         property int cur: 0
         property var backStack: []
         property var fwdStack: []
@@ -677,13 +677,13 @@ Scope {
             { id: "about",      sec: 7, name: "About",           glyph: "about",    c1: "#A7A7AD", c2: "#7C7C82", keys: "version github profile source author credits config folder yukidock yukishell" }
         ]
 
-        // Keyboard → Keyboard Shortcuts: the binds Hyprland really has loaded (the ones with a description), read live, and editable.
+        // Keyboard -> Keyboard Shortcuts: the binds Hyprland really has loaded (the ones with a description), read live, and editable.
         //   ~/.cache/yukishell/keybinds.tsv      written by hypr/rice/keys.lua: every shortcut, its default keys, and whether it may be changed
         //   ~/.config/yukishell/keybinds.tsv     the user's own choices, read by keys.lua when Hyprland loads its config (so it is applied by `hyprctl reload`)
         property var shortcuts: []          // rows: { desc, spec, keys (keycap texts), def, editable, changed }
         property var kbBinds: []            // what Hyprland has right now: { desc, spec, norm }
         property var kbManifest: []         // [{ desc, def, editable }]; empty until keys.lua has run (an old config): then nothing is editable
-        property var kbOverrides: ({})      // desc → keys ("" = no shortcut)
+        property var kbOverrides: ({})      // desc -> keys ("" = no shortcut)
         property string kbCapturing: ""     // the description whose new shortcut is being recorded
         property string kbMessage: ""
         readonly property bool kbCanEdit: kbManifest.length > 0
@@ -760,7 +760,7 @@ Scope {
             stdout: StdioCollector { onStreamFinished: { prefsWindow.parseFiles(text); prefsWindow.composeShortcuts(); } }
         }
 
-        // ── recording a new shortcut ──
+        // --- recording a new shortcut ---
         // Hyprland runs its own binds before an app sees the keys, so recording first switches to the empty "yuki-capture" submap (see keys.lua).
         // Whatever ends the recording (a key, Esc, the 20 s timer, the window losing focus or closing) switches back.
         function kbStart(desc) {
@@ -780,7 +780,7 @@ Scope {
         Timer { id: kbTimer; interval: 20000; onTriggered: prefsWindow.kbStop() }
         onActiveChanged: if (!active) kbStop()
 
-        // evdev key code → the key's name in Hyprland (US layout, the one this rice sets)
+        // evdev key code -> the key's name in Hyprland (US layout, the one this rice sets)
         readonly property var kbEvdev: ({ 1: "Escape", 2: "1", 3: "2", 4: "3", 5: "4", 6: "5", 7: "6", 8: "7", 9: "8", 10: "9", 11: "0", 12: "minus", 13: "equal", 14: "BackSpace", 15: "Tab",
             16: "Q", 17: "W", 18: "E", 19: "R", 20: "T", 21: "Y", 22: "U", 23: "I", 24: "O", 25: "P", 26: "bracketleft", 27: "bracketright", 28: "Return",
             30: "A", 31: "S", 32: "D", 33: "F", 34: "G", 35: "H", 36: "J", 37: "K", 38: "L", 39: "semicolon", 40: "apostrophe", 41: "grave", 43: "backslash",
@@ -900,7 +900,7 @@ Scope {
         readonly property int preferredHeight: Math.round(880 * root.uiS)
         // the UI scale changed while the window is open: Hyprland keeps the old floating size (and its blur / shadow region), so
         // tell it the new size again
-        // ── resize that only applies when you let go ──
+        // --- resize that only applies when you let go ---
         // The edge handles no longer start the compositor's live resize: they remember where the drag began, and when the button is
         // released the window is resized once, to the size the drag ended at (left / top edges also move the window so the opposite
         // edge stays put).
@@ -959,7 +959,7 @@ Scope {
             }
         }
 
-        // ── palette ──
+        // --- palette ---
         QtObject {
             id: pal
             readonly property bool dark: root.darkMode
@@ -999,7 +999,7 @@ Scope {
 
         NumberAnimation { id: fadeIn; target: paneLoader; property: "opacity"; from: 0; to: 1; duration: 160 }
 
-        // ── frame ──
+        // --- frame ---
         Rectangle {
             id: frame
             // drawn at a scaled size: the whole window content shrinks with the UI scale, the window itself shrinks to match
@@ -1049,7 +1049,7 @@ Scope {
                 }
             }
 
-            // ───────── sidebar ─────────
+            // --- sidebar ---
             Rectangle {
                 id: sidebar
                 z: 4
@@ -1312,7 +1312,7 @@ Scope {
                     }
                 }
 
-                // account card (macOS: your name + picture at the top of the sidebar) → Users & Groups
+                // account card (macOS: your name + picture at the top of the sidebar) -> Users & Groups
                 Rectangle {
                     id: acct
                     x: 10; y: 90; width: parent.width - 20; height: 52; radius: 10
@@ -1460,7 +1460,7 @@ Scope {
                 }
             }
 
-            // ───────── toolbar ─────────
+            // --- toolbar ---
             Item {
                 id: header
                 z: 6
@@ -1544,7 +1544,7 @@ Scope {
                 }
             }
 
-            // ───────── scrolling content ─────────
+            // --- scrolling content ---
             // feather: the page scrolls all the way up under the toolbar; what slides under it melts away. Same feather as the
             // lyrics in the Player widget: one smooth alpha mask over the scroller (switched on as the page starts to scroll).
             Item {
@@ -1610,7 +1610,7 @@ Scope {
                 Behavior on opacity { NumberAnimation { duration: 300 } }
             }
 
-            // ── app sheet: choose an installed app, or describe a custom one, to keep in the Dock ──
+            // --- app sheet: choose an installed app, or describe a custom one, to keep in the Dock ---
             Item {
                 id: appSheet
                 anchors.fill: parent
@@ -1678,7 +1678,7 @@ Scope {
                         font.family: root.fontForWeight(Font.DemiBold, pal.fam); font.pixelSize: 16; font.weight: Font.DemiBold
                     }
 
-                    // ── choose an installed app ──
+                    // --- choose an installed app ---
                     Item {
                         visible: appSheet.mode === "list"
                         x: 16; y: 54; width: parent.width - 32; height: parent.height - 54 - 16
@@ -1753,7 +1753,7 @@ Scope {
                         SButton { t: pal; anchors.right: parent.right; anchors.bottom: parent.bottom; text: I18n.tr("Done"); onClicked: appSheet.open = false }
                     }
 
-                    // ── describe a custom app ──
+                    // --- describe a custom app ---
                     Column {
                         visible: appSheet.mode === "custom"
                         x: 20; y: 56; width: parent.width - 40
@@ -1872,7 +1872,7 @@ Scope {
                 }
             }
 
-            // ── crop sheet: covers the window while a new profile picture is being framed ──
+            // --- crop sheet: covers the window while a new profile picture is being framed ---
             Item {
                 id: cropSheet
                 anchors.fill: parent
@@ -2007,9 +2007,9 @@ Scope {
             }
         }
 
-        // ═════════════ PANES ═════════════
+        // --- Panes ---
 
-        // ── General ──
+        // --- General ---
         Component {
             id: paneGeneral
             Column {
@@ -2088,7 +2088,7 @@ Scope {
             }
         }
 
-        // ── Menu Bar ──
+        // --- Menu Bar ---
         Component {
             id: paneMenuBar
             Column {
@@ -2512,7 +2512,7 @@ Scope {
             }
         }
 
-        // ── Dock ──
+        // --- Dock ---
         Component {
             id: paneDock
             Column {
@@ -2714,7 +2714,7 @@ Scope {
             }
         }
 
-        // ── Appearance ──
+        // --- Appearance ---
         Component {
             id: paneAppearance
             Column {
@@ -2846,7 +2846,7 @@ Scope {
             }
         }
 
-        // ── Behavior ──
+        // --- Behavior ---
         Component {
             id: paneBehavior
             Column {
@@ -2942,7 +2942,7 @@ Scope {
             }
         }
 
-        // ── Applications ──
+        // --- Applications ---
         Component {
             id: paneApps
             Column {
@@ -2998,11 +2998,11 @@ Scope {
             }
         }
 
-        // ── About ──
+        // --- About ---
 
-        // ═════════ macOS-style panes linked to the shell ═════════
+        // --- macOS-style panes linked to the shell ---
 
-        // ── Wi-Fi ──
+        // --- Wi-Fi ---
         Component {
             id: paneWifi
             Column {
@@ -3071,7 +3071,7 @@ Scope {
             }
         }
 
-        // ── Bluetooth ── (uses the Menu Bar's Bluetooth backend, so pairing, scanning and errors behave like the Control Center)
+        // --- Bluetooth --- (uses the Menu Bar's Bluetooth backend, so pairing, scanning and errors behave like the Control Center)
         Component {
             id: paneBt
             Column {
@@ -3141,7 +3141,7 @@ Scope {
             }
         }
 
-        // ── Network ──
+        // --- Network ---
         Component {
             id: paneNetwork
             Column {
@@ -3178,7 +3178,7 @@ Scope {
             }
         }
 
-        // ── Battery ──
+        // --- Battery ---
         Component {
             id: paneBattery
             Column {
@@ -3232,7 +3232,7 @@ Scope {
             }
         }
 
-        // ── Control Center ──
+        // --- Control Center ---
         Component {
             id: paneCC
             Column {
@@ -3339,7 +3339,7 @@ Scope {
             }
         }
 
-        // ── Desktop & Dock = Dock + Dock Behavior ──
+        // --- Desktop & Dock = Dock + Dock Behavior ---
         Component {
             id: paneDesktopDock
             Column {
@@ -3366,7 +3366,7 @@ Scope {
             }
         }
 
-        // ── Widgets ──
+        // --- Widgets ---
         Component {
             id: paneWidgets
             Column {
@@ -3387,7 +3387,7 @@ Scope {
                         if (wdg.model.get(i).wtype === type) { wdg.removeWidget(wdg.model.get(i).wid); return; }
                 }
 
-                // ── Layout ──
+                // --- Layout ---
                 SCard {
                     t: pal
                     SRow {
@@ -3417,7 +3417,7 @@ Scope {
                     }
                 }
 
-                // ── Audio visualizer (Now Playing widget + Control Center tile) ──
+                // --- Audio visualizer (Now Playing widget + Control Center tile) ---
                 SLabel { t: pal; header: true; text: I18n.tr("Audio Visualizer") }
                 SCard {
                     t: pal
@@ -3496,7 +3496,7 @@ Scope {
                     }
                 }
 
-                // ── Add ──
+                // --- Add ---
                 // One tidy block per widget: name + hint on top, then   Style · Size · Add   on one line that wraps on a narrow window.
                 SLabel { t: pal; header: true; text: I18n.tr("Add a Widget") }
                 SCard {
@@ -3596,7 +3596,7 @@ Scope {
                     text: I18n.tr("Image widgets open a picture chooser. To change a picture later, use Edit on Desktop and press Choose Image on the widget.")
                 }
 
-                // ── On the desktop now ──
+                // --- On the desktop now ---
                 SLabel { t: pal; header: true; text: I18n.tr("On Your Desktop") }
                 SCard {
                     t: pal
@@ -3628,7 +3628,7 @@ Scope {
                     }
                 }
 
-                // ── Weather ──
+                // --- Weather ---
                 SLabel { t: pal; header: true; text: I18n.tr("Weather") }
                 SCard {
                     t: pal
@@ -3685,7 +3685,7 @@ Scope {
             }
         }
 
-        // ── Displays ──
+        // --- Displays ---
         Component {
             id: paneDisplays
             Column {
@@ -3751,7 +3751,7 @@ Scope {
             }
         }
 
-        // ── Notifications ──
+        // --- Notifications ---
         Component {
             id: paneNotif
             Column {
@@ -3780,7 +3780,7 @@ Scope {
             }
         }
 
-        // ── Sound ──
+        // --- Sound ---
         Component {
             id: paneSound
             Column {
@@ -3844,7 +3844,7 @@ Scope {
             }
         }
 
-        // ── Focus ──
+        // --- Focus ---
         Component {
             id: paneFocus
             Column {
@@ -3865,7 +3865,7 @@ Scope {
             }
         }
 
-        // ── Lock Screen ──
+        // --- Lock Screen ---
         Component {
             id: paneLock
             Column {
@@ -3899,7 +3899,7 @@ Scope {
                         SSwitch { t: pal; checked: root.bar ? root.bar.use24h : true; onToggled: v => { if (root.bar) root.bar.use24h = v; } }
                     }
                 }
-                // ── Clock ──
+                // --- Clock ---
                 // the clock fonts, chosen exactly like the lock screen does (LockScreen.qml): Nunito when it is installed, else the bundled
                 // Open Runde; Noto Serif Display for Serif. (They used to be loaded from ~/.local/share/fonts files this install never creates.)
                 readonly property string roundedFam: (typeof Qt.fontFamilies === "function" && Qt.fontFamilies().indexOf("Nunito") >= 0) ? "Nunito" : "Open Runde"
@@ -4023,7 +4023,7 @@ Scope {
             }
         }
 
-        // ── Users & Groups ──
+        // --- Users & Groups ---
         Component {
             id: paneUsers
             Column {
@@ -4061,7 +4061,7 @@ Scope {
             }
         }
 
-        // ── Keyboard ──
+        // --- Keyboard ---
         Component {
             id: paneKeyboard
             Column {
@@ -4181,7 +4181,7 @@ Scope {
             }
         }
 
-        // ── Mouse ──
+        // --- Mouse ---
         Component {
             id: paneMouse
             Column {
@@ -4206,7 +4206,7 @@ Scope {
             }
         }
 
-        // ── Trackpad ──
+        // --- Trackpad ---
         Component {
             id: paneTrackpad
             Column {
@@ -4233,7 +4233,7 @@ Scope {
             }
         }
 
-        // ── Wallpaper ──
+        // --- Wallpaper ---
         Component {
             id: paneWallpaper
             Column {
@@ -4726,7 +4726,7 @@ Scope {
                     }
                 }
 
-                // ── Credits: YukiShell is a fork of MacShell ──
+                // --- Credits: YukiShell is a fork of MacShell ---
                 SLabel { t: pal; header: true; text: I18n.tr("Based on MacShell") }
                 SCard {
                     t: pal
@@ -4808,7 +4808,7 @@ Scope {
     property var launching: ({})
     property var knownKeys: ({})
     // the Dock's cells live in a keyed ListModel updated in place: a cell is only created when its item appears and
-    // only destroyed after it has animated out — every other cell (and its live window preview) keeps running
+    // only destroyed after it has animated out - every other cell (and its live window preview) keeps running
     property var itemMap: ({})
     ListModel { id: dockModel }
     function syncModel(list) {
@@ -4822,12 +4822,12 @@ Scope {
         }
         while (m.count > list.length) m.remove(m.count - 1);
     }
-    property var leaving: ({})          // key → time it started leaving
+    property var leaving: ({})          // key -> time it started leaving
     readonly property int leaveMs: 340
     Timer { id: leaveTimer; interval: root.leaveMs + 30; onTriggered: root.rebuild() }
     property string lastSig: ""
 
-    // ───────────── LOGIC ─────────────
+    // --- Logic ---
     function openPrefs(pane) {
         if (!settingsEnabled) return;
         if (bar) {
@@ -4883,7 +4883,7 @@ Scope {
         stdout: StdioCollector { onStreamFinished: { var id = text.trim(); if (/^yuki-custom-[a-z0-9-]+$/.test(id)) root.pinId(id); } }
     }
 
-    // ── settings persistence (~/.config/yukidock/settings.json) ──
+    // --- settings persistence (~/.config/yukidock/settings.json) ---
     readonly property string settingsSig: [dockEnabled, settingsEnabled, iconSize, magnification, magnificationEnabled, spacing, margin,
         cornerRadius, darkMode, appearanceMode, glassOpacity, glassBlur, glassLiquid, dockStyle, wallpaperPath, String(accent), fontFamily, hideMode, hideDelay, monitor,
         showSettings, showLabels, showIndicators, bounceOnLaunch, showThumbs, windowCapture, glassLive, iconTint, iconTintColor, iconTintStrength, pickerThumb].join("|")
@@ -5186,8 +5186,8 @@ Scope {
         }
 
         var firstBuild = (lastSig === "");
-        // closed apps / windows don't vanish: they stay for a moment as "leaving" cells that shrink and fade out —
-        // the opening animation played backwards — then are dropped by leaveTimer's rebuild
+        // closed apps / windows don't vanish: they stay for a moment as "leaving" cells that shrink and fade out  - 
+        // the opening animation played backwards - then are dropped by leaveTimer's rebuild
         var liveKeys = {};
         for (var lq = 0; lq < list.length; lq++) if (list[lq].key) liveKeys[list[lq].key] = true;
         var LV = {};
@@ -5243,8 +5243,8 @@ Scope {
         }
     }
 
-    // ═════════════ LIQUID GLASS BACKEND ═════════════
-    // glassState: "idle" → "building" (qsb running) → "ready" | "failed". "failed" falls back to Normal Blur.
+    // --- Liquid glass backend ---
+    // glassState: "idle" -> "building" (qsb running) -> "ready" | "failed". "failed" falls back to Normal Blur.
     property string glassState: "idle"
     readonly property bool liquidActive: dockStyle === "liquid" && glassState === "ready" && !(bar && bar.gaming)
     // Settings' own glass (back / forward pill, knobs of switches and sliders): available whenever the shader is built,
@@ -5283,7 +5283,7 @@ Scope {
     // The Dock has its own glass shader (dockglass.frag: Tahoe-style edge light, outer hairline, shadow, adaptive tint), built the
     // same way. It is independent of liquidglass.frag: if it fails to build or to load, the Dock keeps using the shared shader, so
     // the Control Center, menu bar and widgets are never affected.
-    property string dockGlassState: "idle"        // idle → building → ready | failed
+    property string dockGlassState: "idle"        // idle -> building -> ready | failed
     readonly property bool dockGlassNew: dockGlassState === "ready"
     readonly property string dockGlassSrc: decodeURIComponent(Qt.resolvedUrl("dockglass.frag").toString().replace("file://", ""))
     readonly property string dockGlassOut: configDir + "/dockglass.frag.qsb"
@@ -5303,7 +5303,7 @@ Scope {
     }
 
     // wallpaper the glass refracts. Sources, in order: wallpaperPath override, Noctalia's settings.toml
-    // ([wallpaper.monitors.<name>] → [wallpaper.last] → [wallpaper.default]), then awww/swww/hyprpaper.
+    // ([wallpaper.monitors.<name>] -> [wallpaper.last] -> [wallpaper.default]), then awww/swww/hyprpaper.
     readonly property var wallpaperMap: hub ? hub.wallpaperMap : ({})
     Binding { target: root.hub; property: "dockWantsWallpaper"; value: root.liquidActive }
     onWallpaperMapChanged: console.log("[yukidock-glass] wallpaper sources:", JSON.stringify(wallpaperMap))
@@ -5326,7 +5326,7 @@ Scope {
     Binding { target: root.hub; property: "dockWantsGeo"; value: root.dockEnabled || prefsWindow.visible }
     // window captures are admitted by the shared gate in shell.qml (hub.tlFor): 0.2 s after a window appears, one every 110 ms
 
-    // ── smart hide: which monitors have a non-floating window on their active workspace ──
+    // --- smart hide: which monitors have a non-floating window on their active workspace ---
     // Computed from the hub's monitor + window snapshot (the same one the glass uses): it is refreshed within a frame of a
     // workspace switch / window event, with no process spawned and no debounce. It used to run `hyprctl -j monitors/clients`
     // 120 ms after the LAST raw event (every title change and every capture of the shell's own restarted that timer), so the Dock
@@ -5385,7 +5385,7 @@ Scope {
     Timer { id: settle; interval: 350; onTriggered: root.rebuild() }
     Timer { id: pruneTimer; interval: 8200; onTriggered: root.rebuild() }
 
-    // ───────────── UI ─────────────
+    // --- UI ---
     Variants {
         model: (root.settingsReady && root.dockEnabled) ? Quickshell.screens : []
 
@@ -5408,7 +5408,7 @@ Scope {
             mask: Region { item: maskItem }
 
             // the lifted item lives in its own full-screen, click-through overlay so it can go anywhere on the screen
-            // (the Dock's own surface only covers the bottom of the screen — it used to be cut off half way up)
+            // (the Dock's own surface only covers the bottom of the screen - it used to be cut off half way up)
             PanelWindow {
                 id: tearWin
                 screen: win.modelData
@@ -5421,7 +5421,7 @@ Scope {
                 WlrLayershell.layer: WlrLayer.Overlay
                 WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
                 // the window where it WAS: a still copy that takes its place the instant the real window jumps to the
-                // pointer, then fades and sinks away — so the old spot never just blinks empty
+                // pointer, then fades and sinks away - so the old spot never just blinks empty
                 Item {
                     id: oldSnap
                     property bool shown: false
@@ -5451,14 +5451,14 @@ Scope {
                     property real wob: 0
                     readonly property bool isWin: ui.tearItem !== null && ui.tearItem.kind === "win"
                     // a window preview is picked up like the window itself: the higher it's pulled out of the Dock the
-                    // closer it gets to the window's real size, held near its title bar (no wiggle — it's a window)
+                    // closer it gets to the window's real size, held near its title bar (no wiggle - it's a window)
                     readonly property real liftRaw: isWin ? Math.max(0, Math.min(1, (ui.activeTop - ui.tearY) / 240)) : 0
                     property real lift: 1 - Math.pow(1 - liftRaw, 3)
                     Behavior on lift { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
                     readonly property real thumbW: 170
                     readonly property real liftW: thumbW + (ui.tearW - thumbW) * lift
                     readonly property real grabFy: 0.5 + (0.035 - 0.5) * lift
-                    readonly property real offY: tearWin.height - win.height   // Dock surface → screen coordinates
+                    readonly property real offY: tearWin.height - win.height   // Dock surface -> screen coordinates
                     visible: opacity > 0.01
                     width: isWin ? liftW : root.iconSize * 1.12
                     height: isWin ? liftW * ui.tearH / ui.tearW : width
@@ -5480,7 +5480,7 @@ Scope {
                         color: Qt.rgba(0, 0, 0, 0.30 + 0.15 * tearGhost.lift)
                     }
                     // translucent windows (terminals) get Hyprland's blur behind them; the lifted copy can't, so it gets a
-                    // dark backing instead — otherwise it reads as a faint see-through ghost, not the window
+                    // dark backing instead - otherwise it reads as a faint see-through ghost, not the window
                     Rectangle {
                         visible: tearGhost.isWin
                         anchors.fill: parent; radius: 10
@@ -5635,7 +5635,7 @@ Scope {
                 }
                 function endTear() {
                     if (!tearing) return;
-                    // a window: let go wherever the pointer is — it simply stays there
+                    // a window: let go wherever the pointer is - it simply stays there
                     if (tearAddr && (following || tearY < activeTop - 30)) {
                         if (!following) handoff();
                         finishFollow();
@@ -5741,7 +5741,7 @@ Scope {
                 }
                 Timer { id: hideTimer; interval: root.hideDelay; onTriggered: if (!ui.dragging) ui.revealed = false }
 
-                // ── Liquid Glass backdrop: wallpaper + the live windows behind the Dock, in screen coordinates ──
+                // --- Liquid Glass backdrop: wallpaper + the live windows behind the Dock, in screen coordinates ---
                 // Built from per-window captures (not a screen capture) so the Dock never ends up refracting itself.
                 Loader {
                     id: glassBackdrop
@@ -5935,7 +5935,7 @@ Scope {
                     y: ui.height - root.margin - height + (ui.tucked ? height + root.margin + 6 : 0)
                     Behavior on y { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
 
-                    // ── Liquid Glass: real-time refraction of the backdrop (see liquidglass.frag) ──
+                    // --- Liquid Glass: real-time refraction of the backdrop (see liquidglass.frag) ---
                     Loader {
                         id: glassLayer
                         anchors.fill: parent
@@ -6125,7 +6125,7 @@ Scope {
                                 // app cells always show their plain icon; only window cells show a live preview
                                 // (with the app's icon as a badge), grouped next to the Settings button
                                 readonly property var thumbWin: (!isSep && modelData.kind === "win") ? modelData.tl : null
-                                // the capture only restarts when the window itself changes — refreshed Dock data hands the cell
+                                // the capture only restarts when the window itself changes - refreshed Dock data hands the cell
                                 // the same window again, and re-binding it used to blank the live preview for ~2 s
                                 property var heldTl: null
                                 readonly property string winAddr: { if (!thumbWin) return ""; var h = ui.hyprOf(thumbWin); return h ? String(h.address).replace(/^0x/, "") : ""; }
@@ -6195,7 +6195,7 @@ Scope {
                                             if (ma.containsMouse && !cell.isSep && !ui.dragging && !ui.tearing && !ui.tucked) wiggle.restart();
                                         }
                                     }
-                                    // ── hover plate: a Liquid Glass tile under the pointer, so the hovered icon is unmistakable ──
+                                    // --- hover plate: a Liquid Glass tile under the pointer, so the hovered icon is unmistakable ---
                                     GlassHover {
                                         id: plate
                                         hot: halo.on
@@ -6207,7 +6207,7 @@ Scope {
                                         width: img.width * 1.16; height: img.height * 1.16
                                         radius: width * 0.28
                                     }
-                                    // ── hover glow: a soft light blooms behind the icon ──
+                                    // --- hover glow: a soft light blooms behind the icon ---
                                     Item {
                                         id: halo
                                         readonly property bool on: !cell.isSep && ma.containsMouse && !ui.dragging && !ui.tearing && !ui.menuOpen
@@ -6268,7 +6268,7 @@ Scope {
                                         colorizationColor: root.iconTintColor
                                     }
 
-                                    // ── window thumbnail (same box as the icon, so magnification just works) ──
+                                    // --- window thumbnail (same box as the icon, so magnification just works) ---
                                     Item {
                                         id: th
                                         anchors.fill: img
@@ -6357,7 +6357,7 @@ Scope {
                                     }
                                 }
 
-                                // ── launch bounce ──
+                                // --- launch bounce ---
                                 // Bounces while the app launches. When the app opens, the bounce in progress finishes its landing, then a
                                 // couple of smaller bounces settle it back onto the Dock. Nothing plays while the Dock is tucked away.
                                 readonly property bool wantBounce: !cell.isSep && root.bounceOnLaunch && root.launching[cell.modelData.key] !== undefined
@@ -6467,7 +6467,7 @@ Scope {
                                     onPositionChanged: mouse => {
                                         if (!(pressedButtons & Qt.LeftButton) || cell.isSep) return;
                                         var ap = ma.mapToItem(ui, mouse.x, mouse.y);
-                                        // pulled up out of the Dock → tear the icon off (any app icon, pinned or running)
+                                        // pulled up out of the Dock -> tear the icon off (any app icon, pinned or running)
                                         if (ui.tearing) { ui.tearX = ap.x; ui.tearY = ap.y; return; }
                                         if (pressY - ap.y > 56 && (cell.modelData.kind === "app" || cell.modelData.kind === "win") && !cell.modelData.special) {
                                             var home = img.mapToItem(ui, img.width / 2, img.height / 2);

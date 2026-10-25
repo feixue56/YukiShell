@@ -28,7 +28,7 @@ Window {
     color: "transparent"
     flags: Qt.Window | Qt.FramelessWindowHint
 
-    // ── handed in by the owner (YukiDock) ──
+    // --- handed in by the owner (YukiDock) ---
     property bool dark: true
     property string fam: "Open Runde"
     property color accent: "#0A84FF"
@@ -36,7 +36,7 @@ Window {
     property string lastDir: ""                 // where the next picker starts when it is not told otherwise
     signal thumbSizeEdited(int size)
 
-    // ── what is being asked ──
+    // --- what is being asked ---
     property string mode: "image"               // image | folder
     property string heading: ""
     property string curDir: ""
@@ -45,7 +45,7 @@ Window {
     readonly property bool folderMode: mode === "folder"
     readonly property string home: Quickshell.env("HOME")
 
-    // ── look ──
+    // --- look ---
     readonly property color cBg: dark ? "#1E1E20" : "#F5F5F7"
     readonly property color cSide: dark ? "#29292B" : "#E9E9EC"
     readonly property color cText: dark ? "#F5F5F7" : "#1D1D1F"
@@ -61,7 +61,7 @@ Window {
     function shortName(p) { var i = p.lastIndexOf("/"); return i >= 0 && p.length > 1 ? p.substring(i + 1) : p; }
     function parentOf(p) { var i = p.lastIndexOf("/"); return i <= 0 ? "/" : p.substring(0, i); }
 
-    // ── opening / closing ──
+    // --- opening / closing ---
     property var backStack: []
     function pick(opts, cb) {
         if (win.callback) win.finish("");                      // a second request: the first one is cancelled
@@ -104,7 +104,7 @@ Window {
     }
     function goUp() { if (win.curDir !== "/") win.goTo(win.parentOf(win.curDir)); }
 
-    // ── the folder listing (watched by Qt: files dropped in appear by themselves) ──
+    // --- the folder listing (watched by Qt: files dropped in appear by themselves) ---
     readonly property var imageExts: ["png", "jpg", "jpeg", "webp", "gif", "bmp", "svg", "avif", "tif", "tiff"]
     readonly property var nameFilters: {
         var q = win.query.trim().replace(/[\[\]*?\\]/g, ""), out = [];
@@ -153,7 +153,7 @@ Window {
     }
     readonly property bool canChoose: win.folderMode ? win.curDir !== "" : (win.hasSel && !win.selIsDir)
 
-    // ── places in the sidebar ──
+    // --- places in the sidebar ---
     property var places: []
     Process {
         id: placesProc
@@ -183,7 +183,7 @@ Window {
     // wallpaper folders chosen in Settings come with the owner so the picker can jump straight to them
     property var extraPlaces: []
 
-    // ═════════════════════════════ window ═════════════════════════════
+    // --- window ---
     Rectangle {
         id: frame
         anchors.fill: parent
@@ -199,7 +199,7 @@ Window {
         Shortcut { sequences: ["Alt+Left"]; enabled: win.visible; onActivated: win.goBack() }
         Shortcut { sequences: ["Ctrl+L"]; enabled: win.visible; onActivated: { pathEdit.editing = true; pathInput.text = win.curDir; pathInput.forceActiveFocus(); pathInput.selectAll(); } }
 
-        // ── sidebar ──
+        // --- sidebar ---
         Rectangle {
             id: side
             x: 1; y: 1
@@ -266,7 +266,7 @@ Window {
             }
         }
 
-        // ── header: back / up, path, search (the empty strip also moves the window) ──
+        // --- header: back / up, path, search (the empty strip also moves the window) ---
         Item {
             id: head
             x: side.width + 1; y: 0
@@ -438,7 +438,7 @@ Window {
             Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: 1; color: win.cLine }
         }
 
-        // ── the big thumbnails ──
+        // --- the big thumbnails ---
         Item {
             id: body
             x: side.width + 1; y: head.height
@@ -575,7 +575,7 @@ Window {
                 }
             }
 
-            // ── big preview ──
+            // --- big preview ---
             Rectangle {
                 visible: body.previewW > 0
                 x: parent.width - body.previewW; y: 8
@@ -633,7 +633,7 @@ Window {
             }
         }
 
-        // ── footer: thumbnail size, count, buttons ──
+        // --- footer: thumbnail size, count, buttons ---
         Item {
             id: foot
             x: side.width + 1; y: parent.height - height

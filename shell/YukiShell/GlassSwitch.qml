@@ -36,7 +36,7 @@ Item {
     width: 46; height: 21                     // compact size: about 20% smaller than 58 x 26, keeping the same proportions
     opacity: enabled ? 1 : 0.45
 
-    // ── geometry (measured from the reference: track about 2.2x as wide as tall, knob about 60 % of the width and 84 % of the height) ──
+    // --- geometry (measured from the reference: track about 2.2x as wide as tall, knob about 60 % of the width and 84 % of the height) ---
     readonly property real inset: Math.max(2, height * 0.085)
     readonly property real kh0: height - 2 * inset
     readonly property real kw0: Math.round(kh0 * 1.6)
@@ -95,10 +95,10 @@ Item {
     onCheckedChanged: { if (ready && !dragging && !ma.pressed) settleTo(checked ? 1 : 0); }
     Component.onCompleted: { pL = checked ? 1 : 0; pR = pL; tgt = pL; ready = true; }
 
-    // ── track ──
+    // --- track ---
     Rectangle { anchors.fill: parent; radius: height / 2; color: s.trackCol }
 
-    // ── what the lens sees (hidden duplicate of the track on its backdrop) ──
+    // --- what the lens sees (hidden duplicate of the track on its backdrop) ---
     readonly property real m: 22
     Item {
         id: lyr
@@ -118,7 +118,7 @@ Item {
         visible: false
     }
 
-    // ── knob ──
+    // --- knob ---
     Item {
         id: knob
         x: s.leftEdge
@@ -174,7 +174,7 @@ Item {
         }
     }
 
-    // ── mouse: click toggles, press the knob and drag it left / right ──
+    // --- mouse: click toggles, press the knob and drag it left / right ---
     MouseArea {
         id: ma
         anchors.fill: parent

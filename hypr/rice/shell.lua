@@ -10,7 +10,7 @@ end)
 
 -- keybinds (the name after -c is the config folder name, case-sensitive)
 local qs = "qs -c YukiShell ipc call "
-local bind = require("rice.keys").bind    -- rebindable from Settings → Keyboard (see keys.lua)
+local bind = require("rice.keys").bind    -- rebindable from Settings -> Keyboard (see keys.lua)
 
 bind("SUPER + Z",       hl.dsp.exec_cmd(qs .. "settings toggle"), "System Settings")
 bind("SUPER + V",       hl.dsp.exec_cmd(qs .. "spotlight clipboard"), "Clipboard History")
@@ -58,5 +58,5 @@ end
 -- YukiLock (lock screen)
 bind("SUPER + L",       hl.dsp.exec_cmd("sh ~/.config/quickshell/YukiLock/lock-via-ipc.sh"), "Lock Screen")
 
--- the list of shortcuts that System Settings → Keyboard edits (every bind() above and in binds.lua has been recorded by now)
+-- the list of shortcuts that System Settings -> Keyboard edits (every bind() above and in binds.lua has been recorded by now)
 require("rice.keys").flush()

@@ -1,8 +1,8 @@
 // Blur + morph text: when `text` changes the old text blurs out (fading, shrinking a touch) while the new one comes
 // into focus out of a blur. Width changes and alignment changes animate, so re-aligned text glides instead of jumping.
 // Drop-in for a Text: text, font, color, horizontalAlignment, elide, renderType.
-//   useBlur: false → no blur effect inside (fade + scale only); read `morphBlur` (1 → 0 during a morph) to blur the
-//                    result yourself — needed when this item is the hidden source of another effect (the glass clock).
+//   useBlur: false -> no blur effect inside (fade + scale only); read `morphBlur` (1 -> 0 during a morph) to blur the
+//                    result yourself - needed when this item is the hidden source of another effect (the glass clock).
 import QtQuick
 import QtQuick.Effects
 
@@ -21,7 +21,7 @@ Item {
     property bool useBlur: true
     property real scaleIn: 1.06            // incoming text starts this big
     property real scaleOut: 0.94           // outgoing text ends this small
-    property real morphBlur: 0             // 1 → 0 while a morph runs
+    property real morphBlur: 0             // 1 -> 0 while a morph runs
     property bool stretch: true            // the old text stretches into the new one's width (and vice versa)
 
     // always the width of the text that is showing; animated so re-alignment glides
@@ -30,7 +30,7 @@ Item {
     implicitWidth: wTarget
     implicitHeight: (flip ? b : a).implicitHeight
 
-    // 0 = left, 0.5 = centre, 1 = right — animated, so switching alignment slides the text over
+    // 0 = left, 0.5 = centre, 1 = right - animated, so switching alignment slides the text over
     property real alignT: horizontalAlignment === Text.AlignHCenter ? 0.5 : (horizontalAlignment === Text.AlignRight ? 1 : 0)
     Behavior on alignT { enabled: mt.ready; NumberAnimation { duration: mt.alignDuration; easing.type: Easing.OutQuint } }
 
@@ -59,7 +59,7 @@ Item {
         property real bl: 0
         readonly property real textW: crisp.implicitWidth
         implicitHeight: crisp.implicitHeight
-        // as wide as the text itself (only clamped to the box when it elides), placed by the animated alignment —
+        // as wide as the text itself (only clamped to the box when it elides), placed by the animated alignment  - 
         // never squeezed: a squeezed left-aligned Text overflows to the right (the clock drifted right and got cropped)
         readonly property real boxW: mt.width > 0 ? mt.width : textW
         width: mt.elide === Text.ElideNone ? textW : Math.min(textW, boxW)
@@ -69,7 +69,7 @@ Item {
         transformOrigin: Item.Center
         property real sx: 1                // horizontal stretch while morphing
         transform: Scale { origin.x: mt.alignT * ly.width; origin.y: ly.height / 2; xScale: ly.sx }
-        // sharp ↔ blurred hand-over: the two renderings cross-fade over the last stretch of the blur (a hard switch at
+        // sharp <-> blurred hand-over: the two renderings cross-fade over the last stretch of the blur (a hard switch at
         // blur 0 made the text visibly snap at the end of every morph)
         readonly property real fx: mt.useBlur ? Math.min(1, ly.bl / 0.35) : 0
         Text {

@@ -1,11 +1,11 @@
 #version 440
 // The lock screen clock's material, after iOS 26 / macOS 26:
 //
-//   Solid (mode 0) — Apple's vibrancy: the digits are the wallpaper behind them pushed most of the way to the tint
+//   Solid (mode 0) - Apple's vibrancy: the digits are the wallpaper behind them pushed most of the way to the tint
 //                     colour (white by default), so they glow with a hint of the background's colour. Crisp, no rim.
-//   Glass (mode 1) — Liquid Glass: clear digits that are a real slab of glass. The blurred glyph coverage (`hmap`) is
+//   Glass (mode 1) - Liquid Glass: clear digits that are a real slab of glass. The blurred glyph coverage (`hmap`) is
 //                     used as a height field: its slope is the surface normal, and the wallpaper behind is REFRACTED
-//                     through that surface — bent most where the glass curves, undisturbed in the flat middle — with a
+//                     through that surface - bent most where the glass curves, undisturbed in the flat middle - with a
 //                     touch of chromatic dispersion, a little magnification, and a faint frost. The light only shades
 //                     the curved surface (brighter on the side facing it, darker on the other); there are NO outlines,
 //                     rims, glints or hairlines anywhere. `lightDir` follows the pointer, like tilting a phone.
@@ -22,8 +22,8 @@ layout(std140, binding = 0) uniform buf {
     vec2 itemSize;      // this item in px
     vec2 srcSize;       // backdrop texture size in px (logical)
     vec2 srcOffset;     // this item's top-left inside the backdrop, px
-    float mode;         // 0 solid … 1 glass (animatable: styles cross-fade)
-    float intensity;    // solid: how far toward the tint (0.55‥0.95); glass: frost amount (0 clear … 1 milky)
+    float mode;         // 0 solid ... 1 glass (animatable: styles cross-fade)
+    float intensity;    // solid: how far toward the tint (0.55..0.95); glass: frost amount (0 clear ... 1 milky)
     float refract;      // glass: strongest backdrop shift (on the steepest part of the bevel), px
     float bevel;        // height-field slope scale (how quickly the bend builds up)
     vec4 tint;          // tint colour (white = none)
@@ -46,13 +46,13 @@ void main()
     vec2 p = uv * itemSize + srcOffset;
     vec3 tintC = tint.rgb;
 
-    // ── Solid: vibrancy ──
+    // --- Solid: vibrancy ---
     vec3 bgS = bgAt(p, 2.0);
     float ls = dot(bgS, vec3(0.299, 0.587, 0.114));
     bgS = mix(vec3(ls), bgS, 1.35);                      // keep the wallpaper's hue in it
     vec3 solid = mix(bgS, tintC, clamp(intensity, 0.0, 1.0)) + 0.04;
 
-    // ── Glass: refraction through a height field ──
+    // --- Glass: refraction through a height field ---
     // surface slope (per px) from the softened glyphs: 0 on the flat top of a stroke, steepest on the curved flanks
     vec2 d = 2.0 / itemSize;
     vec2 g = vec2(H(uv + vec2(d.x, 0.0)) - H(uv - vec2(d.x, 0.0)),

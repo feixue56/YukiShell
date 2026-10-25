@@ -131,7 +131,7 @@ Item {
     }
     Timer { interval: 15 * 60 * 1000; repeat: true; running: root.wantsPhotos && !root.asleep; onTriggered: root.photoIdx++ }
 
-    // batteries: this Mac + anything UPower knows about (headsets, mice, keyboards…)
+    // batteries: this Mac + anything UPower knows about (headsets, mice, keyboards...)
     readonly property var batteries: {
         var out = [], ds = UPower.devices.values;
         for (var i = 0; i < ds.length; i++) {
@@ -355,7 +355,7 @@ Item {
                     text: parent.parent.open.length; duration: 420; animateWidth: false
                     color: blue; font.family: Fonts.forWeight(Font.Bold, root.fam); font.pixelSize: 22; font.weight: Font.Bold
                 }
-                // + — add one without leaving the widget. It lives beside the count, never on top of it,
+                // + - add one without leaving the widget. It lives beside the count, never on top of it,
                 // and fades in on hover the way macOS reveals its controls.
                 Rectangle {
                     id: addBtn
@@ -554,7 +554,7 @@ Item {
             readonly property var alarmList: ck ? ck.alarms : []
             readonly property int maxAlarms: size === "l" ? (live ? 4 : 6) : (size === "m" ? 3 : 1)
 
-            // ── live activity (timer ring / stopwatch) ──
+            // --- live activity (timer ring / stopwatch) ---
             Item {
                 id: liveBox
                 visible: ca.live
@@ -616,7 +616,7 @@ Item {
                 }
             }
 
-            // ── alarms ──
+            // --- alarms ---
             Column {
                 id: alarmCol
                 visible: !(ca.size === "s" && ca.live)

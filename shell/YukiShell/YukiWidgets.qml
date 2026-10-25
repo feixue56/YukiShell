@@ -23,7 +23,7 @@ Scope {
     property var hub: null
     readonly property var dock: hub ? hub.dock : null
 
-    // ───────────── state ─────────────
+    // --- state ---
     property bool editing: false
     property bool ready: false
 
@@ -235,7 +235,7 @@ Scope {
         recount(); scheduleSave();
     }
 
-    // ───────────── image widgets ─────────────
+    // --- image widgets ---
     // pickImage("", size) adds a new Image widget with the chosen picture; pickImage(id) changes the picture of widget id.
     // The chosen file is copied into ~/.config/yukiwidgets/images so the widget keeps working if the original moves.
     property string pickTargetId: ""
@@ -276,7 +276,7 @@ Scope {
         }
     }
 
-    // ───────────── persistence ─────────────
+    // --- persistence ---
     function scheduleSave() { if (ready) saveTimer.restart(); }
     onTempUnitChanged: { scheduleSave(); refreshSoon(); }
     onLocModeChanged: { scheduleSave(); refreshSoon(); }
@@ -332,7 +332,7 @@ Scope {
     }
     Timer { id: saveTimer; interval: 400; onTriggered: root.saveSettings() }
 
-    // ───────────── music player (MPRIS) ─────────────
+    // --- music player (MPRIS) ---
     // which player to show: see PlayerPicker.qml (same rule as the Menu Bar's media widget)
     PlayerPicker { id: playerPick }
     readonly property var player: playerPick.player
@@ -356,7 +356,7 @@ Scope {
     }
     function pr(i, k) { var r = playerRects[i]; return r ? r[k] : 0; }
 
-    // ───────────── lyrics (LRCLIB synced first; Genius plain-text fallback) ─────────────
+    // --- lyrics (LRCLIB synced first; Genius plain-text fallback) ---
     property bool lyricsWanted: false
     property var lyricsLines: []               // [{ t: seconds (-1 = not synced), text }]
     property bool lyricsSynced: false
@@ -444,7 +444,7 @@ Scope {
         }
     }
 
-    // ───────────── weather data (Open-Meteo) ─────────────
+    // --- weather data (Open-Meteo) ---
     property bool wxReady: false
     property string wxCity: "—"
     property bool wxLocated: true
@@ -584,9 +584,9 @@ Scope {
         }
     }
 
-    // ───────────── Liquid Glass backend ─────────────
+    // --- Liquid Glass backend ---
     // Same shader as the Dock / Menu Bar (liquidglass.frag), compiled with qsb into ~/.config/yukiwidgets/.
-    property string glassState: "idle"                     // idle → building → ready | failed
+    property string glassState: "idle"                     // idle -> building -> ready | failed
     readonly property string glassShaderSrc: decodeURIComponent(Qt.resolvedUrl("liquidglass.frag").toString().replace("file://", ""))
     readonly property string glassShaderOut: configDir + "/liquidglass.frag.qsb"
     onAnyLiquidChanged: if (anyLiquid) startGlass()
@@ -634,7 +634,7 @@ Scope {
         return "file://" + encodeURI(p).replace(/#/g, "%23").replace(/\?/g, "%3F");
     }
 
-    // ───────────── the desktop layer ─────────────
+    // --- the desktop layer ---
     Variants {
         model: (root.ready && Quickshell.screens.length > 0 && (root.widgetCount > 0 || root.editing)) ? [Quickshell.screens[0]] : []
 

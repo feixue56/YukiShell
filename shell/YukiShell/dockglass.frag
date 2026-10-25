@@ -116,13 +116,13 @@ void main()
         return;
     }
 
-    // ── outside the glass: nothing at all (no shadow, no dark outline) ──
+    // --- outside the glass: nothing at all (no shadow, no dark outline) ---
     if (cov <= 0.0) {
         fragColor = vec4(0.0);
         return;
     }
 
-    // ── distance to edge + outward edge direction ──
+    // --- distance to edge + outward edge direction ---
     float t = max(-sd, 0.0);
     vec2 d2 = abs(q) - (hs - r);
     vec2 sg = vec2(q.x >= 0.0 ? 1.0 : -1.0, q.y >= 0.0 ? 1.0 : -1.0);
@@ -130,7 +130,7 @@ void main()
     vec2 g  = (length(m) > 1e-4) ? normalize(m) * sg
                                  : ((d2.x > d2.y) ? vec2(sg.x, 0.0) : vec2(0.0, sg.y));
 
-    // ── convex squircle bezel -> surface normal ──
+    // --- convex squircle bezel -> surface normal ---
     float bz   = max(bezel, 1.0) * 1.45;
     float u    = clamp(t / bz, 0.0, 1.0);
     float om   = 1.0 - u;
@@ -139,7 +139,7 @@ void main()
     slope = min(slope, 7.0);
     vec3 n = normalize(vec3(g * slope, 1.0));
 
-    // ── refraction: glass n~1.5, ray enters straight down ──
+    // --- refraction: glass n~1.5, ray enters straight down ---
     vec3 rd   = refract(vec3(0.0, 0.0, -1.0), n, 1.0 / 1.5);
     vec2 disp = rd.xy / max(-rd.z, 0.2) * thickness * 1.35;
 
@@ -148,7 +148,7 @@ void main()
 
     vec3 col = blurredDisp(ps, disp, dispersion * 0.6, rad);
 
-    // ── colour: vibrancy, then an ADAPTIVE tint ──
+    // --- colour: vibrancy, then an ADAPTIVE tint ---
     float l = dot(col, vec3(0.2126, 0.7152, 0.0722));
     col = mix(vec3(l), col, saturation);
     vec3 behind = col;                                            // the colour right behind this pixel, kept for the border below
@@ -158,11 +158,11 @@ void main()
     col = mix(col, tintC, clamp(tintMix * adapt, 0.0, 1.0));
     col += mix(0.055, 0.020, dark);
 
-    // ── depth: soft light from above, faint absorption toward the edge (clear glass, not smoked) ──
+    // --- depth: soft light from above, faint absorption toward the edge (clear glass, not smoked) ---
     float ty = clamp((q.y + hs.y) / glassSize.y, 0.0, 1.0);
     col += (1.0 - ty) * mix(0.040, 0.034, dark);
 
-    // ── edge light, from the top-left ──
+    // --- edge light, from the top-left ---
     // identical to the top-bar menus (rimTint = 1): the rim / border take a darker shade of what the glass looks like at this spot
     vec3 rimCol   = clamp(col * 1.2, 0.0, 1.0);          // 120% of the glass colour (100% = natural) of the glass's own colour (menus use a brighter one: col * 1.5 + 0.12)
 

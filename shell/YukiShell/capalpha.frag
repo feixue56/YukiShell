@@ -1,4 +1,4 @@
-// capalpha — a window picture from Hyprland (drawn over opaque black, so it is the window's colour already multiplied by its alpha)
+// capalpha - a window picture from Hyprland (drawn over opaque black, so it is the window's colour already multiplied by its alpha)
 // shown with the transparency it really has on screen: kitty's see-through background, Dolphin's faded window.
 // Output is premultiplied: rgb + behind * (1 - alpha), i.e. exactly the window composited over what is behind it.
 #version 440

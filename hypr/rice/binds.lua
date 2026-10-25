@@ -1,7 +1,7 @@
 -- YukiShell owns (see shell.lua): SUPER+Z/V/G/L/Space/period/comma, ALT+TAB, CTRL+ALT+W, PRINT (+SHIFT/CTRL) and the hardware keys. Don't rebind those here.
 local mod = "SUPER"
 
--- Every bind with a description is listed, translated, in System Settings → Keyboard → Keyboard Shortcuts, where most of them can be changed
+-- Every bind with a description is listed, translated, in System Settings -> Keyboard -> Keyboard Shortcuts, where most of them can be changed
 -- (rice/keys.lua has the details). A bind that belongs to a group of keys passes { fixed = true } and stays as it is.
 local bind = require("rice.keys").bind
 

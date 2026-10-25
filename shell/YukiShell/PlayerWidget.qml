@@ -1,11 +1,11 @@
 // macOS Tahoe "Now Playing" widget (MPRIS: Spotify, Firefox, mpv, VLC, ...).
-//   size:  "small"  – art, play / pause, title + scrolling artist line
-//          "medium" – the wide Now Playing card: art, title, scrolling subtitle, waves, progress + times, shuffle / back / play / forward / repeat
-//          "large"  – the same card, taller, with big artwork
+//   size:  "small"  - art, play / pause, title + scrolling artist line
+//          "medium" - the wide Now Playing card: art, title, scrolling subtitle, waves, progress + times, shuffle / back / play / forward / repeat
+//          "large"  - the same card, taller, with big artwork
 //   Everything is drawn in "reference units" (RU): the wide card scales to the shell's 358 x 168 Medium footprint.
-//   style: "light"  – plain light card (same face as the Clock widget), dark text
-//          "dark"   – plain dark card (same face as the Clock widget), white text
-//          "liquid" – normal Liquid Glass (Appearance sliders), exactly like the Clock / Calendar / Weather widgets
+//   style: "light"  - plain light card (same face as the Clock widget), dark text
+//          "dark"   - plain dark card (same face as the Clock widget), white text
+//          "liquid" - normal Liquid Glass (Appearance sliders), exactly like the Clock / Calendar / Weather widgets
 //
 // The light and dark cards take their colour from the artwork (a pale / deep version of it). The liquid card never does.
 //
@@ -19,7 +19,7 @@ import "Fonts.js" as Fonts
 Item {
     id: w
 
-    // ── look ──
+    // --- look ---
     property string style: "dark"            // "light" | "dark" | "liquid"
     property string size: "small"
     property real scaleF: 1.0
@@ -30,7 +30,7 @@ Item {
     property bool preview: false             // inside the Settings gallery: sample data, no wallpaper, not clickable
     property bool editing: false
 
-    // ── data (from YukiWidgets) ──
+    // --- data (from YukiWidgets) ---
     property bool hasPlayer: false
     property string title: ""
     property string artist: ""
@@ -72,7 +72,7 @@ Item {
     signal toggleShuffle()
     signal cycleLoop()
 
-    // ── liquid glass inputs (the Appearance sliders), same as the other widgets ──
+    // --- liquid glass inputs (the Appearance sliders), same as the other widgets ---
     property bool glassReady: false
     property url shaderUrl: ""
     property url wallUrl: ""
@@ -110,7 +110,7 @@ Item {
     readonly property bool dark: style === "dark" || (style === "liquid" && darkGlass)
     readonly property real tint: Math.min(0.92, dark ? 0.25 + glassOpacity * 0.8 : 0.45 + glassOpacity * 0.9)
 
-    // ───────────────────────── colours ─────────────────────────
+    // --- colours ---
     function fileUrl(p) {
         if (!p) return "";
         if (p.indexOf("/") === 0) return "file://" + encodeURI(p).replace(/#/g, "%23").replace(/\?/g, "%3F");
@@ -126,7 +126,7 @@ Item {
     readonly property color trackCol: fa(dark ? 0.12 : 0.10)
     readonly property color fillCol: fa(dark ? 0.58 : 0.50)
 
-    // ───────────────────────── artwork colour ─────────────────────────
+    // --- artwork colour ---
     // The cover is drawn onto a tiny hidden canvas and averaged (saturated pixels count more, so a mostly-grey cover with
     // one bright subject still gives that colour). artH / artS are the hue and saturation of the result.
     property bool tintKnown: false
@@ -180,7 +180,7 @@ Item {
     readonly property bool faceTint: tintKnown && !preview && hasPlayer
     function tintFace(l, satMul) { return Qt.hsla(tintH, Math.min(0.7, tintS * satMul), l, 1); }
 
-    // ───────────────────────── background ─────────────────────────
+    // --- background ---
     // Light face
     Rectangle {
         anchors.fill: parent
@@ -216,7 +216,7 @@ Item {
         }
     }
 
-    // Liquid Glass: wallpaper crop → blur → refraction shader (same maths as the Dock and the other widgets)
+    // Liquid Glass: wallpaper crop -> blur -> refraction shader (same maths as the Dock and the other widgets)
     Loader {
         anchors.fill: parent
         active: w.glassOn
@@ -332,8 +332,8 @@ Item {
         }
     }
 
-    // ── audio visualizer: under the content, over the glass / face. Medium / large: a strip behind the control row, below the
-    //    time labels. Small: a little equaliser to the right of the artwork, under the play button. ──
+    // --- audio visualizer: under the content, over the glass / face. Medium / large: a strip behind the control row, below the
+    //    time labels. Small: a little equaliser to the right of the artwork, under the play button.
     VisBars {
         id: visual
         readonly property real sx0: (w.artX + w.artS + 14)                 // RU, small only
@@ -365,7 +365,7 @@ Item {
         lineW: 0.8
     }
 
-    // ───────────────────────── content ─────────────────────────
+    // --- content ---
     function fmt(sec) {
         var s = Math.max(0, Math.floor(sec)), m = Math.floor(s / 60);
         return m + ":" + ("0" + (s % 60)).slice(-2);
@@ -432,7 +432,7 @@ Item {
 
 
 
-    // ── layout numbers (RU), per size ──
+    // --- layout numbers (RU), per size ---
     readonly property real mx: 23                                     // side margin
     readonly property real artX: isLarge ? (wr - artS) / 2 : w.mx
     readonly property real artY: 23
@@ -449,7 +449,7 @@ Item {
         id: content
         anchors.fill: parent
 
-        // ── artwork ──
+        // --- artwork ---
         PlayerArt {
             id: artItem
             wd: w
@@ -477,7 +477,7 @@ Item {
             onClicked: w.raiseRequested()
         }
 
-        // ── title: scrolls like the subtitle when it does not fit ──
+        // --- title: scrolls like the subtitle when it does not fit ---
         MarqueeText {
             id: titleItem
             x: (w.textX - 17) * w.k
@@ -499,7 +499,7 @@ Item {
             animate: !w.preview && w.playing
         }
 
-        // ── subtitle: artist - album, scrolling when it does not fit ──
+        // --- subtitle: artist - album, scrolling when it does not fit ---
         MarqueeText {
             id: subItem
             x: (w.textX - 17) * w.k
@@ -521,7 +521,7 @@ Item {
             animate: !w.preview && w.playing
         }
 
-        // ── small: play / pause at the top right ──
+        // --- small: play / pause at the top right ---
         PlayerBtn {
             visible: w.isSmall
             wd: w
@@ -537,8 +537,8 @@ Item {
             onClicked: w.togglePlaying()
         }
 
-        // ── lyrics: plain text straight on the card (no panel, no glass); the current line is big and sharp,
-        //    the others shrink, dim and blur with their distance, and everything glides when the song moves on ──
+        // --- lyrics: plain text straight on the card (no panel, no glass); the current line is big and sharp,
+        //    the others shrink, dim and blur with their distance, and everything glides when the song moves on
         Item {
             id: lyr
             x: w.mx * w.k
@@ -642,7 +642,7 @@ Item {
             }
         }
 
-        // ── progress bar: click or drag to seek ──
+        // --- progress bar: click or drag to seek ---
         Rectangle {
             id: bar
             visible: !w.isSmall && opacity > 0
@@ -724,7 +724,7 @@ Item {
             font.weight: Font.Medium
         }
 
-        // ── controls: shuffle · back · play · forward · repeat ──
+        // --- controls: shuffle · back · play · forward · repeat ---
         PlayerBtn {
             visible: !w.isSmall
             wd: w
@@ -796,7 +796,7 @@ Item {
             onClicked: w.cycleLoop()
         }
 
-        // ── lyrics button (top right corner) ──
+        // --- lyrics button (top right corner) ---
         PlayerBtn {
             visible: !w.isSmall
             wd: w

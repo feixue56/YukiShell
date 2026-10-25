@@ -1,10 +1,10 @@
-// WindowBar — the macOS window controls, on every window.
+// WindowBar - the macOS window controls, on every window.
 //
 // Hyprland draws no titlebars, so YukiShell draws them: the three lights (and, if you like, the app's icon and name)
 // float at the top-left of whatever window is focused. Only the controls take clicks; the rest of the window is
 // untouched. YukiShell's own windows draw their own, so they are skipped.
 //
-// Settings → Windows: show it at all, always show the symbols, keep the colours until you hover, show the title.
+// Settings -> Windows: show it at all, always show the symbols, keep the colours until you hover, show the title.
 import QtQuick
 import QtQuick.Effects
 import Quickshell

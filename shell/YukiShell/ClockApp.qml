@@ -1,4 +1,4 @@
-// Clock — the macOS Clock app for YukiShell: World Clock, Alarms, Stopwatch, Timers.
+// Clock - the macOS Clock app for YukiShell: World Clock, Alarms, Stopwatch, Timers.
 //
 //   qs -c YukiShell ipc call clock open            (also: clock tab alarms|world|stopwatch|timers, clock stop, clock snooze)
 //
@@ -29,7 +29,7 @@ Scope {
     readonly property string soundDir: home + "/.local/share/sounds/yukishell"
     readonly property color orange: "#FF9F0A"
 
-    // ═════════════ STATE (saved) ═════════════
+    // --- STATE (saved) ---
     property var alarms: []        // { id, h, m, label, on, days: [0..6] (0 = Sunday; empty = once) }
     property var cities: [ { name: "Cupertino", tz: "America/Los_Angeles" }, { name: "New York", tz: "America/New_York" },
                            { name: "London", tz: "Europe/London" }, { name: "Tokyo", tz: "Asia/Tokyo" } ]
@@ -77,7 +77,7 @@ Scope {
         return d.map(function (i) { return I18n.tr(n[i]); }).join(", ");
     }
 
-    // ── persistence ──
+    // --- persistence ---
     FileView {
         id: store
         path: root.home + "/.config/yukishell/clock.json"
@@ -109,7 +109,7 @@ Scope {
             "sh", JSON.stringify({ alarms: alarms, cities: cities, timer: timer, sw: sw, recents: recents, snoozes: snoozes, ringing: ringing }, null, 1)]);
     }
 
-    // ── alarms ──
+    // --- alarms ---
     function addAlarm(h, m, label, days) {
         var a = alarms.slice(); a.push({ id: uid(), h: h, m: m, label: label || "", on: true, days: days || [] });
         a.sort(function (x, y) { return x.h * 60 + x.m - (y.h * 60 + y.m); });
@@ -133,7 +133,7 @@ Scope {
         return best;
     }
 
-    // ── timer ──
+    // --- timer ---
     function startTimer(ms, label) {
         if (ms <= 0) return;
         timer = { state: "running", total: ms, endAt: Date.now() + ms, left: ms, label: label || "" };
@@ -144,13 +144,13 @@ Scope {
     function resumeTimer() { if (timer.state !== "paused") return; var t = Object.assign({}, timer); t.endAt = Date.now() + t.left; t.state = "running"; timer = t; save(); }
     function cancelTimer() { var t = Object.assign({}, timer); t.state = "idle"; t.left = t.total; timer = t; save(); }
 
-    // ── stopwatch ──
+    // --- stopwatch ---
     function swStart() { sw = { running: true, startAt: Date.now(), acc: sw.acc, laps: sw.laps }; save(); }
     function swStop() { sw = { running: false, startAt: 0, acc: sw.acc + Date.now() - sw.startAt, laps: sw.laps }; save(); }
     function swLap() { var l = sw.laps.slice(); l.unshift(swElapsed()); sw = { running: sw.running, startAt: sw.startAt, acc: sw.acc, laps: l }; save(); }
     function swReset() { sw = { running: false, startAt: 0, acc: 0, laps: [] }; save(); }
 
-    // ── world clock: UTC offsets come from the system tz database (DST-correct), refreshed hourly ──
+    // --- world clock: UTC offsets come from the system tz database (DST-correct), refreshed hourly ---
     property var tzOff: ({})
     readonly property int localOff: -new Date(nowMs).getTimezoneOffset()
     function refreshTz() {
@@ -206,7 +206,7 @@ Scope {
     function addCity(name, tz) { var c = cities.slice(); c.push({ name: name, tz: tz }); cities = c; save(); refreshTz(); }
     function removeCity(i) { var c = cities.slice(); c.splice(i, 1); cities = c; save(); }
 
-    // ═════════════ TICK + RINGING ═════════════
+    // --- Tick + ringing ---
     // 1 s normally; 30 fps only while the stopwatch is on screen and running
     Timer {
         interval: (win.visible && win.tab === 2 && root.sw.running) ? 33 : 1000
@@ -274,7 +274,7 @@ Scope {
         win.visible = true; win.raise(); win.requestActivate();
     }
 
-    // ═════════════ RINGING BANNER (top-right, every screen's focused one) ═════════════
+    // --- RINGING BANNER (top-right, every screen's focused one) ---
     PanelWindow {
         id: banner
         screen: {
@@ -337,7 +337,7 @@ Scope {
         }
     }
 
-    // ═════════════ THE WINDOW ═════════════
+    // --- The window ---
     Window {
         id: win
         title: "Clock"
@@ -380,7 +380,7 @@ Scope {
             MouseArea { x: parent.width - 5; y: 10; width: 5; height: parent.height - 20; z: 100; cursorShape: Qt.SizeHorCursor; onPressed: win.startSystemResize(Qt.RightEdge) }
             MouseArea { x: 10; y: parent.height - 5; width: parent.width - 20; height: 5; z: 100; cursorShape: Qt.SizeVerCursor; onPressed: win.startSystemResize(Qt.BottomEdge) }
 
-            // ── toolbar ──
+            // --- toolbar ---
             Rectangle {
                 id: toolbar
                 width: parent.width; height: 52
@@ -486,7 +486,7 @@ Scope {
                 }
             }
 
-            // ── pages ──
+            // --- pages ---
             Item {
                 id: pages
                 anchors.top: toolbar.bottom; anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom
@@ -507,7 +507,7 @@ Scope {
                 }
             }
 
-            // ── sheets ──
+            // --- sheets ---
             Rectangle {
                 anchors.fill: parent
                 color: Qt.rgba(0, 0, 0, 0.35)
@@ -528,7 +528,7 @@ Scope {
             }
         }
 
-        // ═════ World Clock ═════
+        // --- World Clock ---
         Component {
             id: pWorld
             Flickable {
@@ -581,7 +581,7 @@ Scope {
             }
         }
 
-        // ═════ Alarms ═════
+        // --- Alarms ---
         Component {
             id: pAlarms
             Item {
@@ -652,7 +652,7 @@ Scope {
             }
         }
 
-        // ═════ Stopwatch ═════
+        // --- Stopwatch ---
         Component {
             id: pStopwatch
             Item {
@@ -713,7 +713,7 @@ Scope {
             }
         }
 
-        // ═════ Timers ═════
+        // --- Timers ---
         Component {
             id: pTimers
             Item {
@@ -843,7 +843,7 @@ Scope {
             }
         }
 
-        // ═════ sheets ═════
+        // --- sheets ---
         Component {
             id: sAlarm
             Rectangle {
@@ -980,7 +980,7 @@ Scope {
         }
     }
 
-    // ═════════════ small parts ═════════════
+    // --- small parts ---
     function range(n, padded) { var a = []; for (var i = 0; i < n; i++) a.push(padded ? pad(i) : String(i)); return a; }
 
     component CSwitch: GlassSwitch {

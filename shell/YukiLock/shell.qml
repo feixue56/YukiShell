@@ -68,8 +68,8 @@ ShellRoot {
         property bool unlocking: false
         property string mediaSlot: "top"    // "top" (under the clock) | "bottom" (above the password field)
         property bool capsLock: false
-        property bool use24h: true          // YukiShell → Menu Bar → "24-hour clock"
-        // Settings → Lock Screen → Clock (YUKILOCK_CLOCK='{"f":"serif",...}' overrides it, for previews)
+        property bool use24h: true          // YukiShell -> Menu Bar -> "24-hour clock"
+        // Settings -> Lock Screen -> Clock (YUKILOCK_CLOCK='{"f":"serif",...}' overrides it, for previews)
         property var clockCfg: { try { return JSON.parse(Quickshell.env("YUKILOCK_CLOCK") || "{}"); } catch (e) { return {}; } }
         property bool artBg: true           // blurred album art behind everything while the cover is enlarged (YukiShell setting)
         property bool sounds: false         // YukiShell's "Play user interface sound effects" (and not in Game Mode)
@@ -181,7 +181,7 @@ ShellRoot {
         }
     }
 
-    // ── one-shot lookups: real name, avatar, wifi, and other settings
+    // --- one-shot lookups: real name, avatar, wifi, and other settings
     Process {
         running: true
         command: ["sh", "-c",
@@ -216,12 +216,12 @@ ShellRoot {
         }
     }
 
-    // ═════════════ the real lock ═════════════
+    // --- the real lock ---
     WlSessionLock {
         id: lock
         locked: root.lockRequested && !root.preview
         // If this instance ever stops holding the lock without unlocking itself (another locker took over, the
-        // compositor ended it, …), quit: a leftover instance keeps lock-via-ipc.sh's one-locker guard and every later
+        // compositor ended it, ...), quit: a leftover instance keeps lock-via-ipc.sh's one-locker guard and every later
         // lock attempt would silently do nothing.
         property bool wasSecure: false
         onSecureChanged: {
@@ -241,7 +241,7 @@ ShellRoot {
         }
     }
 
-    // ═════════════ preview window ═════════════
+    // --- preview window ---
     Variants {
         model: root.preview ? Quickshell.screens : []
         PanelWindow {

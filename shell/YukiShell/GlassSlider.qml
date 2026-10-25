@@ -77,7 +77,7 @@ Item {
     }
     Timer { id: jigIdle; interval: 70; onTriggered: { s.vel = 0; s.jig = 0; } }
 
-    // ── track + fill ──
+    // --- track + fill ---
     Rectangle {
         x: s.trackX; y: s.cy - 2; width: s.trackW; height: 4; radius: 2
         color: s.trackColor
@@ -89,7 +89,7 @@ Item {
         color: s.fillColor
     }
 
-    // ── captions ──
+    // --- captions ---
     Text {
         visible: s.leftLabel !== ""
         y: 25
@@ -106,7 +106,7 @@ Item {
         font.family: s.fontFamily; font.pixelSize: 11
     }
 
-    // ── what the lens sees: a hidden duplicate of the bar on its backdrop ──
+    // --- what the lens sees: a hidden duplicate of the bar on its backdrop ---
     readonly property real m: 24
     Item {
         id: lyr
@@ -134,7 +134,7 @@ Item {
         visible: false
     }
 
-    // ── knob: a rounded square on hover; held, it grows with a little spring and becomes Liquid Glass ──
+    // --- knob: a rounded square on hover; held, it grows with a little spring and becomes Liquid Glass ---
     Item {
         id: knob
         readonly property real kw: (21 + 6 * s.pressGrow * s.pressT) * s.knobSize

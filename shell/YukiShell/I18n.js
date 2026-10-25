@@ -7,7 +7,7 @@
 .import "lang/vi.js" as Vi
 
 // Interface translations. I18n.tr("English text") returns the text in the chosen language, or the English text
-// itself when there is no translation. The language is Qt.uiLanguage (Settings → General → Language, set by
+// itself when there is no translation. The language is Qt.uiLanguage (Settings -> General -> Language, set by
 // YukiBar), or the system locale (LANG, e.g. ja_JP.UTF-8) when that is empty. Bindings that call tr() read
 // Qt.uiLanguage, so they update when the language changes.
 // To add a language: copy lang/vi.js to lang/<code>.js, translate the values, and add it to `dicts` and `languages` below.

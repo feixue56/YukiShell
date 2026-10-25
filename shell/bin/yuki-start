@@ -35,10 +35,10 @@ fi
 # already running for this user? then there is nothing to do
 if pgrep -u "$(id -u)" -f "(^|/)(qs|quickshell)( .*)? (-c|--config) $NAME( |\$)" >/dev/null 2>&1; then exit 0; fi
 
-# ── environment: the variables Qt and Quickshell need, whatever started this script ──
+# --- environment: the variables Qt and Quickshell need, whatever started this script ---
 export XDG_SESSION_TYPE="${XDG_SESSION_TYPE:-wayland}"
 export XDG_CURRENT_DESKTOP="${XDG_CURRENT_DESKTOP:-Hyprland}"
-# terminals the shell opens (About → Open, "Run in a terminal", ...) start $SHELL: always the account's login shell, never the
+# terminals the shell opens (About -> Open, "Run in a terminal", ...) start $SHELL: always the account's login shell, never the
 # shell of whatever script or terminal happened to (re)start YukiShell
 login_shell=$(getent passwd "$(id -un)" 2>/dev/null | cut -d: -f7)
 [ -n "$login_shell" ] && [ -x "$login_shell" ] && export SHELL="$login_shell"
@@ -68,7 +68,7 @@ if command -v dbus-update-activation-environment >/dev/null 2>&1; then
     dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_SESSION_DESKTOP >/dev/null 2>&1
 fi
 
-# ── wallpaper: awww forgets it at every reboot. If awww was used before (and no other wallpaper tool runs), bring it back
+# --- wallpaper: awww forgets it at every reboot. If awww was used before (and no other wallpaper tool runs), bring it back
 # now; the shell also re-applies the wallpaper you picked, a few seconds later.
 if command -v awww-daemon >/dev/null 2>&1 && [ -n "$(ls -A "${XDG_CACHE_HOME:-$HOME/.cache}/awww" 2>/dev/null)" ] \
    && ! pgrep -x hyprpaper >/dev/null 2>&1 && ! pgrep -x swaybg >/dev/null 2>&1 && ! pgrep -x mpvpaper >/dev/null 2>&1; then
@@ -79,7 +79,7 @@ if command -v awww-daemon >/dev/null 2>&1 && [ -n "$(ls -A "${XDG_CACHE_HOME:-$H
     ) 9>&- &
 fi
 
-# ── run the shell; restart it when it crashes. After repeated quick crashes, try simpler graphics settings (only the
+# --- run the shell; restart it when it crashes. After repeated quick crashes, try simpler graphics settings (only the
 # ones you have not set yourself): OpenGL, then the basic render loop, then software drawing (no Liquid Glass).
 # A setting that gets the shell running is remembered in $AUTO (delete that file to go back to the defaults).
 applied=""; soft=0

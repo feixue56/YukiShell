@@ -1,4 +1,4 @@
-// ColorChoice — pick a colour in Settings: a row of preset dots, plus a last dot (a rainbow, or the custom colour once one is chosen) that opens
+// ColorChoice - pick a colour in Settings: a row of preset dots, plus a last dot (a rainbow, or the custom colour once one is chosen) that opens
 // a palette to choose from and a field that takes the colour typed as hex ("#0A84FF", "0a84ff", "#08f") or as RGB ("rgb(10, 132, 255)",
 // "10, 132, 255", "10 132 255"). A typed colour is applied with Return or when the field loses focus; the swatch next to it previews it.
 //   ColorChoice { t: pal; presets: ["#0a84ff", "#30d158"]; current: "#0a84ff"; onPicked: hex => ... }

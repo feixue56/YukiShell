@@ -317,7 +317,7 @@ Item {
         lineW: 0.8
     }
 
-    // ── dial ticks ──
+    // --- dial ticks ---
     // 60 ticks, one every 6 degrees starting at 12 o'clock. Each sits where its ray from the centre meets a rounded rectangle
     // inset from the widget's edge, and points at the centre (that is how the macOS face looks, also in the corners).
     readonly property real tickLen: 5.6 * u

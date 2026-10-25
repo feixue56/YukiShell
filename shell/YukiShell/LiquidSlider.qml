@@ -1,10 +1,10 @@
-// LiquidSlider — the slider used everywhere in the shell: a slim track, an accent fill and a knob that becomes a
+// LiquidSlider - the slider used everywhere in the shell: a slim track, an accent fill and a knob that becomes a
 // glass lens while you drag it (see LiquidKnob). Put glyphs or labels around it from outside.
 import QtQuick
 
 Item {
     id: s
-    property real value: 0                  // 0 … 1
+    property real value: 0                  // 0 ... 1
     property real minimum: 0
     property color accent: "#0A84FF"
     property color trackColor: Qt.rgba(0.47, 0.47, 0.5, 0.3)
@@ -13,7 +13,7 @@ Item {
     property real trackH: 4
     property real knobSize: 20
     property bool knobAtRest: true          // false: no knob until you touch it (the Control Center look)
-    property real stepSize: 0               // in 0 … 1 units
+    property real stepSize: 0               // in 0 ... 1 units
     readonly property bool pressed: ma.pressed
     signal moved(real v)
     height: Math.max(knobSize + 6, 24)
