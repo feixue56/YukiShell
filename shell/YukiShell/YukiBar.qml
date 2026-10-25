@@ -3451,7 +3451,6 @@ Scope {
         else { var expr=s.replace(/^=\s*/,""); var v=calcValue(expr); if(v!==null && (s.charAt(0)==="=" || /[+*/%xX×÷()]/.test(s))) out.unshift({title:String(Number(v.toPrecision(10))),sub:I18n.tr("Calculator · Return to copy"),glyph:"search",run:function(){Quickshell.execDetached(["wl-copy",String(v)]);}}); }
         var wins=windowItems(q); for(var j=0;j<wins.length&&out.length<6;j++)out.push(wins[j]);
         var acts=actionItems(q); for(var k=0;k<acts.length&&out.length<6;k++)if(acts[k].title.toLowerCase().indexOf(s)===0)out.push(acts[k]);
-        if(s.length>0 && out.length<7) out.push({title:I18n.tr("Search the web for “")+q.trim()+"”",sub:I18n.tr("Web Search · Return to open"),glyph:"search",run:function(){root.openUrl("https://search.brave.com/search?q="+encodeURIComponent(q.trim()));}});
         return out.slice(0,8);
     }
 
@@ -5132,6 +5131,16 @@ Scope {
                 property bool spReqCalm: false
                 property int emCat: 0                   // emoji category tab (0 = recents)
                 property bool spHover: false            // spSel was just changed by the pointer, so lists must not scroll to it
+                // A row takes the highlight only when the pointer really MOVES over it. The results are rebuilt whenever a window
+                // changes (a browser tab's title is enough), and each new row that appeared under a resting pointer counted as
+                // "entered": the highlight jumped to whatever row sat under the pointer, then back.
+                property point spPtr: Qt.point(-1e6, -1e6)
+                function spPointerMoved(item, mx, my) {
+                    var p = item.mapToGlobal(mx, my);
+                    if (Math.abs(p.x - spPtr.x) < 1 && Math.abs(p.y - spPtr.y) < 1) return false;
+                    spPtr = p;
+                    return true;
+                }
                 readonly property int emCols: 12
                 readonly property bool spFull: spMode === "apps" || spMode === "clip" || spMode === "emoji"
                 property var spResults: spMode === "actions" ? root.actionItems(spQuery)
@@ -9958,7 +9967,7 @@ Scope {
                                     MouseArea {
                                         anchors.fill: parent
                                         hoverEnabled: true
-                                        onEntered: { if (ui.spSel !== rr.index) { ui.spHover = true; ui.spSel = rr.index; } }
+                                        onPositionChanged: mouse => { if (ui.spPointerMoved(parent, mouse.x, mouse.y) && ui.spSel !== rr.index) { ui.spHover = true; ui.spSel = rr.index; } }
                                         onClicked: ui.spActivate(rr.index)
                                     }
                                 }
@@ -10150,10 +10159,12 @@ Scope {
                                     hoverEnabled: true
                                     property point press: Qt.point(0, 0)
                                     property bool dragged: false
-                                    onEntered: { if (ui.spSel !== cr.index) { ui.spHover = true; ui.spSel = cr.index; } }
                                     onPressed: mouse => { press = mapToItem(spotRoot, mouse.x, mouse.y); dragged = false; }
                                     onPositionChanged: mouse => {
-                                        if (!pressed) return;
+                                        if (!pressed) {
+                                            if (ui.spPointerMoved(parent, mouse.x, mouse.y) && ui.spSel !== cr.index) { ui.spHover = true; ui.spSel = cr.index; }
+                                            return;
+                                        }
                                         var p = mapToItem(spotRoot, mouse.x, mouse.y);
                                         if (!dragged && Math.abs(p.x - press.x) + Math.abs(p.y - press.y) > 14) { dragged = true; clipGhost.start(cr.modelData); }
                                         if (dragged) { clipGhost.px = p.x; clipGhost.py = p.y; }
@@ -10387,7 +10398,7 @@ Scope {
                                 MouseArea {
                                     anchors.fill: parent
                                     hoverEnabled: true
-                                    onEntered: { if (ui.spSel !== ec.index) { ui.spHover = true; ui.spSel = ec.index; } }
+                                    onPositionChanged: mouse => { if (ui.spPointerMoved(parent, mouse.x, mouse.y) && ui.spSel !== ec.index) { ui.spHover = true; ui.spSel = ec.index; } }
                                     onClicked: { ui.pop = ""; root.emojiPick(ec.modelData); }
                                 }
                             }
