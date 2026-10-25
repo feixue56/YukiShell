@@ -34,6 +34,7 @@ Item {
         Component {
             id: weatherVisual
             WeatherWidget {
+                accent: host.visAccent
                 scaleF: host.widgetScale
                 style: wstyle
                 size: wsize
@@ -101,6 +102,7 @@ Item {
         Component {
             id: clockVisual
             ClockWidget {
+                accent: host.visAccent
                 scaleF: host.widgetScale
                 style: wstyle
                 size: wsize

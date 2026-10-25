@@ -1605,7 +1605,7 @@ Scope {
             width: parent.width - 60 - 8
             spacing: 1
             // long titles ("Lock Screen", "Power Mode", translations) shrink a little instead of being cut off
-            Text { width: parent.width; elide: Text.ElideRight; fontSizeMode: Text.HorizontalFit; minimumPixelSize: 10; text: stl.title; color: stl.fg; font.family: root.fontForWeight(Font.DemiBold, stl.t.fam); font.pixelSize: 13; font.weight: Font.DemiBold }
+            Text { width: parent.width; elide: Text.ElideRight; fontSizeMode: Text.HorizontalFit; minimumPixelSize: 10; text: stl.title; color: stl.t.accent; font.family: root.fontForWeight(Font.DemiBold, stl.t.fam); font.pixelSize: 13; font.weight: Font.DemiBold }
             MorphText { visible: stl.status !== ""; animateWidth: false; duration: 420; width: parent.width; elide: Text.ElideRight; text: stl.status; color: stl.fg2; font.family: root.fontForWeight(Font.Normal, stl.t.fam); font.pixelSize: 12 }
         }
     }
@@ -5812,7 +5812,7 @@ Scope {
                                     anchors.centerIn: parent
                                     scale: 1 + (mtHl.lift - 1) * 0.4
                                     text: I18n.tr(mt.modelData.label)
-                                    color: bpal.fg
+                                    color: mt.activeApp ? root.accent : bpal.fg          // the focused app's name takes the accent
                                     font.family: mt.activeApp ? Fonts.forWeight(mt.activeApp ? Font.DemiBold : Font.Normal, root.boldFontFamily)
                                                               : Fonts.forWeight(mt.activeApp ? Font.DemiBold : Font.Normal, "Open Runde")
                                     font.pixelSize: 14
@@ -6100,7 +6100,7 @@ Scope {
                                 anchors.centerIn: parent
                                 scale: 1 + (clockHl.lift - 1) * 0.4
                                 text: root.clockText
-                                color: bpal.fg
+                                color: root.accent
                                 font.family: Fonts.forWeight(Font.DemiBold, root.boldFontFamily)
                                 font.pixelSize: 14
                                 font.weight: Font.DemiBold
@@ -8262,7 +8262,7 @@ Scope {
                             Text {
                                 x: 14; y: 8
                                 text: I18n.tr("Microphone")
-                                color: ccPal.fg; font.family: root.fontForWeight(Font.DemiBold, ccPal.fam); font.pixelSize: 12; font.weight: Font.DemiBold
+                                color: ccPal.accent; font.family: root.fontForWeight(Font.DemiBold, ccPal.fam); font.pixelSize: 12; font.weight: Font.DemiBold
                             }
                             HoverHandler { id: tileHovMic }
                             CCSlider {
@@ -8420,7 +8420,7 @@ Scope {
                             Text {
                                 x: 14; y: 8
                                 text: I18n.tr("Display")
-                                color: ccPal.fg; font.family: root.fontForWeight(Font.DemiBold, ccPal.fam); font.pixelSize: 12; font.weight: Font.DemiBold
+                                color: ccPal.accent; font.family: root.fontForWeight(Font.DemiBold, ccPal.fam); font.pixelSize: 12; font.weight: Font.DemiBold
                             }
                             HoverHandler { id: tileHovDisplay }
                             CCSlider {
@@ -8444,7 +8444,7 @@ Scope {
                             Text {
                                 x: 14; y: 8
                                 text: I18n.tr("Sound")
-                                color: ccPal.fg; font.family: root.fontForWeight(Font.DemiBold, ccPal.fam); font.pixelSize: 12; font.weight: Font.DemiBold
+                                color: ccPal.accent; font.family: root.fontForWeight(Font.DemiBold, ccPal.fam); font.pixelSize: 12; font.weight: Font.DemiBold
                             }
                             HoverHandler { id: tileHovSound }
                             CCSlider {

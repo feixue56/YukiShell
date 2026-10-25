@@ -51,6 +51,7 @@ Item {
     property real glassLiquid: 1.0      // Liquid strength
     property real glassRim: 0.45
     property color borderTint: "#8A9AB5"      // Control Center border colour
+    property color accent: "#0A84FF"          // Appearance -> Accent colour (the big temperature)
     property real glassGrain: 0.03
     property bool darkGlass: true
     property bool preview: false        // inside the Settings gallery: no wallpaper, simplified glass
@@ -309,7 +310,7 @@ Item {
         x: w.pad - 1 * w.s
         y: 30 * w.s
         text: w.hasData ? (w.temp + w.unitSuffix) : "–°"
-        color: w.fg
+        color: w.accent
         font.family: w.fam
         font.pixelSize: 46 * w.s
         font.weight: Font.Light
