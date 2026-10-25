@@ -38,7 +38,6 @@ Item {
     property real glassLiquid: 1.0
     property real glassRim: 0.45
     property color borderTint: "#8A9AB5"      // Control Center border colour
-    property color accent: "#0A84FF"          // Appearance -> Accent colour (the time)
     property real glassGrain: 0.03
     property bool darkGlass: true
 
@@ -425,7 +424,7 @@ Item {
 
         text: w.displayTime
 
-        color: w.accent
+        color: w.dark ? "#FFFFFF" : "#0C0D0F"
         opacity: 0.96
 
         font.family: w.boldFam

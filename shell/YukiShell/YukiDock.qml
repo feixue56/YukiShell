@@ -305,7 +305,7 @@ Scope {
         leftPadding: 4
         topPadding: header ? 8 : 0
         wrapMode: Text.WordWrap
-        color: header ? t.accent : t.text2          // section headers take the accent (Appearance -> Accent colour)
+        color: t.text2
         font.family: root.fontForWeight(header ? Font.DemiBold : Font.Normal, t.fam)
         font.pixelSize: header ? 12 : 12
         font.weight: header ? Font.DemiBold : Font.Normal
@@ -1566,7 +1566,7 @@ Scope {
                     x: 90
                     anchors.verticalCenter: parent.verticalCenter
                     text: I18n.tr(prefsWindow.panes[prefsWindow.cur].name)
-                    color: pal.accent
+                    color: pal.text
                     font.family: root.fontForWeight(Font.DemiBold, pal.fam)
                     font.pixelSize: 15
                     font.weight: Font.DemiBold
