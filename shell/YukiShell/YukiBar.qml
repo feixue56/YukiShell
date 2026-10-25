@@ -8353,7 +8353,11 @@ Scope {
                                 style: root.visStyle
                                 gain: root.visGain
                                 count: 18
-                                readonly property color base: root.visColor === "accent" ? root.accent : ccPal.fg
+                                // the same colours as the Now Playing widget: the cover's (ArtTint, same formula), the accent, or plain
+                                ArtTint { id: npTint; source: artImg.source }
+                                readonly property color base: root.visColor === "accent" ? root.accent
+                                    : (root.visColor === "art" && npTint.known ? Qt.hsla(npTint.h, Math.min(0.95, npTint.s * 1.15 + 0.2), ccPal.dark ? 0.70 : 0.42, 1)
+                                       : ccPal.fg)
                                 colorTop: Qt.rgba(base.r, base.g, base.b, 0.55)
                                 colorBottom: Qt.rgba(base.r, base.g, base.b, 0.10)
                             }
