@@ -33,6 +33,47 @@ ShellRoot {
         property var monData: []
         property var glassClients: []
         property var wallpaperMap: ({})
+        // ── see-through windows in the glass ──
+        // Hyprland hands the shell its window pictures drawn over opaque black, so a see-through kitty (or a faded Dolphin) showed up
+        // in the Dock / menu glass as a dark slab. winAlpha(addr) says how transparent each window really is: hypr/bin/toggle-opacity
+        // writes what it changed to $XDG_RUNTIME_DIR/yukishell-winalpha.json ({ addr: { bg, win } }); a kitty it never touched has
+        // kitty.conf's background_opacity. The captures are drawn back with that alpha (capalpha.frag).
+        property var winAlphaFile: ({})
+        property real kittyBgAlpha: 1
+        readonly property var winAlphaMap: {
+            var m = {}, cs = glassClients || [], f = winAlphaFile;
+            for (var i = 0; i < cs.length; i++) {
+                var a = String(cs[i].address).replace(/^0x/, ""), cls = String(cs[i]["class"] || "");
+                var bg = (cls === "kitty" || cls.indexOf("dash-") === 0) ? kittyBgAlpha : 1, win = 1;
+                var e = f["0x" + a];
+                if (e) { if (typeof e.bg === "number") bg = e.bg; if (typeof e.win === "number") win = e.win; }
+                if (bg < 0.999 || win < 0.999) m[a] = { bg: bg, win: win };
+            }
+            return m;
+        }
+        // { bg, win } for a window address (with or without 0x); opaque windows are { bg: 1, win: 1 }
+        function winAlpha(addr) {
+            var e = winAlphaMap[String(addr).replace(/^0x/, "")];
+            return e ? e : { bg: 1, win: 1 };
+        }
+        FileView {
+            path: Quickshell.env("XDG_RUNTIME_DIR") + "/yukishell-winalpha.json"
+            watchChanges: true
+            printErrors: false
+            onFileChanged: reload()
+            onLoaded: { try { sharedHub.winAlphaFile = JSON.parse(text()) || {}; } catch (e) { } }
+            onLoadFailed: sharedHub.winAlphaFile = ({})
+        }
+        FileView {
+            path: Quickshell.env("HOME") + "/.config/kitty/kitty.conf"
+            watchChanges: true
+            printErrors: false
+            onFileChanged: reload()
+            onLoaded: {
+                var m = /^\s*background_opacity\s+([0-9.]+)/m.exec(text());
+                sharedHub.kittyBgAlpha = m ? Math.max(0, Math.min(1, parseFloat(m[1]))) : 1;
+            }
+        }
         // Ghost windows. Quickshell keeps its list of Hyprland windows from `closewindow` events, and `refreshToplevels()` only ever ADDS to
         // it. So when a window-list reply that Hyprland answered while a window was still open is read after that window's `closewindow`
         // (the shell was busy in between, e.g. tearing down its own Settings window), the closed window comes back and stays until the shell

@@ -5834,6 +5834,12 @@ Scope {
                                     sourceComponent: ScreencopyView {
                                         id: sc
                                         captureSource: gw.tl
+                                        // a see-through window (kitty's glass background, a faded Dolphin) comes from Hyprland drawn over black: give it back the
+                                        // transparency it has on screen, or the glass shows a dark slab where the wallpaper shines through (hub.winAlpha, capalpha.frag)
+                                        readonly property var wa: root.hub ? root.hub.winAlpha(gw.addr) : ({ bg: 1, win: 1 })
+                                        opacity: wa.win
+                                        layer.enabled: wa.bg < 0.999
+                                        layer.effect: ShaderEffect { property real bgAlpha: sc.wa.bg; fragmentShader: Qt.resolvedUrl("capalpha.frag.qsb") }
                                         // Real-time glass ON: a window that reaches the Dock STREAMS (live: every frame the compositor renders), windows
                                         // elsewhere refresh at 5 Hz so they are fresh the moment they slide under the Dock. Opening / closing windows no
                                         // longer freeze the glass: only the closing window's own capture stops.

@@ -5401,6 +5401,12 @@ Scope {
                                     id: sv
                                     anchors.fill: parent
                                     captureSource: gw.tl
+                                    // a see-through window (kitty's glass background, a faded Dolphin) comes from Hyprland drawn over black: give it back the
+                                    // transparency it has on screen, or the glass shows a dark slab where the wallpaper shines through (hub.winAlpha, capalpha.frag)
+                                    readonly property var wa: root.hub ? root.hub.winAlpha(gw.addr) : ({ bg: 1, win: 1 })
+                                    opacity: wa.win
+                                    layer.enabled: wa.bg < 0.999
+                                    layer.effect: ShaderEffect { property real bgAlpha: sv.wa.bg; fragmentShader: Qt.resolvedUrl("capalpha.frag.qsb") }
                                     // While a screen recording / screen share runs the window captures sit out (root.captureQuiet). `hush` follows it
                                     // with a random 0.6 s spread, so dozens of captures never start or stop in the same instant (that burst, with a
                                     // recorder pulling frames at the same time, is what the compositor choked on).
