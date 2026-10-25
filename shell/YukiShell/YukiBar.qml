@@ -4760,6 +4760,33 @@ Scope {
         root.wpOpen = !root.wpOpen;
         if (root.wpOpen) root.wpRefresh();
     }
+    // A wallpaper folder from the panel's chips opens in a floating terminal in the free space beside the panel (right, else left, else
+    // the bottom-right corner), so the panel can stay open: it is an overlay and would hide a terminal opened underneath it.
+    property string wpTermAddr: ""          // that terminal while it is open (Hyprland address without 0x)
+    property real wpTermAsked: 0
+    function wpOpenFolder(dir, panel, scr) {
+        var sx = scr ? scr.x : 0, sy = scr ? scr.y : 0, sw = scr ? scr.width : 1920, sh = scr ? scr.height : 1080;
+        var p = panel.mapToItem(null, 0, 0), gap = 16, w, h = Math.round(panel.height), x, y = Math.round(sy + p.y);
+        var right = sw - (p.x + panel.width) - 2 * gap, left = p.x - 2 * gap;
+        if (right >= 360) { w = Math.min(560, Math.round(right)); x = Math.round(sx + p.x + panel.width + gap); }
+        else if (left >= 360) { w = Math.min(560, Math.round(left)); x = Math.round(sx + p.x - gap - w); }
+        else { w = 560; h = 400; x = sx + sw - w - gap; y = sy + sh - h - 80; }
+        var q = "'" + String(dir).split("'").join("'\\''") + "'";
+        var cmd = "cd " + q + " && exec " + root.terminal;
+        wpTermAsked = Date.now();
+        Quickshell.execDetached(["hyprctl", "dispatch", "hl.dsp.exec_cmd([==[" + cmd + "]==], { float = true, size = \"" + w + " " + h + "\", move = \"" + x + " " + y + "\" })"]);
+    }
+    Connections {
+        target: Hyprland
+        function onRawEvent(event) {
+            if (event.name === "openwindow" && root.wpTermAsked > 0 && Date.now() - root.wpTermAsked < 5000) {
+                root.wpTermAddr = String(event.data).split(",")[0].replace(/^0x/, "");
+                root.wpTermAsked = 0;
+            } else if (event.name === "closewindow" && root.wpTermAddr !== "" && String(event.data).replace(/^0x/, "") === root.wpTermAddr) {
+                root.wpTermAddr = "";
+            }
+        }
+    }
     function wpPickFolder() {
         var fp = root.hub && root.hub.dock ? root.hub.dock.filePicker : null;
         if (!fp) { root.wpStatus = "The folder chooser is not ready yet."; return; }
@@ -5488,6 +5515,9 @@ Scope {
                                 // once, a burst of requests exactly when windows come and go. It is released when the window is really gone (tlFor: null).
                                 readonly property var tl: { if (!root.hub) return null; var t = root.hub.tlTick; return root.hub.tlFor(addr); }
                                 // behind the glass that is on screen right now (popover / panel + refraction margin)?
+                                // the terminal a wallpaper-folder chip opened, beside the panel: not captured while it is not behind the glass (closing a
+                                // window that was being captured with the panel open is what took the shell down)
+                                readonly property bool folderTerm: root.wpTermAddr !== "" && String(addr).replace(/^0x/, "") === root.wpTermAddr
                                 readonly property bool onGlass: bd.region.width > 0 && x < bd.region.x + bd.region.width && x + width > bd.region.x
                                                                 && y < bd.region.y + bd.region.height && y + height > bd.region.y
                                 ScreencopyView {
@@ -5521,6 +5551,7 @@ Scope {
                                     // a window that really reaches the bar strip (floating / fullscreen); tiled ones start below it (bar + gap)
                                     readonly property bool onBar: root.barGlass && root.liquidActive && gw.y < root.barH + 4
                                     readonly property bool need: !gw.gone && !root.captureHeld && bd.hostShown && (!sv.hush || gw.onGlass) && (glassUp || onBar)
+                                                                 && (!gw.folderTerm || gw.onGlass)
                                     onNeedChanged: { if (need && captureSource !== null && typeof captureFrame === "function") captureFrame(); }
                                     onCaptureSourceChanged: {
                                         // a window that appears while it is needed grabs its first frame at once (a short delay: asking before the capture
@@ -9091,7 +9122,9 @@ Scope {
 
             WlrLayershell.namespace: "yukiwall"
             WlrLayershell.layer: WlrLayer.Overlay
-            WlrLayershell.keyboardFocus: (root.wpOpen && ui.toastScreen) ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+            // while a folder opened from a chip is up, the keyboard goes to whichever of the two you click (the panel grabs it otherwise)
+            WlrLayershell.keyboardFocus: !(root.wpOpen && ui.toastScreen) ? WlrKeyboardFocus.None
+                                       : (root.wpTermAddr !== "" ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.Exclusive)
 
             Item {
                 id: wpRoot
@@ -9208,11 +9241,10 @@ Scope {
                                     color: pal.fg
                                     font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12
                                 }
-                                // opens the folder like Settings -> Wallpaper -> Open does, but closes this panel first: opening it (xdg-open, which can be
-                                // a terminal) with the panel still up, then closing that terminal, took the whole shell down; from Settings it never did
+                                // opens the folder in a floating terminal next to the panel (wpOpenFolder); the panel stays open
                                 MouseArea {
                                     id: chipMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                                    onClicked: { root.wpOpen = false; Quickshell.execDetached(["xdg-open", dirChip.modelData]); }
+                                    onClicked: root.wpOpenFolder(dirChip.modelData, wpPanel, wpWin.screen)
                                 }
                                 Rectangle {
                                     visible: dirChip.removable
