@@ -159,10 +159,16 @@ void main()
     vec3 tintC = mix(vec3(1.0), vec3(0.09, 0.09, 0.10), dark);
     // accent-tinted interface (accentTint.a = 1): the tint leans to a deep shade of the accent in dark mode (white text stays
     // readable on it) or a pale one in light mode, and a light wash of that shade covers the glass even when it is very clear
+    // tinted glass: the refracted backdrop is coloured by the accent (multiplied, so its detail and the refraction stay visible)
+    // and the flat tint is lighter, so the slab still reads as liquid glass rather than a flat accent card
     vec3 accTint = mix(mix(accentTint.rgb, vec3(1.0), 0.70), accentTint.rgb * 0.40, dark);
     tintC = mix(tintC, accTint, accentTint.a);
-    col = mix(col, tintC, tintMix);
-    col = mix(col, accTint, accentTint.a * 0.28);
+    col = mix(col, col * mix(accentTint.rgb, vec3(1.0), 0.35) * 1.25, accentTint.a);
+    col = mix(col, tintC, tintMix * (1.0 - 0.45 * accentTint.a));
+    col = mix(col, accTint, accentTint.a * 0.08);
+    // dark mode: a bright backdrop (a full moon, a white window) must not lift the tinted glass so far that white text sinks in
+    float lt = dot(col, vec3(0.2126, 0.7152, 0.0722));
+    col *= mix(1.0, min(1.0, 0.42 / max(lt, 1e-3)), 0.85 * dark * accentTint.a);
     col += mix(0.055, 0.020, dark);
 
     // --- depth: soft top sheen, darker lower inner edge ---

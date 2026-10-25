@@ -127,12 +127,16 @@ Item {
     readonly property url artSrc: fileUrl(artUrl)
 
     function fa(a) { return dark ? Qt.rgba(1, 1, 1, a) : Qt.rgba(0, 0, 0, a); }
+    // "Tint the interface": buttons and the progress bar take a shade of the accent (text stays white / black)
+    readonly property bool accentUi: accentTint.w > 0
+    readonly property color inkC: dark ? Qt.tint(visAccent, Qt.rgba(1, 1, 1, 0.18)) : Qt.tint(visAccent, Qt.rgba(0, 0, 0, 0.25))
+    function ia(a) { return accentUi ? Qt.rgba(inkC.r, inkC.g, inkC.b, Math.min(1, a + 0.2)) : fa(a); }
     readonly property color fg: fa(dark ? 0.90 : 0.86)          // title
     readonly property color fg2: fa(dark ? 0.52 : 0.50)         // subtitle, times
-    readonly property color fgBtn: fa(dark ? 0.78 : 0.72)       // back / play / forward
-    readonly property color fgDim: fa(dark ? 0.52 : 0.48)       // shuffle / repeat when off
+    readonly property color fgBtn: ia(dark ? 0.78 : 0.72)       // back / play / forward
+    readonly property color fgDim: ia(dark ? 0.52 : 0.48)       // shuffle / repeat when off
     readonly property color trackCol: fa(dark ? 0.12 : 0.10)
-    readonly property color fillCol: fa(dark ? 0.58 : 0.50)
+    readonly property color fillCol: ia(dark ? 0.58 : 0.50)
 
     // --- artwork colour --- (ArtTint.qml; the Control Center's visualizer uses the same one)
     readonly property bool tintKnown: artTint.known
@@ -322,7 +326,7 @@ Item {
         gain: w.visGain
         count: w.isSmall ? 5 : 28
         barFill: w.isSmall ? 0.7 : 0.62
-        readonly property color base: w.visColor === "accent" ? w.visAccent
+        readonly property color base: (w.visColor === "accent" || w.accentUi) ? w.inkC
                                        : (w.visColor === "art" && w.faceTint ? Qt.hsla(w.tintH, Math.min(0.95, w.tintS * 1.15 + 0.2), w.dark ? 0.70 : 0.42, 1)
                                           : (w.dark ? Qt.rgba(1, 1, 1, 1) : Qt.rgba(0, 0, 0, 1)))
         colorTop: Qt.rgba(base.r, base.g, base.b, w.isSmall ? 0.55 : (w.dark ? 0.34 : 0.28))
@@ -640,7 +644,7 @@ Item {
                 opacity: w.live ? 0.35 : 1
                 height: parent.height
                 radius: height / 2
-                color: seekMa.pressed || seekMa.containsMouse ? w.fa(w.dark ? 0.78 : 0.66) : w.fillCol
+                color: seekMa.pressed || seekMa.containsMouse ? w.ia(w.dark ? 0.78 : 0.66) : w.fillCol
                 Behavior on color { ColorAnimation { duration: 140 } }
             }
             MouseArea {

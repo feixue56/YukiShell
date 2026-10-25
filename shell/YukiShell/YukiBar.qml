@@ -111,6 +111,8 @@ Scope {
     readonly property bool panelTextWhite: (autoContrast && panelTone !== 0 && !accentUi) ? (panelTone === -1) : darkMode
     property color accent: "#0A84FF"
     property bool accentUi: false            // Appearance -> "Tint the interface": glass, panels and cards take a shade of the accent
+    // the accent as an icon colour: a little lighter on white-text panels, a little deeper on black-text ones
+    readonly property color accentInk: panelTextWhite ? Qt.tint(accent, Qt.rgba(1, 1, 1, 0.18)) : Qt.tint(accent, Qt.rgba(0, 0, 0, 0.25))
     readonly property vector4d accentTintVec: Qt.vector4d(accent.r, accent.g, accent.b, accentUi ? 1 : 0)     // handed to the glass shaders (accentTint)
     // "Tint the interface": lean a surface colour toward the accent shade the glass shaders use (deep in dark mode, pale in light
     // mode), keeping its transparency. k = how far (0..1). Off: the colour as it is.
@@ -748,6 +750,8 @@ Scope {
         readonly property color accent: root.accent
         readonly property color fg: root.mixb(Qt.color("#1D1D1F"), Qt.color("#FFFFFF"))
         readonly property color fg2: root.mixb(Qt.rgba(0, 0, 0, 0.55), Qt.rgba(1, 1, 1, 0.62))
+        readonly property color ink: fg              // icons and slider bars (the Control Center's follow the accent)
+        readonly property color ink2: fg2
         readonly property color fg3: root.mixb(Qt.rgba(0, 0, 0, 0.32), Qt.rgba(1, 1, 1, 0.34))
         readonly property color tile: dark ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(1, 1, 1, 0.42)
         readonly property color tileBorder: dark ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(1, 1, 1, 0.70)
@@ -768,6 +772,8 @@ Scope {
         readonly property color accent: root.accent
         readonly property color fg: root.mixp(Qt.color("#1D1D1F"), Qt.color("#FFFFFF"))
         readonly property color fg2: root.mixp(Qt.rgba(0, 0, 0, 0.55), Qt.rgba(1, 1, 1, 0.62))
+        readonly property color ink: fg              // icons and slider bars (the Control Center's follow the accent)
+        readonly property color ink2: fg2
         readonly property color fg3: root.mixp(Qt.rgba(0, 0, 0, 0.32), Qt.rgba(1, 1, 1, 0.34))
         readonly property color tile: dark ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(1, 1, 1, 0.42)
         readonly property color tileBorder: dark ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(1, 1, 1, 0.70)
@@ -788,6 +794,8 @@ Scope {
         readonly property color accent: root.accent
         readonly property color fg: root.mixp(Qt.color("#1D1D1F"), Qt.color("#FFFFFF"))
         readonly property color fg2: root.mixp(Qt.rgba(0, 0, 0, 0.55), Qt.rgba(1, 1, 1, 0.62))
+        readonly property color ink: fg              // icons and slider bars (the Control Center's follow the accent)
+        readonly property color ink2: fg2
         readonly property color fg3: root.mixp(Qt.rgba(0, 0, 0, 0.32), Qt.rgba(1, 1, 1, 0.34))
         readonly property color tile: root.mixc(Qt.rgba(1, 1, 1, 0.42), Qt.rgba(1, 1, 1, 0.10))
         readonly property color tileBorder: root.mixc(Qt.rgba(1, 1, 1, 0.70), Qt.rgba(1, 1, 1, 0.16))
@@ -809,6 +817,9 @@ Scope {
         readonly property color accent: root.accent
         readonly property color fg: root.mixp(Qt.color("#1D1D1F"), Qt.color("#FFFFFF"))
         readonly property color fg2: root.mixp(Qt.rgba(0, 0, 0, 0.55), Qt.rgba(1, 1, 1, 0.62))
+        // icons and slider bars: a shade of the accent while "Tint the interface" is on (text stays white / black)
+        readonly property color ink: root.accentUi ? root.accentInk : fg
+        readonly property color ink2: root.accentUi ? Qt.rgba(root.accentInk.r, root.accentInk.g, root.accentInk.b, 0.75) : fg2
         readonly property color fg3: root.mixp(Qt.rgba(0, 0, 0, 0.32), Qt.rgba(1, 1, 1, 0.34))
         readonly property color tile: root.ccMix(Qt.rgba(1, 1, 1, 0.42), Qt.rgba(1, 1, 1, 0.10))
         readonly property color tileBorder: root.ccMix(Qt.rgba(1, 1, 1, 0.70), Qt.rgba(1, 1, 1, 0.16))
@@ -1588,7 +1599,7 @@ Scope {
             anchors.centerIn: parent
             width: b.circleBtn ? 23 : b.width * 0.46; height: width
             kind: b.kind; level: b.level; flag: b.flag
-            color: b.on ? ((b.plain && root.ccOnColor !== "") ? root.ccOnInk : (b.onTint !== "" ? Qt.color(b.onTint) : b.t.accent)) : b.t.fg
+            color: b.on ? ((b.plain && root.ccOnColor !== "") ? root.ccOnInk : (b.onTint !== "" ? Qt.color(b.onTint) : b.t.accent)) : b.t.ink
             Behavior on color { ColorAnimation { duration: 320; easing.type: Easing.OutCubic } }
         }
         MouseArea { id: bma; anchors.fill: parent; enabled: !b.plain; hoverEnabled: true; onClicked: b.clicked() }
@@ -1667,7 +1678,7 @@ Scope {
             x: 4; anchors.verticalCenter: parent.verticalCenter
             width: 16; height: 16
             kind: s.leftKind; level: s.leftLevel
-            color: s.t.fg
+            color: s.t.ink
         }
         Rectangle {
             x: s.trackX; width: s.trackW; height: 4; radius: 2
@@ -1679,13 +1690,13 @@ Scope {
             width: Math.max(0, Math.min(1, s.value)) * s.trackW
             height: 4; radius: 2
             anchors.verticalCenter: parent.verticalCenter
-            color: s.t.fg
+            color: s.t.ink
         }
         Glyph {
             x: s.width - 20; anchors.verticalCenter: parent.verticalCenter
             width: 16; height: 16
             kind: s.rightKind; level: s.rightLevel
-            color: s.t.fg2
+            color: s.t.ink2
         }
         // the knob: a rounded square on hover; held, it grows with a little spring and becomes Liquid Glass
         Item {
@@ -8367,7 +8378,7 @@ Scope {
                                 count: 18
                                 // the same colours as the Now Playing widget: the cover's (ArtTint, same formula), the accent, or plain
                                 ArtTint { id: npTint; source: artImg.source }
-                                readonly property color base: root.visColor === "accent" ? root.accent
+                                readonly property color base: (root.visColor === "accent" || root.accentUi) ? root.accentInk
                                     : (root.visColor === "art" && npTint.known ? Qt.hsla(npTint.h, Math.min(0.95, npTint.s * 1.15 + 0.2), ccPal.dark ? 0.70 : 0.42, 1)
                                        : ccPal.fg)
                                 colorTop: Qt.rgba(base.r, base.g, base.b, 0.55)
@@ -8405,7 +8416,7 @@ Scope {
                                             anchors.centerIn: parent
                                             width: 26; height: 26
                                             kind: pbtn.modelData === "play" ? (np.pl && np.pl.isPlaying ? "pause" : "play") : pbtn.modelData
-                                            color: ccPal.fg
+                                            color: ccPal.ink
                                             scale: pma.pressed ? 0.88 : 1
                                             Behavior on scale { NumberAnimation { duration: 230; easing.type: Easing.OutBack; easing.overshoot: 3.2 } }
                                         }
@@ -8892,7 +8903,7 @@ Scope {
                                             Glyph {
                                                 width: 16; height: 16
                                                 anchors.verticalCenter: parent.verticalCenter
-                                                kind: chip.modelData.glyph; color: ccPal.fg
+                                                kind: chip.modelData.glyph; color: ccPal.ink
                                             }
                                             Text {
                                                 anchors.verticalCenter: parent.verticalCenter
