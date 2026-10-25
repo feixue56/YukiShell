@@ -11,7 +11,7 @@ A Catppuccin Mocha (mauve + pink) rice for **Hyprland** with its own desktop she
 YukiShell is a fork of [MacShell](https://github.com/0-ss/MacShell) by Rickky and vSuol (MIT). It is completely separate from
 upstream: it has its own name, config path, installer and Settings app, and it never phones home to MacShell.
 
-Made by [雪風 (@xuefeng1331)](https://github.com/xuefeng1331).
+Forked and maintained by [雪風 (@xuefeng1331)](https://github.com/xuefeng1331).
 
 ## Install
 
@@ -46,7 +46,7 @@ Before using it, check:
 | `Super+W` / `Super+E` | Chromium / Dolphin |
 | `Super+Shift+W` / `Super+Shift+E` | floating Chromium / Dolphin (1280×800 / 1100×700, centred) |
 | `Super+Q` | close window |
-| `Super+F` | fullscreen |
+| `Super+F` | fullscreen (press again to go back to the window's old size) |
 | `Super+Alt+Space` | toggle floating |
 | `Super+Shift+Tab` | terminal and Dolphin opacity: solid → liquid glass → completely transparent (a terminal fades only its background, Dolphin fades the whole window) |
 | `Super+Alt+D` | dashboard (fastfetch, clock, cava) |
@@ -71,7 +71,7 @@ Before using it, check:
 | `Super+Alt+C` | pick a colour |
 | `Super+Alt+A` | toggle dark mode |
 | `Super+Z` | System Settings |
-| `Super` (tap) or `Super+Space` / `Super+V` / `Super+.` | Spotlight / clipboard history / emoji |
+| `Super` (tap on its own) or `Super+Space` / `Super+V` / `Super+.` | Spotlight / clipboard history / emoji |
 | `Alt+Tab` | window switcher |
 | `Print` / `Shift+Print` / `Ctrl+Print` | screenshot: region / screen / window |
 | `Super+G` | Game Mode (the shell pauses its effects) |
@@ -80,7 +80,8 @@ Before using it, check:
 | `Super+Shift+R` | restart the shell cleanly (`yuki-restart`) |
 | `Super+Shift+C` | reload the Hyprland config |
 
-There is deliberately no key that exits Hyprland. The full list is in `hypr/rice/binds.lua` and `shell.lua`.
+There is deliberately no key that exits Hyprland, restarts, shuts down or force-quits an app (their menu items ask for a second click). The full list is in
+`hypr/rice/binds.lua` and `shell.lua`. The **menu bar's menus show each item's shortcut** next to it, read from the same list, so a shortcut you change shows up there too.
 
 **Every shortcut can be changed** in **System Settings → Keyboard → Keyboard Shortcuts** (translated, and read live from the running Hyprland): click
 the keys, press the new combination, and it is applied at once. Esc cancels, Backspace removes the shortcut, *Reset* brings the default back, and a combination that
@@ -101,6 +102,12 @@ helper show up in Settings by their description, and `tools/i18n-check.py` remin
   widgets) serves all of that window's glass. It keeps playing behind your windows and workspaces. The **menu bar button** (a picture frame, shown only while
   the wallpaper is a video) pauses and resumes it by hand, also for the copy inside the glass, and the choice survives a restart. Game Mode stops it on its
   own. **Settings → Wallpaper → Pause behind windows** (off by default) stops it while windows hide the desktop, to save power on a laptop.
+- **Windows seen through the glass**: the Dock's glass shows the windows behind it at 60 fps, so a terminal printing text doesn't lag behind, and a
+  see-through window (kitty's glass background, a faded Dolphin) keeps its transparency in the glass instead of showing up as a dark slab.
+- **Dock auto-hide** (**Settings → Desktop & Dock**): *Smart* hides it while a tiled window needs the space, *Windows* whenever the workspace has any window
+  open (floating ones too), *Always* until the pointer touches the bottom edge, *Never* keeps it and reserves the space.
+- **Links open where you can see them**: a web link clicked anywhere in the shell (About, Help, Spotlight) opens in your default browser and switches to the
+  workspace of the browser window it went to, instead of quietly adding a tab on another workspace.
 - Hover feedback everywhere: the menu bar and Dock buttons get a frosted-glass tile with a rim light that follows the pointer,
   workspaces that have windows keep a resting glass tile, and the Dock's last button is a gear that opens Settings.
 - **Audio visualizer**: bars (or a mirrored row, or a smooth wave) that move with the music behind the Now Playing widget and next to the cover in the
@@ -118,6 +125,7 @@ helper show up in Settings by their description, and `tools/i18n-check.py` remin
   **Microphone** is a slider like Sound (with a mute button beside it) that sets the input volume.
   Settings has sliders for the row height and the gap between controls (in pixels), and the colour a switched-on control turns (white by default). A panel taller than
   the screen scrolls. All of it is saved and has a Reset.
+- **Mouse** settings: tracking speed, natural scrolling and **mouse acceleration** on or off (off = the pointer moves the same distance at any speed).
 - **Settings → Users & Groups → Picture** lets you crop your profile picture (drag, scroll to zoom) before it is saved.
 - **Hardware that is not there is not offered**: Airplane Mode follows the real radio switches (rfkill), and on a PC with no Wi-Fi or Bluetooth adapter
   those Control Center tiles are greyed out (N/A), the Bluetooth icon leaves the menu bar and the two Settings panes disappear. Plug an adapter in and they come back.
@@ -150,15 +158,17 @@ method (`fcitx5-mozc`, `fcitx5-hangul`, `fcitx5-chewing`); the profile only ship
 | Path | What |
 | --- | --- |
 | `hypr/rice/` | Hyprland Lua modules: `theme monitor look input ime keys binds rules shell` |
-| `hypr/bin/` | `dashboard`, `toggle-opacity` |
+| `hypr/bin/` | `dashboard`, `toggle-opacity`, `float-chromium` |
 | `shell/YukiShell`, `shell/YukiLock` | the Quickshell shell and lock screen (`qs -c YukiShell`, `qs -c YukiLock`) |
 | `shell/bin/` | `yuki-start` (keeps the shell running), `yuki-restart` (restarts it cleanly), `yuki-brightness` |
 | `shell/scripts/` | helpers the shell calls: wallpaper (`yukishell-setwall.sh`, `-dynwall.sh`, `-wallpause.sh`), Game Mode, UI sound generator |
+| `shell/YukiShell/assets/` | logo, credits pictures and small helpers (`open-url.py`, `tone.sh`, `about-info.sh`) |
 | `kitty fish fastfetch btop cava gtk-3.0 gtk-4.0 qt chromium` | app configs and themes |
 | `tools/` | `doctor` (what is missing on this machine), `check` (lints the repo), `i18n-check.py` (missing translations), `make-logo.py`, `fix-font-loops.py` |
 
 The palette lives in `hypr/rice/theme.lua`. Env overrides go in `~/.config/hypr-rice/env`; the shell log is
-`~/.local/state/hypr-rice/YukiShell.log`. Open Settings with `qs -c YukiShell ipc call settings open`.
+`~/.local/state/hypr-rice/YukiShell.log`. Open Settings with `qs -c YukiShell ipc call settings open`. `yuki-start` gives the shell your login shell
+(from the account database) as `$SHELL`, so terminals it opens run your shell (fish here) whatever restarted it.
 
 The shell keeps its settings in `~/.config/yukibar`, `yukidock`, `yukishell`, `yukilock` and `yukiwidgets`. They are its own
 folders: YukiShell never reads or writes MacShell's, and never runs MacShell's installer or updater.
