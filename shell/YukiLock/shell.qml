@@ -166,7 +166,10 @@ ShellRoot {
     Process {
         running: true
         command: ["sh", "-c",
-            "p=$(jq -r '.wallpaperPath // empty' \"$HOME/.config/yukibar/settings.json\" 2>/dev/null); "
+            // a picture chosen just for the lock screen (Settings -> Lock Screen -> Wallpaper) wins, and then no video plays
+            "lw=$(jq -r '.lockWallpaper // empty' \"$HOME/.config/yukibar/settings.json\" 2>/dev/null); "
+            + "if [ -n \"$lw\" ] && [ -f \"$lw\" ]; then printf '%s\\n\\n' \"$lw\"; exit 0; fi; "
+            + "p=$(jq -r '.wallpaperPath // empty' \"$HOME/.config/yukibar/settings.json\" 2>/dev/null); "
             + "[ -f \"$p\" ] || p=$(jq -r '.wallpaperPath // empty' \"$HOME/.config/yukidock/settings.json\" 2>/dev/null); "
             + "[ -f \"$p\" ] || p=$(awww query 2>/dev/null | sed -n 's/.*image: //p' | head -n1); "
             + "printf '%s\\n' \"$p\"; "

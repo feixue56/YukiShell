@@ -74,6 +74,35 @@ Scope {
         refreshMons();
     }
     property string monitorPrimary: ""
+    // Settings -> Displays: try a mode right away, keep it only when confirmed (else it goes back after 15 s); a kept one is
+    // saved for hypr/rice/monitor.lua
+    property var modePending: null            // { name, mode, prev, pos, scale }
+    property int modeLeft: 0
+    function evalMode(name, mode, pos, scale) {
+        Quickshell.execDetached(["hyprctl", "eval", 'hl.monitor({ output = "' + name + '", mode = "' + mode + '", position = "' + pos + '", scale = ' + scale + ' })']);
+        monRefreshT.restart();
+    }
+    Timer { id: monRefreshT; interval: 800; onTriggered: root.refreshMons() }
+    function setMode(m, mode) {
+        var prev = (modePending && modePending.name === m.name) ? modePending.prev : m.width + "x" + m.height + "@" + Number(m.refreshRate).toFixed(2);
+        modePending = { name: m.name, mode: mode, prev: prev, pos: m.x + "x" + m.y, scale: m.scale };
+        modeLeft = 15;
+        modeT.restart();
+        evalMode(m.name, mode, m.x + "x" + m.y, m.scale);
+    }
+    Timer { id: modeT; interval: 1000; repeat: true; onTriggered: { root.modeLeft--; if (root.modeLeft <= 0) root.revertMode(); } }
+    function revertMode() {
+        modeT.stop();
+        var p = modePending; modePending = null;
+        if (p) evalMode(p.name, p.prev, p.pos, p.scale);
+    }
+    function keepMode() {
+        modeT.stop();
+        var p = modePending; modePending = null;
+        if (!p) return;
+        Quickshell.execDetached(["sh", "-c", 'f="${XDG_CONFIG_HOME:-$HOME/.config}/yukishell/monitor-modes.tsv"; mkdir -p "$(dirname "$f")"; '
+            + '{ [ -f "$f" ] && grep -v "^$1$(printf "\\t")" "$f"; printf "%s\\t%s\\n" "$1" "$2"; } > "$f.tmp" && mv -f "$f.tmp" "$f"', "sh", p.name, p.mode]);
+    }
     function setPrimary(name) {
         var d = displays;
         displays = { primary: name };
@@ -3468,6 +3497,116 @@ Scope {
                         }
                     }
                 }
+                // live readings: CPU and GPU clocks, temperatures, load and power draw (every 2 s while Settings is open)
+                property var hw: ({})
+                Timer { interval: 2000; repeat: true; triggeredOnStart: true; running: prefsWindow.visible; onTriggered: if (!hwProc.running) hwProc.running = true }
+                Process {
+                    id: hwProc
+                    command: ["sh", "-c",
+                        "echo \"CPU:$(sed -n 's/^model name[[:space:]]*: //p' /proc/cpuinfo | head -1)\"; echo \"CORES:$(nproc)\"; "
+                        + "echo \"GOV:$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor 2>/dev/null)\"; "
+                        + "echo \"FREQ:$(cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq 2>/dev/null | awk '{s+=$1;n++} END {if (n) printf \"%d\", s/n/1000}')\"; "
+                        + "echo \"MAXF:$(cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq 2>/dev/null)\"; "
+                        // the package sensor (coretemp / k10temp), else the hottest thermal zone
+                        + "t=''; for h in /sys/class/hwmon/hwmon*; do case $(cat $h/name 2>/dev/null) in coretemp|k10temp|zenpower) t=$(cat $h/temp1_input 2>/dev/null); break;; esac; done; "
+                        + "[ -n \"$t\" ] || t=$(cat /sys/class/thermal/thermal_zone*/temp 2>/dev/null | sort -n | tail -1); echo \"CTEMP:$t\"; "
+                        + "echo \"STAT:$(head -1 /proc/stat)\"; echo \"UP:$(cut -d' ' -f1 /proc/uptime)\"; echo \"LOAD:$(cut -d' ' -f1-3 /proc/loadavg)\"; "
+                        + "command -v nvidia-smi >/dev/null && echo \"GPU:$(nvidia-smi --query-gpu=name,temperature.gpu,power.draw,power.limit,utilization.gpu,clocks.gr,memory.used,memory.total --format=csv,noheader,nounits 2>/dev/null | head -1)\"; "
+                        + "for c in /sys/class/drm/card*/device; do [ -f $c/gpu_busy_percent ] && echo \"AGPU:$(cat $c/gpu_busy_percent)\" && break; done; true"]
+                    stdout: StdioCollector {
+                        onStreamFinished: {
+                            var m = {}, l = text.split("\n");
+                            for (var i = 0; i < l.length; i++) { var k = l[i].indexOf(":"); if (k > 0) m[l[i].substring(0, k)] = l[i].substring(k + 1).trim(); }
+                            // CPU load from two /proc/stat samples
+                            var f = (m.STAT || "").split(/\s+/).slice(1).map(Number);
+                            if (f.length >= 4) {
+                                var idle = f[3] + (f[4] || 0), tot = f.reduce(function (a, b) { return a + b; }, 0), o = batPane.hw;
+                                m.busy = (o.tot !== undefined && tot > o.tot) ? Math.round(100 * (1 - (idle - o.idle) / (tot - o.tot))) : -1;
+                                m.idle = idle; m.tot = tot;
+                            }
+                            batPane.hw = m;
+                        }
+                    }
+                }
+                readonly property var gpu: (hw.GPU || "").split(",").map(function (x) { return x.trim(); })
+                function upText(sec) {
+                    var d = Math.floor(sec / 86400), h = Math.floor(sec % 86400 / 3600), m = Math.floor(sec % 3600 / 60);
+                    return (d > 0 ? d + I18n.tr(" d ") : "") + (d > 0 || h > 0 ? h + I18n.tr(" h ") : "") + m + I18n.tr(" min");
+                }
+                function tempColor(c) { return c >= 85 ? "#FF453A" : (c >= 70 ? "#FF9F0A" : "#30D158"); }
+                SLabel { t: pal; header: true; text: I18n.tr("Power Use") }
+                SCard {
+                    t: pal
+                    SRow {
+                        t: pal; title: I18n.tr("Processor")
+                        subtitle: (batPane.hw.CPU || "").replace(/\s+/g, " ") + (batPane.hw.CORES ? " · " + batPane.hw.CORES + I18n.tr(" threads") : "")
+                                  + (batPane.hw.GOV ? "\n" + I18n.tr("Governor: ") + batPane.hw.GOV : "")
+                                  + (batPane.hw.FREQ ? " · " + (batPane.hw.FREQ / 1000).toFixed(2) + " GHz" + (batPane.hw.MAXF ? " / " + (batPane.hw.MAXF / 1e6).toFixed(1) + " GHz" : "") : "")
+                    }
+                    SRow {
+                        t: pal; title: I18n.tr("Processor load"); visible: batPane.hw.busy !== undefined && batPane.hw.busy >= 0
+                        subtitle: I18n.tr("Load average ") + (batPane.hw.LOAD || "").split(" ").join(" · ")
+                        Row {
+                            spacing: 8
+                            Rectangle {
+                                width: 120; height: 8; radius: 4; color: pal.track; anchors.verticalCenter: parent.verticalCenter
+                                Rectangle { width: parent.width * Math.max(0, batPane.hw.busy || 0) / 100; height: parent.height; radius: 4; color: pal.accent; Behavior on width { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } } }
+                            }
+                            Text { width: 40; horizontalAlignment: Text.AlignRight; text: Math.max(0, batPane.hw.busy || 0) + "%"; color: pal.text; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter }
+                        }
+                    }
+                    SRow {
+                        id: cpuTempRow
+                        t: pal; title: I18n.tr("Processor temperature"); visible: parseInt(batPane.hw.CTEMP) > 0
+                        readonly property int c: Math.round(parseInt(batPane.hw.CTEMP) / 1000)
+                        Row {
+                            spacing: 6
+                            Rectangle { width: 8; height: 8; radius: 4; color: batPane.tempColor(cpuTempRow.c); anchors.verticalCenter: parent.verticalCenter }
+                            Text { text: cpuTempRow.c + " °C"; color: pal.text; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 13 }
+                        }
+                    }
+                    SRow {
+                        id: gpuRow
+                        t: pal; title: I18n.tr("Graphics"); visible: batPane.gpu.length >= 5 && batPane.gpu[0] !== ""
+                        subtitle: batPane.gpu[0] + (batPane.gpu.length >= 8 ? " · " + (batPane.gpu[6] / 1024).toFixed(1) + " / " + (batPane.gpu[7] / 1024).toFixed(1) + I18n.tr(" GB memory") : "")
+                                  + "\n" + I18n.tr("Load ") + batPane.gpu[4] + "% · " + batPane.gpu[5] + " MHz · " + Math.round(parseFloat(batPane.gpu[2])) + " W / " + Math.round(parseFloat(batPane.gpu[3])) + " W"
+                        Row {
+                            spacing: 6
+                            Rectangle { width: 8; height: 8; radius: 4; color: batPane.tempColor(parseInt(batPane.gpu[1])); anchors.verticalCenter: parent.verticalCenter }
+                            Text { text: batPane.gpu[1] + " °C"; color: pal.text; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 13 }
+                        }
+                    }
+                    SRow {
+                        t: pal; title: I18n.tr("Graphics load"); visible: !gpuRow.visible && batPane.hw.AGPU !== undefined
+                        subtitle: (batPane.hw.AGPU || "0") + "%"
+                    }
+                    SRow {
+                        t: pal; title: I18n.tr("Up time"); visible: parseFloat(batPane.hw.UP) > 0
+                        subtitle: batPane.upText(parseFloat(batPane.hw.UP)) + I18n.tr(" since you turned it on")
+                    }
+                }
+                SCard {
+                    t: pal
+                    SRow {
+                        t: pal; title: I18n.tr("Keep Awake")
+                        subtitle: I18n.tr("Stop the computer from going to sleep or locking")
+                        SSwitch { t: pal; checked: root.bar ? root.bar.keepAwake : false; onToggled: v => { if (root.bar) root.bar.keepAwake = v; } }
+                    }
+                }
+                // restart / shut down ask twice, like the Apple menu: the first click arms the button for 4 s
+                property string armed: ""
+                Timer { id: armT; interval: 4000; onTriggered: batPane.armed = "" }
+                function powerAct(id, cmd) {
+                    if (armed !== id) { armed = id; armT.restart(); return; }
+                    armed = ""; prefsWindow.visible = false;
+                    Quickshell.execDetached(["systemctl", cmd]);
+                }
+                Row {
+                    spacing: 8
+                    SButton { t: pal; text: I18n.tr("Sleep"); onClicked: { prefsWindow.visible = false; if (root.bar) root.bar.sleepMachine(); else Quickshell.execDetached(["systemctl", "suspend"]); } }
+                    SButton { t: pal; text: batPane.armed === "restart" ? I18n.tr("Click Again to Restart") : I18n.tr("Restart\u2026"); onClicked: batPane.powerAct("restart", "reboot") }
+                    SButton { t: pal; text: batPane.armed === "off" ? I18n.tr("Click Again to Shut Down") : I18n.tr("Shut Down\u2026"); onClicked: batPane.powerAct("off", "poweroff") }
+                }
                 SLabel { t: pal; header: true; text: I18n.tr("Game Mode") }
                 SCard {
                     t: pal
@@ -3944,13 +4083,8 @@ Scope {
             Column {
                 id: dispPane
                 spacing: 10
-                property var mons: []
-                Component.onCompleted: { monList.running = true; root.refreshMons(); }
-                Process {
-                    id: monList
-                    command: ["hyprctl", "-j", "monitors"]
-                    stdout: StdioCollector { onStreamFinished: { try { dispPane.mons = JSON.parse(text); } catch (e) {} } }
-                }
+                Component.onCompleted: root.refreshMons()
+                function hzText(hz) { return Math.abs(hz - Math.round(hz)) < 0.05 ? String(Math.round(hz)) : hz.toFixed(2); }
                 SCard {
                     t: pal
                     SRow {
@@ -3968,6 +4102,20 @@ Scope {
                             t: pal; resetValue: 0.571; leftLabel: I18n.tr("Less Warm"); rightLabel: I18n.tr("More Warm")
                             value: root.bar ? 1 - (root.bar.nightTemp - 2500) / 3500 : 0.5
                             onMoved: v => { if (root.bar) root.bar.nightTemp = Math.round(2500 + (1 - v) * 3500); }
+                        }
+                    }
+                }
+                // a new mode only sticks once you confirm it; otherwise it goes back by itself (a mode the screen can't show stays fixable)
+                SCard {
+                    t: pal
+                    visible: root.modePending !== null
+                    SRow {
+                        t: pal; title: I18n.tr("Keep these display settings?")
+                        subtitle: I18n.tr("Going back to the previous settings in ") + root.modeLeft + I18n.tr(" s")
+                        Row {
+                            spacing: 6
+                            SButton { t: pal; text: I18n.tr("Revert"); onClicked: root.revertMode() }
+                            SButton { t: pal; text: I18n.tr("Keep"); onClicked: root.keepMode() }
                         }
                     }
                 }
@@ -3993,14 +4141,50 @@ Scope {
                         id: monCard
                         required property var modelData
                         t: pal
+                        readonly property string res: modelData.width + "x" + modelData.height
+                        // "1920x1080@100.00Hz" -> { res, hz }
+                        readonly property var modes: (modelData.availableModes || []).map(function (x) {
+                            var m = String(x).match(/^(\d+)x(\d+)@([\d.]+)Hz$/);
+                            return m ? { res: m[1] + "x" + m[2], px: m[1] * m[2], hz: parseFloat(m[3]) } : null;
+                        }).filter(function (x) { return x !== null; })
+                        readonly property var resList: {
+                            var out = [], sorted = modes.slice().sort(function (a, b) { return b.px - a.px; });
+                            for (var i = 0; i < sorted.length; i++) if (out.indexOf(sorted[i].res) < 0) out.push(sorted[i].res);
+                            return out;
+                        }
+                        readonly property var hzList: {
+                            var out = [];
+                            for (var i = 0; i < modes.length; i++) if (modes[i].res === res && out.indexOf(modes[i].hz) < 0) out.push(modes[i].hz);
+                            return out.sort(function (a, b) { return b - a; });
+                        }
+                        function bestHz(r) { var b = 0; for (var i = 0; i < modes.length; i++) if (modes[i].res === r) b = Math.max(b, modes[i].hz); return b; }
                         SRow {
                             t: pal
                             title: (modelData.description || modelData.name).replace(/\s*\(.*\)$/, "")
-                            subtitle: modelData.name + " · " + modelData.width + " × " + modelData.height + " @ " + Math.round(modelData.refreshRate) + I18n.tr(" Hz · Scale ") + modelData.scale
+                            subtitle: modelData.name + " · " + modelData.width + " × " + modelData.height + " @ " + dispPane.hzText(modelData.refreshRate) + I18n.tr(" Hz · Scale ") + modelData.scale
+                        }
+                        SRow {
+                            t: pal; title: I18n.tr("Resolution"); visible: monCard.resList.length > 0
+                            SPopUp {
+                                t: pal
+                                model: monCard.resList.map(function (r) { return r.replace("x", " × "); })
+                                current: Math.max(0, monCard.resList.indexOf(monCard.res))
+                                onPicked: i => { var r = monCard.resList[i]; if (r !== monCard.res) root.setMode(monCard.modelData, r + "@" + monCard.bestHz(r).toFixed(2)); }
+                            }
+                        }
+                        SRow {
+                            t: pal; title: I18n.tr("Refresh rate"); visible: monCard.hzList.length > 0
+                            subtitle: monCard.hzList.length > 1 ? I18n.tr("Higher is smoother; the highest your screen offers at this resolution is ") + dispPane.hzText(monCard.hzList[0]) + " Hz" : ""
+                            SPopUp {
+                                t: pal
+                                model: monCard.hzList.map(function (h) { return dispPane.hzText(h) + " Hz"; })
+                                current: { var c = 0, d = 1e9; for (var i = 0; i < monCard.hzList.length; i++) { var x = Math.abs(monCard.hzList[i] - monCard.modelData.refreshRate); if (x < d) { d = x; c = i; } } return c; }
+                                onPicked: i => root.setMode(monCard.modelData, monCard.res + "@" + monCard.hzList[i].toFixed(2))
+                            }
                         }
                     }
                 }
-                SLabel { t: pal; text: I18n.tr("Resolution, refresh rate and position are set in ~/hypr-rice/hypr/rice/monitor.lua, so they survive reloads and restarts.") }
+                SLabel { t: pal; text: I18n.tr("A new resolution or refresh rate is saved in ~/.config/yukishell/monitor-modes.tsv once you keep it, and hypr/rice/monitor.lua applies it at every start.") }
             }
         }
 
@@ -4008,13 +4192,25 @@ Scope {
         Component {
             id: paneNotif
             Column {
+                id: notifPane
                 spacing: 10
+                readonly property var apps: root.bar ? root.bar.notifAppsSeen.slice().sort(function (a, b) { return a.toLowerCase() < b.toLowerCase() ? -1 : 1; }) : []
                 SCard {
                     t: pal
                     SRow {
                         t: pal; title: I18n.tr("Show notification banners")
                         subtitle: I18n.tr("Off = Do Not Disturb: notifications still go to Notification Center, without banners")
                         SSwitch { t: pal; checked: root.bar ? !root.bar.notifDnd : true; onToggled: v => { if (root.bar) root.bar.notifDnd = !v; } }
+                    }
+                    SRow {
+                        t: pal; title: I18n.tr("Banner duration")
+                        subtitle: (root.bar ? root.bar.notifBannerSecs : 6) + I18n.tr(" seconds, unless the app asks for something else (urgent ones stay 10 s)")
+                        SSlider {
+                            t: pal; from: 3; to: 15; stepSize: 1; resetValue: 6
+                            leftLabel: "3 s"; rightLabel: "15 s"
+                            value: root.bar ? root.bar.notifBannerSecs : 6
+                            onMoved: v => { if (root.bar) root.bar.notifBannerSecs = Math.round(v); }
+                        }
                     }
                     SRow {
                         t: pal; title: I18n.tr("Play sound for notifications")
@@ -4024,7 +4220,52 @@ Scope {
                         t: pal; title: I18n.tr("Screenshot notifications")
                         SSwitch { t: pal; checked: root.bar ? root.bar.screenshotNotify : true; onToggled: v => { if (root.bar) root.bar.screenshotNotify = v; } }
                     }
+                    SRow {
+                        t: pal; title: I18n.tr("Show on the lock screen")
+                        subtitle: I18n.tr("Only the app and the time, never the message")
+                        SSwitch { t: pal; checked: root.bar ? root.bar.lockShowNotifs : true; onToggled: v => { if (root.bar) root.bar.lockShowNotifs = v; } }
+                    }
                 }
+                SCard {
+                    t: pal
+                    SRow {
+                        t: pal; title: I18n.tr("Notification Center")
+                        subtitle: !root.bar ? "" : (root.bar.notifHistCount === 0 ? I18n.tr("Empty")
+                                  : root.bar.notifHistCount + (root.bar.notifHistCount === 1 ? I18n.tr(" notification") : I18n.tr(" notifications")) + " · " + root.bar.notifUnread + I18n.tr(" unread"))
+                        SButton { t: pal; text: I18n.tr("Open"); onClicked: { prefsWindow.visible = false; Quickshell.execDetached(["qs", "-c", "YukiShell", "ipc", "call", "notifications", "open"]); } }
+                    }
+                    SRow {
+                        t: pal; title: I18n.tr("Do Not Disturb")
+                        subtitle: root.bar && root.bar.dndActive ? (root.bar.notifDnd ? I18n.tr("On") : I18n.tr("On now from Focus (schedule or fullscreen)")) : I18n.tr("Off")
+                    }
+                }
+                SLabel { t: pal; header: true; text: I18n.tr("Apps"); visible: notifPane.apps.length > 0 }
+                SCard {
+                    t: pal
+                    visible: notifPane.apps.length > 0
+                    Repeater {
+                        model: notifPane.apps
+                        delegate: SRow {
+                            id: appRow
+                            required property var modelData
+                            t: pal
+                            readonly property bool allowed: root.bar ? root.bar.notifMutedApps.indexOf(modelData) < 0 : true
+                            title: modelData
+                            subtitle: allowed ? I18n.tr("Banners and sounds") : I18n.tr("Notification Center only")
+                            iconSource: { var p = Quickshell.iconPath(String(modelData).toLowerCase(), true); return p ? p : ""; }
+                            SSwitch {
+                                t: pal; checked: appRow.allowed
+                                onToggled: v => {
+                                    if (!root.bar) return;
+                                    var m = root.bar.notifMutedApps.filter(function (a) { return a !== appRow.modelData; });
+                                    if (!v) m.push(appRow.modelData);
+                                    root.bar.notifMutedApps = m;
+                                }
+                            }
+                        }
+                    }
+                }
+                SLabel { t: pal; text: I18n.tr("Apps show up here after they send their first notification. Switched off, an app's notifications still collect in Notification Center."); visible: notifPane.apps.length > 0 }
                 Row {
                     spacing: 8
                     SButton { t: pal; text: I18n.tr("Send Test Notification"); onClicked: Quickshell.execDetached(["notify-send", "-a", I18n.tr("Settings"), I18n.tr("Test notification"), I18n.tr("Notifications are working")]) }
@@ -4041,13 +4282,43 @@ Scope {
                 spacing: 10
                 readonly property var outs: Pipewire.nodes.values.filter(function (n) { return n.isSink && !n.isStream && n.audio; })
                 readonly property var ins: Pipewire.nodes.values.filter(function (n) { return !n.isSink && !n.isStream && n.audio && (n.name || "").indexOf("monitor") < 0; })
+                // apps playing sound right now (playback streams)
+                readonly property var apps: Pipewire.nodes.values.filter(function (n) { return n.isStream && !n.isSink && n.audio; })
                 readonly property var src: Pipewire.defaultAudioSource
-                PwObjectTracker { objects: [Pipewire.defaultAudioSink, Pipewire.defaultAudioSource] }
+                readonly property var sounds: [{ id: "glass", name: "Glass" }, { id: "tink", name: "Tink" }, { id: "pop", name: "Pop" }, { id: "timer", name: "Chime" }, { id: "charge", name: "Bloom" }]
+                function appName(n) {
+                    var p = n.properties || {};
+                    return p["application.name"] || n.description || n.nickname || n.name || I18n.tr("App");
+                }
+                PwObjectTracker { objects: [Pipewire.defaultAudioSink, Pipewire.defaultAudioSource].concat(sndPane.apps) }
                 SCard {
                     t: pal
                     SRow {
                         t: pal; title: I18n.tr("Play user interface sound effects")
                         SSwitch { t: pal; checked: root.bar ? root.bar.uiSounds : true; onToggled: v => { if (root.bar) root.bar.uiSounds = v; } }
+                    }
+                    SRow {
+                        t: pal; title: I18n.tr("Alert sound"); visible: root.bar && root.bar.uiSounds
+                        subtitle: I18n.tr("Played for notifications")
+                        Row {
+                            spacing: 6
+                            SPopUp {
+                                t: pal
+                                model: sndPane.sounds.map(function (x) { return x.name; })
+                                current: Math.max(0, sndPane.sounds.map(function (x) { return x.id; }).indexOf(root.bar ? root.bar.alertSound : "glass"))
+                                onPicked: i => { if (!root.bar) return; root.bar.alertSound = sndPane.sounds[i].id; root.bar.playSound(sndPane.sounds[i].id, 0.7); }
+                            }
+                            SButton { t: pal; text: "▶"; onClicked: if (root.bar) root.bar.playSound(root.bar.alertSound, 0.7) }
+                        }
+                    }
+                    SRow {
+                        t: pal; title: I18n.tr("Alert volume"); visible: root.bar && root.bar.uiSounds
+                        SSlider {
+                            t: pal; resetValue: 1; leftLabel: I18n.tr("Quiet"); rightLabel: I18n.tr("Loud")
+                            value: root.bar ? root.bar.uiSoundVolume : 1
+                            onMoved: v => { if (root.bar) root.bar.uiSoundVolume = v; }
+                            onPressedChanged: if (!pressed && root.bar) root.bar.playSound(root.bar.alertSound, 0.7)
+                        }
                     }
                 }
                 SLabel { t: pal; header: true; text: I18n.tr("Output") }
@@ -4055,6 +4326,7 @@ Scope {
                     t: pal
                     SRow {
                         t: pal; title: I18n.tr("Output volume")
+                        subtitle: root.bar ? (root.bar.muted ? I18n.tr("Muted") : Math.round(root.bar.volume * 100) + "%") : ""
                         SSlider { t: pal; resetValue: 0.5; value: root.bar ? (root.bar.muted ? 0 : root.bar.volume) : 0; onMoved: v => { if (root.bar) root.bar.setVolume(v); } }
                     }
                     SRow {
@@ -4074,12 +4346,39 @@ Scope {
                         }
                     }
                 }
+                SLabel { t: pal; header: true; text: I18n.tr("Apps"); visible: sndPane.apps.length > 0 }
+                SCard {
+                    t: pal
+                    visible: sndPane.apps.length > 0
+                    Repeater {
+                        model: sndPane.apps
+                        delegate: SRow {
+                            id: appSnd
+                            required property var modelData
+                            t: pal
+                            title: sndPane.appName(modelData)
+                            subtitle: modelData.audio ? (modelData.audio.muted ? I18n.tr("Muted") : Math.round(modelData.audio.volume * 100) + "%") : ""
+                            iconSource: { var p = modelData.properties || {}, ic = p["application.icon-name"] || String(p["application.process.binary"] || "").toLowerCase(); var q = ic ? Quickshell.iconPath(ic, true) : ""; return q ? q : ""; }
+                            SSlider {
+                                t: pal; resetValue: 1
+                                value: appSnd.modelData.audio ? Math.min(1, appSnd.modelData.audio.volume) : 0
+                                onMoved: v => { if (appSnd.modelData.audio) { appSnd.modelData.audio.muted = false; appSnd.modelData.audio.volume = v; } }
+                            }
+                        }
+                    }
+                }
+                SLabel { t: pal; text: I18n.tr("Apps that are playing sound show up here with their own volume."); visible: sndPane.apps.length > 0 }
                 SLabel { t: pal; header: true; text: I18n.tr("Input") }
                 SCard {
                     t: pal
                     SRow {
                         t: pal; title: I18n.tr("Input volume")
+                        subtitle: sndPane.src && sndPane.src.audio ? (sndPane.src.audio.muted ? I18n.tr("Muted") : Math.round(sndPane.src.audio.volume * 100) + "%") : ""
                         SSlider { t: pal; resetValue: 1.0; value: sndPane.src && sndPane.src.audio ? sndPane.src.audio.volume : 0; onMoved: v => { if (sndPane.src && sndPane.src.audio) sndPane.src.audio.volume = v; } }
+                    }
+                    SRow {
+                        t: pal; title: I18n.tr("Mute microphone")
+                        SSwitch { t: pal; checked: root.bar ? root.bar.micMuted : false; onToggled: v => { if (sndPane.src && sndPane.src.audio) sndPane.src.audio.muted = v; } }
                     }
                     Repeater {
                         model: sndPane.ins
@@ -4101,14 +4400,71 @@ Scope {
         Component {
             id: paneFocus
             Column {
+                id: focusPane
                 spacing: 10
+                readonly property var times: { var out = []; for (var h = 0; h < 24; h++) for (var m = 0; m < 60; m += 30) out.push(h * 60 + m); return out; }
+                function hm(min) { var h = Math.floor(min / 60), m = min % 60; return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m; }
+                SCard {
+                    t: pal
+                    Item {
+                        width: parent.width; height: 72
+                        Rectangle {
+                            x: 16; anchors.verticalCenter: parent.verticalCenter
+                            width: 44; height: 44; radius: 22
+                            color: root.bar && root.bar.dndActive ? "#5E5CE6" : pal.track
+                            WGlyph { anchors.centerIn: parent; width: 22; height: 22; kind: "moon"; color: root.bar && root.bar.dndActive ? "white" : pal.text2 }
+                        }
+                        Column {
+                            x: 72; anchors.verticalCenter: parent.verticalCenter; spacing: 2
+                            Text { text: I18n.tr("Do Not Disturb"); color: pal.text; font.family: root.fontForWeight(Font.DemiBold, pal.fam); font.pixelSize: 15; font.weight: Font.DemiBold }
+                            Text {
+                                color: pal.text2; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12
+                                text: !root.bar ? "" : (root.bar.notifDnd ? I18n.tr("On until you turn it off")
+                                      : (root.bar.focusSchedule && root.bar.scheduleNow ? I18n.tr("On by schedule until ") + focusPane.hm(root.bar.focusTo)
+                                      : (root.bar.focusFullscreen && root.bar.fullscreenNow ? I18n.tr("On while an app is fullscreen") : I18n.tr("Off"))))
+                            }
+                        }
+                        SSwitch {
+                            t: pal
+                            anchors.right: parent.right; anchors.rightMargin: 14; anchors.verticalCenter: parent.verticalCenter
+                            checked: root.bar ? root.bar.notifDnd : false
+                            onToggled: v => { if (root.bar) root.bar.notifDnd = v; }
+                        }
+                    }
+                }
+                SLabel { t: pal; header: true; text: I18n.tr("Turn On Automatically") }
                 SCard {
                     t: pal
                     SRow {
-                        t: pal; title: I18n.tr("Do Not Disturb")
-                        subtitle: I18n.tr("Silences notification banners")
-                        SSwitch { t: pal; checked: root.bar ? root.bar.notifDnd : false; onToggled: v => { if (root.bar) root.bar.notifDnd = v; } }
+                        t: pal; title: I18n.tr("On a schedule")
+                        subtitle: root.bar ? I18n.tr("Every day from ") + focusPane.hm(root.bar.focusFrom) + I18n.tr(" to ") + focusPane.hm(root.bar.focusTo) : ""
+                        SSwitch { t: pal; checked: root.bar ? root.bar.focusSchedule : false; onToggled: v => { if (root.bar) root.bar.focusSchedule = v; } }
                     }
+                    SRow {
+                        t: pal; title: I18n.tr("From"); visible: root.bar && root.bar.focusSchedule
+                        SPopUp { t: pal; model: focusPane.times.map(focusPane.hm); current: Math.max(0, focusPane.times.indexOf(root.bar ? root.bar.focusFrom : 1320)); onPicked: i => { if (root.bar) root.bar.focusFrom = focusPane.times[i]; } }
+                    }
+                    SRow {
+                        t: pal; title: I18n.tr("To"); visible: root.bar && root.bar.focusSchedule
+                        SPopUp { t: pal; model: focusPane.times.map(focusPane.hm); current: Math.max(0, focusPane.times.indexOf(root.bar ? root.bar.focusTo : 420)); onPicked: i => { if (root.bar) root.bar.focusTo = focusPane.times[i]; } }
+                    }
+                    SRow {
+                        t: pal; title: I18n.tr("While an app is fullscreen")
+                        subtitle: I18n.tr("Games, videos, presentations")
+                        SSwitch { t: pal; checked: root.bar ? root.bar.focusFullscreen : false; onToggled: v => { if (root.bar) root.bar.focusFullscreen = v; } }
+                    }
+                }
+                SLabel { t: pal; header: true; text: I18n.tr("While Do Not Disturb Is On") }
+                SCard {
+                    t: pal
+                    SRow {
+                        t: pal; title: I18n.tr("Let urgent notifications through")
+                        subtitle: I18n.tr("Alarms, low battery and other critical alerts still show a banner")
+                        SSwitch { t: pal; checked: root.bar ? root.bar.focusAllowUrgent : true; onToggled: v => { if (root.bar) root.bar.focusAllowUrgent = v; } }
+                    }
+                }
+                SCard {
+                    t: pal
                     SRow {
                         t: pal; title: I18n.tr("Keep Awake")
                         subtitle: I18n.tr("Stop the computer from going to sleep or locking")
@@ -4126,6 +4482,56 @@ Scope {
                 spacing: 10
                 property string slot: "top"
                 Component.onCompleted: slotGet.running = true
+                readonly property string ownWall: root.bar ? root.bar.lockWallpaper : ""
+                readonly property string shownWall: ownWall !== "" ? ownWall : (root.bar ? root.bar.wallpaperPath : "")
+                // --- Wallpaper ---
+                SCard {
+                    t: pal
+                    Item {
+                        width: parent.width; height: 150
+                        Rectangle {
+                            id: lockThumb
+                            x: 16; anchors.verticalCenter: parent.verticalCenter
+                            width: 208; height: 117; radius: 10; clip: true
+                            color: pal.track
+                            Image {
+                                anchors.fill: parent
+                                source: lockPane.shownWall !== "" ? "file://" + lockPane.shownWall : ""
+                                fillMode: Image.PreserveAspectCrop; asynchronous: true; sourceSize.width: 416; smooth: true
+                                layer.enabled: true
+                                layer.effect: MultiEffect { maskEnabled: true; maskSource: thumbMask }
+                            }
+                            Item { id: thumbMask; anchors.fill: parent; layer.enabled: true; visible: false; Rectangle { anchors.fill: parent; radius: 10 } }
+                            // what the lock screen puts on top: the clock and the date
+                            Column {
+                                anchors.horizontalCenter: parent.horizontalCenter; y: 16; spacing: -2
+                                Text { anchors.horizontalCenter: parent.horizontalCenter; text: I18n.locale().toString(new Date(), I18n.tr("dddd, MMMM d")); color: Qt.rgba(1, 1, 1, 0.85); font.pixelSize: 8; font.weight: Font.DemiBold }
+                                Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatDateTime(new Date(), root.bar && !root.bar.use24h ? "h:mm" : "HH:mm"); color: Qt.rgba(1, 1, 1, 0.8); font.pixelSize: 34; font.weight: Font.Bold }
+                            }
+                            Rectangle { anchors.fill: parent; radius: 10; color: "transparent"; border.width: 1; border.color: Qt.rgba(1, 1, 1, 0.12) }
+                        }
+                        Column {
+                            x: lockThumb.x + lockThumb.width + 18; anchors.verticalCenter: parent.verticalCenter
+                            width: parent.width - x - 16; spacing: 8
+                            Text { text: I18n.tr("Wallpaper"); color: pal.text; font.family: root.fontForWeight(Font.DemiBold, pal.fam); font.pixelSize: 15; font.weight: Font.DemiBold }
+                            Text {
+                                width: parent.width; elide: Text.ElideMiddle
+                                text: lockPane.ownWall !== "" ? lockPane.ownWall.split("/").pop() : I18n.tr("Same as the desktop")
+                                color: pal.text2; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12
+                            }
+                            Row {
+                                spacing: 6
+                                SButton {
+                                    t: pal; text: I18n.tr("Choose\u2026")
+                                    onClicked: root.filePicker.pick({ mode: "image", title: I18n.tr("Lock screen wallpaper"), startDir: lockPane.ownWall !== "" ? lockPane.ownWall.substring(0, lockPane.ownWall.lastIndexOf("/")) : "" },
+                                                                    function (f) { if (f !== "" && root.bar) root.bar.lockWallpaper = f; })
+                                }
+                                SButton { t: pal; text: I18n.tr("Use Desktop Wallpaper"); visible: lockPane.ownWall !== ""; onClicked: if (root.bar) root.bar.lockWallpaper = "" }
+                            }
+                        }
+                    }
+                }
+                SLabel { t: pal; text: I18n.tr("A picture of its own stays the same when the desktop wallpaper changes. An animated desktop wallpaper only plays on the lock screen when it uses the desktop one."); }
                 Process { id: slotGet; command: ["sh", "-c", "jq -r '.mediaSlot // \"top\"' \"$HOME/.config/yukilock/settings.json\" 2>/dev/null || echo top"]
                           stdout: StdioCollector { onStreamFinished: lockPane.slot = text.trim() === "bottom" ? "bottom" : "top" } }
                 SCard {
@@ -4145,6 +4551,11 @@ Scope {
                     SRow {
                         t: pal; title: I18n.tr("Album background when the cover is enlarged")
                         SSwitch { t: pal; checked: root.bar ? root.bar.lockArtBackground : true; onToggled: v => { if (root.bar) root.bar.lockArtBackground = v; } }
+                    }
+                    SRow {
+                        t: pal; title: I18n.tr("Show notifications")
+                        subtitle: I18n.tr("Only the app and the time, never the message")
+                        SSwitch { t: pal; checked: root.bar ? root.bar.lockShowNotifs : true; onToggled: v => { if (root.bar) root.bar.lockShowNotifs = v; } }
                     }
                     SRow {
                         t: pal; title: I18n.tr("24-hour clock")
@@ -4891,7 +5302,7 @@ Scope {
                             y: 110
                             width: parent.width
                             horizontalAlignment: Text.AlignHCenter
-                            text: "YukiShell 1.0"
+                            text: "YukiShell v1.1"
                             color: pal.text
                             font.family: root.fontForWeight(Font.DemiBold, pal.fam)
                             font.pixelSize: 21

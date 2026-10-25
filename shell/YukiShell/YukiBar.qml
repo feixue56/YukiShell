@@ -309,6 +309,8 @@ Scope {
         lockClockStyle = name;
     }
     property bool uiSounds: true              // Apple-style UI sounds (volume pop, notification, screenshot, charger, lock)
+    property real uiSoundVolume: 1            // 0..1, scales every UI sound
+    property string alertSound: "glass"       // the notification sound, one of soundDir's .wav files
     property bool gamingMode: false           // Game Mode switched on by hand
     property bool gamingAuto: true            // Game Mode turns itself on while a game is fullscreen
     property bool gamingAutoActive: false
@@ -380,7 +382,8 @@ Scope {
         "spotlightEnabled", "reduceMotion", "ccEnabled", "notificationsEnabled", "clockAppEnabled", "ccStyle", "barLogoMode", "barCustomLogoPath", "barWidgets", "weekStartsMonday", "terminal", "launcher",
         "filesCmd", "clipboardCmd", "appUsage", "clipHistory", "clipAutoPaste", "emojiRecent", "screenshotDir", "screenshotSave", "screenshotClipboard", "screenshotNotify", "nightTemp", "ccControls", "ccSizes", "ccPos", "ccRowH", "ccGapPx", "ccOnColor", "ccMigRec", "visOn", "visStyle", "visColor", "visGain", "visInCC", "wallpaperDir", "wallpaperDirs", "wallpaperFavs", "wallpaperCmd", "wallpaperVideo", "wpRestorePath", "uiSounds", "gamingMode", "gamingAuto", "ccMigGame", "lockArtBackground",
         "lockClockStyle", "switcherStyle", "lockClockFont", "lockClockWeight", "lockClockMaterial", "lockClockIntensity", "lockClockTint", "lockClockDate", "autoContrast", "wallpaperAppearance", "wpPairLight", "wpPairDark",
-        "notifDnd", "dnd", "nightOn", "keepAwake",
+        "notifDnd", "dnd", "nightOn", "keepAwake", "notifBannerSecs", "notifMutedApps", "notifAppsSeen", "focusSchedule", "focusFrom", "focusTo",
+        "focusFullscreen", "focusAllowUrgent", "lockShowNotifs", "lockWallpaper", "uiSoundVolume", "alertSound",
         "kbRepeatRate", "kbRepeatDelay", "mouseSens", "mouseNatural", "mouseAccel", "tpNatural", "tpTap", "tpDwt", "tpScroll"]
     // Optional bar widgets; tray and Spotlight use their existing showTray/showSearch settings.
     property var barWidgets: ["appleMenu", "appMenus", "workspaces", "volume", "keyboard", "notifications", "wifi", "bluetooth", "privacy", "controlCenter", "clock"]
@@ -2081,7 +2084,7 @@ Scope {
         var now = Date.now(), last = soundLast[name] || 0;
         if (now - last < 90) return;                 // a burst of volume steps -> one pop per step, not a buzz
         soundLast[name] = now;
-        Quickshell.execDetached(["pw-play", "--volume=" + (vol === undefined ? 0.8 : vol), soundDir + "/" + name + ".wav"]);
+        Quickshell.execDetached(["pw-play", "--volume=" + ((vol === undefined ? 0.8 : vol) * uiSoundVolume).toFixed(3), soundDir + "/" + name + ".wav"]);
     }
     onChargingChanged: if (charging && osdReady) playSound("charge")
     function showOsd(kind, value) {
@@ -4257,11 +4260,34 @@ Scope {
     // IPC: qs -c YukiShell ipc call notifications open | close | clear   (opens on the focused screen)
     signal notifPopRequest(bool open)
     property bool notifDnd: false            // Do Not Disturb: still stored in the centre, but no popups
+    property int notifBannerSecs: 6          // how long a banner stays up (urgent ones: 10 s, or what the app asked for)
+    property var notifMutedApps: []          // apps whose banners and sounds are off; they still land in Notification Center
+    property var notifAppsSeen: []           // every app that sent something, for the per-app list in Settings
+    // Focus: Do Not Disturb on a schedule and/or while a window is fullscreen, on top of the manual switch
+    property bool focusSchedule: false
+    property int focusFrom: 1320             // minutes after midnight (22:00)
+    property int focusTo: 420                // 07:00
+    property bool focusFullscreen: false
+    property bool focusAllowUrgent: true     // urgent notifications still show during Do Not Disturb
+    property bool scheduleNow: false
+    function inFocusSchedule() {
+        var d = new Date(), m = d.getHours() * 60 + d.getMinutes();
+        return focusFrom <= focusTo ? (m >= focusFrom && m < focusTo) : (m >= focusFrom || m < focusTo);
+    }
+    Timer { interval: 30000; running: true; repeat: true; triggeredOnStart: true; onTriggered: root.scheduleNow = root.inFocusSchedule() }
+    onFocusFromChanged: scheduleNow = inFocusSchedule()
+    onFocusToChanged: scheduleNow = inFocusSchedule()
+    readonly property bool fullscreenNow: activeWin !== null && Number(activeWin.fullscreen) === 2
+    readonly property bool dndActive: notifDnd || (focusSchedule && scheduleNow) || (focusFullscreen && fullscreenNow)
+    property bool lockShowNotifs: true       // the lock screen lists unread notifications (app + time only)
+    onLockShowNotifsChanged: lockNotifWrite()
+    property string lockWallpaper: ""        // "" = the desktop wallpaper, else a picture just for the lock screen
     property real notifBlur: 14              // blur of the notification glass (smooth two-pass Gaussian, same method as the Blur slider)
     property int notifUnread: 0
     property int notifSeq: 0
     property var notifRefs: ({})
     ListModel { id: notifHist }              // notification centre history, newest first
+    readonly property int notifHistCount: notifHist.count
     ListModel { id: notifToasts }            // popups currently on screen, newest first
 
     // switched off: no daemon at all, so mako / dunst / swaync can own the D-Bus name instead
@@ -4310,9 +4336,11 @@ Scope {
             notifHist.remove(notifHist.count - 1);
             delete root.notifRefs[old];
         }
-        if ((!root.notifDnd || urg === 2) && !root.notifOpen) {
+        if (rec.app !== "" && root.notifAppsSeen.indexOf(rec.app) < 0) root.notifAppsSeen = root.notifAppsSeen.concat([rec.app]).slice(-40);
+        var muted = root.notifMutedApps.indexOf(rec.app) >= 0;
+        if (!muted && (!root.dndActive || (urg === 2 && root.focusAllowUrgent)) && !root.notifOpen) {
             // the screenshot has its own shutter sound
-            if (root.isSystemNotif(n) && !(rec.app === "yukibar" && rec.summary.indexOf("Screenshot") === 0)) root.playSound("glass", 0.7);
+            if (root.isSystemNotif(n) && !(rec.app === "yukibar" && rec.summary.indexOf("Screenshot") === 0)) root.playSound(root.alertSound, 0.7);
             notifToasts.insert(0, rec);
             while (notifToasts.count > 4) notifToasts.remove(notifToasts.count - 1);
         }
@@ -4340,7 +4368,7 @@ Scope {
         return Quickshell.iconPath(nm, true) || "";
     }
     function lockNotifWrite() {
-        var out = [], n = Math.min(notifUnread, notifHist.count, 20);
+        var out = [], n = lockShowNotifs ? Math.min(notifUnread, notifHist.count, 20) : 0;
         for (var i = 0; i < n; i++) {
             var r = notifHist.get(i);
             out.push({ id: r.nid, app: r.app || "Notification", icon: appIconFor(r.app), time: r.time });
@@ -5945,9 +5973,9 @@ Scope {
                             visible: root.barWidgetEnabled("notifications")
                             width: root.barWidgetEnabled("notifications") ? 28 : 0; height: 28
                             BarHover { id: bellHl; dark: bpal.dark; area: bellMa; hot: bellMa.containsMouse; pressed: bellMa.pressed; open: ui.pop === "notif" }
-                            Glyph { anchors.centerIn: parent; scale: bellHl.lift; width: 16; height: 16; kind: "bell"; color: root.notifDnd ? bpal.fg2 : bpal.fg }
+                            Glyph { anchors.centerIn: parent; scale: bellHl.lift; width: 16; height: 16; kind: "bell"; color: root.dndActive ? bpal.fg2 : bpal.fg }
                             Rectangle {
-                                visible: root.notifUnread > 0 && !root.notifDnd
+                                visible: root.notifUnread > 0 && !root.dndActive
                                 x: parent.width / 2 + 2; y: parent.height / 2 - 8
                                 width: 7; height: 7; radius: 3.5
                                 color: "#FF453A"
@@ -6346,7 +6374,7 @@ Scope {
                                 required property int timeout
                                 property bool shown: false
                                 property bool leaving: false
-                                readonly property int life: timeout > 0 ? timeout : (urgency === 2 ? 10000 : 6000)
+                                readonly property int life: timeout > 0 ? timeout : (urgency === 2 ? 10000 : root.notifBannerSecs * 1000)
                                 // t: 0 = a small pill at the right edge (off to the side), 1 = the full card in place
                                 property real t: (shown && !leaving) ? 1 : 0
                                 Behavior on t { NumberAnimation { duration: 770; easing.type: toast.leaving ? Easing.OutCubic : Easing.OutQuint } }
