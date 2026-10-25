@@ -529,6 +529,7 @@ var strings = {
 
     // Spotlight
     "Spotlight Search": "Поиск Spotlight",
+    "Spotlight (tap Super)": "Spotlight (нажать Super)",
     "Suggestions": "Предложения",
     "Top Hits": "Лучшие результаты",
     "Recents": "Недавние",

@@ -490,6 +490,7 @@ var strings = {
     "Sound": "サウンド",
     "Source code": "ソースコード",
     "Spotlight Search": "Spotlight 検索",
+    "Spotlight (tap Super)": "Spotlight（Super を単押し）",
     "Spotlight search": "Spotlight 検索",
     "Spotlight → Clipboard (needs wl-clipboard and cliphist). Turn off to stop recording what you copy": "Spotlight → クリップボード（wl-clipboard と cliphist が必要）。オフにするとコピーの記録を停止します",
     "Square": "四角",

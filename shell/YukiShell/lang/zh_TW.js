@@ -490,6 +490,7 @@ var strings = {
     "Sound": "聲音",
     "Source code": "原始碼",
     "Spotlight Search": "Spotlight 搜尋",
+    "Spotlight (tap Super)": "Spotlight（單按 Super）",
     "Spotlight search": "Spotlight 搜尋",
     "Spotlight → Clipboard (needs wl-clipboard and cliphist). Turn off to stop recording what you copy": "Spotlight → 剪貼簿（需要 wl-clipboard 和 cliphist）。關閉可停止記錄你拷貝的內容",
     "Square": "方形",

@@ -490,6 +490,7 @@ var strings = {
     "Sound": "사운드",
     "Source code": "소스 코드",
     "Spotlight Search": "Spotlight 검색",
+    "Spotlight (tap Super)": "Spotlight (Super 한 번 누르기)",
     "Spotlight search": "Spotlight 검색",
     "Spotlight → Clipboard (needs wl-clipboard and cliphist). Turn off to stop recording what you copy": "Spotlight → 클립보드(wl-clipboard와 cliphist 필요). 끄면 복사한 내용 기록을 중단합니다",
     "Square": "사각형",

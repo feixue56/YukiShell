@@ -2864,6 +2864,31 @@ Scope {
     }
 
     // ═════════════ MENUS ═════════════
+    // Hyprland shortcuts shown next to menu items: read from the list hypr/rice/keys.lua writes (default keys) plus the user's own
+    // choices from Settings → Keyboard → Keyboard Shortcuts, so a changed shortcut shows up in the menus too. hk("Lock Screen") → "Super+L"
+    property var bindKeys: ({})
+    function parseBinds() {
+        var map = {};
+        function rd(t, cols) {
+            var ls = String(t || "").split("\n");
+            for (var i = 0; i < ls.length; i++) {
+                var p = ls[i].replace(/\r$/, "").split("\t");
+                if (p.length >= cols && p[0] !== "") map[p[0]] = p[1];
+            }
+        }
+        rd(bindsDefault.text(), 2);
+        rd(bindsUser.text(), 2);
+        bindKeys = map;
+    }
+    FileView { id: bindsDefault; path: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/yukishell/keybinds.tsv"; watchChanges: true; printErrors: false; onFileChanged: reload(); onLoaded: root.parseBinds(); onLoadFailed: root.parseBinds() }
+    FileView { id: bindsUser; path: (Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/yukishell/keybinds.tsv"; watchChanges: true; printErrors: false; onFileChanged: reload(); onLoaded: root.parseBinds(); onLoadFailed: root.parseBinds() }
+    function hk(desc) {
+        var k = bindKeys[desc];
+        if (!k) return "";
+        var names = { SUPER: "Super", SHIFT: "Shift", CTRL: "Ctrl", CONTROL: "Ctrl", ALT: "Alt", Return: "Enter", space: "Space", Space: "Space",
+                      period: ".", comma: ",", PRINT: "Print", Print: "Print", Tab: "Tab", TAB: "Tab", left: "\u2190", right: "\u2192", up: "\u2191", down: "\u2193" };
+        return k.split("+").map(function (x) { x = x.trim(); return names[x] || (x.length === 1 ? x.toUpperCase() : x); }).join("+");
+    }
     function mi(label, shortcut, run) { return { kind: "item", label: label, shortcut: shortcut || "", run: run }; }
     function mc(label, run) { return { kind: "item", label: label, shortcut: "", run: run, confirm: true }; }
     function msep() { return { kind: "sep" }; }
@@ -3431,13 +3456,13 @@ Scope {
                 else sh(terminal + " -e sh -c 'fastfetch || neofetch; echo; read -p \"Press Enter\" _'");
             }), "m_about"));
             m.push(msep());
-            m.push(ico(mi("System Settings\u2026", "", function () { root.openSettings(); }), "gear"));
+            m.push(ico(mi("System Settings\u2026", hk("System Settings"), function () { root.openSettings(); }), "gear"));
             m.push(msep());
             m.push(ico(mi("Sleep", "", function () { root.sleepMachine(); }), "moon"));
             m.push(ico(mc("Restart\u2026", function () { sh("systemctl reboot"); }), "m_restart"));
             m.push(ico(mc("Shut Down\u2026", function () { sh("systemctl poweroff"); }), "m_power"));
             m.push(msep());
-            m.push(ico(mi("Lock Screen", "", function () { root.lockScreen(); }), "m_lock"));
+            m.push(ico(mi("Lock Screen", hk("Lock Screen"), function () { root.lockScreen(); }), "m_lock"));
             m.push(ico(mc("Log Out\u2026", function () { root.logOut(); }), "m_logout"));
         } else {
             var id = activeAppId.toLowerCase(), kind = appKind(id), has = activeAppId !== "";
@@ -3448,29 +3473,29 @@ Scope {
 
             if (name === "app") {
                 if (!has) {
-                    m.push(mi("New Terminal", "", function () { sh(terminal); }));
-                    m.push(mi("Open Home Folder", "", function () { sh(filesCmd); }));
+                    m.push(mi("New Terminal", hk("Open Terminal"), function () { sh(terminal); }));
+                    m.push(mi("Open Home Folder", hk("Open Files"), function () { sh(filesCmd); }));
                     m.push(msep());
-                    m.push(mi("Search\u2026", "", function () { root.search(); }));
+                    m.push(mi("Search\u2026", hk("Spotlight"), function () { root.search(); }));
                 } else {
                     m.push(mi(I18n.tr("About ") + n, "", function () { root.aboutActive(aw, n); }));
                     if (editor || files) {
                         m.push(msep());
-                        m.push(mi("Preferences\u2026", "Ctrl+,", keys(["ctrl"], "comma")));
+                        m.push((files ? mi("Preferences\u2026", "Ctrl+Shift+,", keys(["ctrl", "shift"], "comma")) : mi("Preferences\u2026", "Ctrl+,", keys(["ctrl"], "comma"))));
                     }
                     m.push(msep());
                     m.push(mi(I18n.tr("Hide ") + n, "", disp('hl.dsp.window.move({ workspace = "special:hidden", follow = false })')));
                     m.push(mi("Show Hidden Windows", "", disp('hl.dsp.workspace.toggle_special("hidden")')));
                     m.push(msep());
-                    m.push(mi(I18n.tr("Quit ") + n, "Ctrl+Q", function () { root.quitActive(); }));
+                    m.push(mi(I18n.tr("Quit ") + n, (term || (browser && !/firefox|librewolf|floorp|zen|waterfox/.test(id))) ? "Ctrl+Shift+Q" : "Ctrl+Q", function () { root.quitActive(); }));
                     m.push(mc(I18n.tr("Force Quit ") + n, function () { root.forceQuitActive(aw); }));
                 }
             } else if (name === "file") {
                 if (!has) {
-                    m.push(mi("New Terminal", "", function () { sh(terminal); }));
-                    m.push(mi("New Files Window", "", function () { sh(filesCmd); }));
+                    m.push(mi("New Terminal", hk("Open Terminal"), function () { sh(terminal); }));
+                    m.push(mi("New Files Window", hk("Open Files"), function () { sh(filesCmd); }));
                 } else {
-                    m.push(mi("New Window", "", function () { root.launchActive(); }));
+                    m.push(mi("New Window", term ? "Ctrl+Shift+N" : ((browser || files || editor) ? "Ctrl+N" : ""), function () { root.launchActive(); }));
                     if (browser) {
                         var ff = /firefox|librewolf|floorp|zen|waterfox/.test(id);
                         m.push(mi("New Private Window", ff ? "Ctrl+Shift+P" : "Ctrl+Shift+N", keys(["ctrl", "shift"], ff ? "p" : "n")));
@@ -3488,12 +3513,12 @@ Scope {
                     m.push(msep());
                     if (browser || files || editor) m.push(mi("Close Tab", "Ctrl+W", keys(["ctrl"], "w")));
                     if (term) m.push(mi("Close Tab", "Ctrl+Shift+W", keys(["ctrl", "shift"], "w")));
-                    m.push(mi("Close Window", "", disp('hl.dsp.window.close()')));
+                    m.push(mi("Close Window", hk("Close Window"), disp('hl.dsp.window.close()')));
                 }
                 m.push(msep());
-                if (aw) m.push(mi("Screenshot Window", "", function () { root.shotWindow(aw); }));
-                m.push(mi("Screenshot Selection\u2026", "", function () { root.shot("sel"); }));
-                m.push(mi("Screenshot Screen", "", function () { root.shot(""); }));
+                if (aw) m.push(mi("Screenshot Window", hk("Screenshot a Window"), function () { root.shotWindow(aw); }));
+                m.push(mi("Screenshot Selection\u2026", hk("Screenshot a Region"), function () { root.shot("sel"); }));
+                m.push(mi("Screenshot Screen", hk("Screenshot the Screen"), function () { root.shot(""); }));
                 m.push(mi(root.recording ? "Stop Screen Recording" : "Start Screen Recording", "", function () { root.toggleRecording(); }));
                 m.push(mi("Pick Color", "", function () { root.pickColor(); }));
             } else if (name === "edit") {
@@ -3513,16 +3538,16 @@ Scope {
                     m.push(mi("Find\u2026", "Ctrl+F", keys(["ctrl"], "f")));
                 }
                 if (has) m.push(msep());
-                m.push(mi("Clipboard History\u2026", "", function () { root.spotOpen("clip"); }));
-                m.push(mi("Emoji & Symbols", "", function () { root.spotOpen("emoji"); }));
+                m.push(mi("Clipboard History\u2026", hk("Clipboard History"), function () { root.spotOpen("clip"); }));
+                m.push(mi("Emoji & Symbols", hk("Emoji Picker"), function () { root.spotOpen("emoji"); }));
             } else if (name === "view") {
                 if (has) {
-                    m.push(mi(fsMode === 2 ? "Exit Full Screen" : "Enter Full Screen", "", disp('hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" })')));
+                    m.push(mi(fsMode === 2 ? "Exit Full Screen" : "Enter Full Screen", hk("Full Screen"), disp('hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" })')));
                     m.push(msep());
-                    m.push(mchk("Floating", "", floating, disp('hl.dsp.window.float({ action = "toggle" })')));
+                    m.push(mchk("Floating", hk("Toggle Floating"), floating, disp('hl.dsp.window.float({ action = "toggle" })')));
                     m.push(dis(mchk("Pin to All Workspaces", "", aw && aw.pinned === true, disp('hl.dsp.window.pin({ action = "toggle" })')), !floating));
                     m.push(dis(mi("Center Window", "", disp('hl.dsp.window.center()')), !floating));
-                    m.push(dis(mi("Toggle Split Direction", "", disp('hl.dsp.layout("togglesplit")')), floating));
+                    m.push(dis(mi("Toggle Split Direction", hk("Toggle Split Direction"), disp('hl.dsp.layout("togglesplit")')), floating));
                     if (!term) {
                         m.push(msep());
                         m.push(mi("Actual Size", "Ctrl+0", keys(["ctrl"], "0")));
@@ -3544,7 +3569,7 @@ Scope {
                 if (has) {
                     m.push(mi("Minimize", "", disp('hl.dsp.window.move({ workspace = "special:minimized", follow = false })')));
                     m.push(mchk("Zoom", "", fsMode === 1, disp('hl.dsp.window.fullscreen({ mode = "maximized", action = "toggle" })')));
-                    m.push(mi(floating ? "Tile Window" : "Float Window", "", disp('hl.dsp.window.float({ action = "toggle" })')));
+                    m.push(mi(floating ? "Tile Window" : "Float Window", hk("Toggle Floating"), disp('hl.dsp.window.float({ action = "toggle" })')));
                     m.push(msep());
                     m.push(mi("Move Window Left", "", disp('hl.dsp.window.move({ direction = "left" })')));
                     m.push(mi("Move Window Right", "", disp('hl.dsp.window.move({ direction = "right" })')));
@@ -3566,11 +3591,11 @@ Scope {
                     })(tls[i]);
                 }
             } else if (name === "help") {
-                m.push(mi("Search\u2026", "", function () { root.search(); }));
+                m.push(mi("Search\u2026", hk("Spotlight"), function () { root.search(); }));
                 if (has) m.push(mi(n + " Help", "", function () { root.helpFor(id, n); }));
                 m.push(msep());
                 m.push(mi("Hyprland Keybinds", "", function () { Quickshell.execDetached(["xdg-open", "https://github.com/xuefeng1331/YukiShell#keybinds"]); }));
-                m.push(mi("Reload Hyprland Config", "", function () { Quickshell.execDetached(["hyprctl", "reload"]); }));
+                m.push(mi("Reload Hyprland Config", hk("Reload Hyprland Config"), function () { Quickshell.execDetached(["hyprctl", "reload"]); }));
                 m.push(msep());
                 m.push(mi("Hyprland Wiki", "", function () { Quickshell.execDetached(["xdg-open", "https://wiki.hypr.land"]); }));
                 m.push(mi("Quickshell Documentation", "", function () { Quickshell.execDetached(["xdg-open", "https://quickshell.org/docs"]); }));

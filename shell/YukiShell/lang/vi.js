@@ -490,6 +490,7 @@ var strings = {
     "Sound": "Âm thanh",
     "Source code": "Mã nguồn",
     "Spotlight Search": "Tìm kiếm Spotlight",
+    "Spotlight (tap Super)": "Spotlight (nhấn Super)",
     "Spotlight search": "Tìm kiếm Spotlight",
     "Spotlight → Clipboard (needs wl-clipboard and cliphist). Turn off to stop recording what you copy": "Spotlight → Bảng nhớ tạm (cần wl-clipboard và cliphist). Tắt để ngừng ghi lại những gì bạn sao chép",
     "Square": "Vuông",
