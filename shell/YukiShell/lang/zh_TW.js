@@ -766,7 +766,6 @@ var strings = {
     "The color a switched-on control turns": "已開啟的控制項目所顯示的顏色",
     "Reset Control Center": "重設控制中心",
     "Back to the default controls, sizes and looks": "還原預設的控制項目、大小與外觀",
-    "Choose which controls appear in Control Center and how big each one is. You can also drag them around in Control Center → Edit Controls.": "選擇控制中心中顯示哪些控制項目及各自的大小。也可以在「控制中心 → 編輯控制項目」中拖移調整位置。",
     "Add Super, Ctrl or Alt to that key": "請為該按鍵加上 Super、Ctrl 或 Alt",
     "Already used by": "已用於",
     "Already used by another shortcut": "已被其他快速鍵使用",
@@ -814,5 +813,8 @@ var strings = {
     "Mirror": "鏡像",
     "Wave": "波形",
     "Cover": "封面",
-    "Accent": "強調色"
+    "Accent": "強調色",
+    "Choose which controls appear in Control Center and how big each one is. In Control Center → Edit Controls you can also drag a control onto any free cell and pull its corner handle to resize it.": "選擇控制中心中顯示哪些控制項目及各自的大小。在「控制中心 → 編輯控制項目」中，也可以把控制項目拖到任何空格，或拖移角落的把手調整大小。",
+    "Tidy Up": "整理",
+    "You placed some controls by hand. Pack them together again, in order": "你手動擺放了部分控制項目。按順序重新緊湊排列"
 };

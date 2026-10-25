@@ -368,7 +368,7 @@ Scope {
         "barStyle", "barGlass", "glassRim", "glassGrain", "glassLiquid", "glassBlur", "barBgOpacity", "glassRealtime", "liveWallGlass", "glassDebug", "wallpaperPath", "use24h", "language", "showDate",
         "showSeconds", "showBatteryPercent", "showTray", "showSearch",
         "spotlightEnabled", "reduceMotion", "ccEnabled", "notificationsEnabled", "clockAppEnabled", "ccStyle", "barLogoMode", "barCustomLogoPath", "barWidgets", "weekStartsMonday", "terminal", "launcher",
-        "filesCmd", "clipboardCmd", "appUsage", "clipHistory", "clipAutoPaste", "emojiRecent", "screenshotDir", "screenshotSave", "screenshotClipboard", "screenshotNotify", "nightTemp", "ccControls", "ccSizes", "ccTileSize", "ccSpacing", "ccOnColor", "ccMigRec", "visOn", "visStyle", "visColor", "visGain", "visInCC", "wallpaperDir", "wallpaperDirs", "wallpaperFavs", "wallpaperCmd", "wallpaperVideo", "wpRestorePath", "uiSounds", "gamingMode", "gamingAuto", "ccMigGame", "lockArtBackground",
+        "filesCmd", "clipboardCmd", "appUsage", "clipHistory", "clipAutoPaste", "emojiRecent", "screenshotDir", "screenshotSave", "screenshotClipboard", "screenshotNotify", "nightTemp", "ccControls", "ccSizes", "ccPos", "ccRowH", "ccGapPx", "ccOnColor", "ccMigRec", "visOn", "visStyle", "visColor", "visGain", "visInCC", "wallpaperDir", "wallpaperDirs", "wallpaperFavs", "wallpaperCmd", "wallpaperVideo", "wpRestorePath", "uiSounds", "gamingMode", "gamingAuto", "ccMigGame", "lockArtBackground",
         "lockClockStyle", "switcherStyle", "lockClockFont", "lockClockWeight", "lockClockMaterial", "lockClockIntensity", "lockClockTint", "lockClockDate", "autoContrast", "wallpaperAppearance", "wpPairLight", "wpPairDark",
         "notifDnd", "dnd", "nightOn", "keepAwake",
         "kbRepeatRate", "kbRepeatDelay", "mouseSens", "mouseNatural", "tpNatural", "tpTap", "tpDwt", "tpScroll"]
@@ -401,50 +401,84 @@ Scope {
     // ═════════════ CONTROL CENTER LAYOUT ═════════════
     // The Control Center is a 4-column grid. Every control has a size in grid cells; the enabled ones are packed
     // first-fit in the order of `ccControls`, so dragging a control onto another one simply reorders the list.
-    // `sizes` lists the sizes (in cells, default first) a control can be switched between in Edit Controls or in Settings → Control Center.
+    // `sizes` lists the sizes (in cells, default first) the badge cycles through and Settings → Control Center offers; `range` is
+    // [min width, max width, min height, max height] for the corner handle in Edit Controls, which resizes by hand to any cell size in it
+    // (default [1, 4, 1, 2]). Controls can also be dropped on any free cell: `ccPos` pins them there.
     readonly property var ccCatalog: [
-        { id: "wifi",       label: I18n.tr("Wi-Fi"),         glyph: "wifi",       w: 2, h: 1, sizes: [[2, 1], [1, 1]] },
-        { id: "bluetooth",  label: I18n.tr("Bluetooth"),     glyph: "bluetooth",  w: 2, h: 1, sizes: [[2, 1], [1, 1]] },
-        { id: "airplane",   label: I18n.tr("Airplane Mode"), glyph: "airplane",   w: 1, h: 1, sizes: [[1, 1], [2, 1]] },
-        { id: "focus",      label: I18n.tr("Focus"),         glyph: "moon",       w: 2, h: 1, sizes: [[2, 1], [1, 1]] },
-        { id: "nightshift", label: I18n.tr("Night Shift"),   glyph: "nightshift", w: 1, h: 1, sizes: [[1, 1], [2, 1]] },
-        { id: "keepawake",  label: I18n.tr("Keep Awake"),    glyph: "coffee",     w: 1, h: 1, sizes: [[1, 1], [2, 1]] },
-        { id: "darkmode",   label: I18n.tr("Dark Mode"),     glyph: "contrast",   w: 1, h: 1, sizes: [[1, 1], [2, 1]] },
-        { id: "gaming",     label: I18n.tr("Game Mode"),     glyph: "gamepad",    w: 2, h: 1, sizes: [[2, 1], [1, 1]] },
-        { id: "record",     label: I18n.tr("Screen Recording"), glyph: "record",  w: 2, h: 1, sizes: [[2, 1], [1, 1]] },
-        { id: "nowplaying", label: I18n.tr("Now Playing"),   glyph: "note",       w: 2, h: 2 },
-        { id: "display",    label: I18n.tr("Display"),       glyph: "sun",        w: 4, h: 1 },
-        { id: "sound",      label: I18n.tr("Sound"),         glyph: "speaker",    w: 4, h: 1 },
-        { id: "lock",        label: I18n.tr("Lock Screen"),     glyph: "lock",    w: 1, h: 1, sizes: [[1, 1], [2, 1]] },
-        { id: "screenshot",  label: I18n.tr("Screenshot"),      glyph: "camera",  w: 1, h: 1, sizes: [[1, 1], [2, 1]] },
-        { id: "colorpicker", label: I18n.tr("Color Picker"),    glyph: "dropper", w: 1, h: 1, sizes: [[1, 1], [2, 1]] },
-        { id: "wallpapers",  label: I18n.tr("Wallpapers"),      glyph: "photo",   w: 1, h: 1, sizes: [[1, 1], [2, 1]] },
-        { id: "settings",    label: I18n.tr("System Settings"), glyph: "gear",    w: 1, h: 1, sizes: [[1, 1], [2, 1]] },
-        { id: "micmute",     label: I18n.tr("Microphone"),      glyph: "mic",     w: 1, h: 1, sizes: [[1, 1], [2, 1]] },
-        { id: "powermode",   label: I18n.tr("Power Mode"),      glyph: "bolt",    w: 1, h: 1, sizes: [[1, 1], [2, 1]] }
+        { id: "wifi",       label: I18n.tr("Wi-Fi"),         glyph: "wifi",       w: 2, h: 1, sizes: [[2, 1], [1, 1], [4, 1], [2, 2]] },
+        { id: "bluetooth",  label: I18n.tr("Bluetooth"),     glyph: "bluetooth",  w: 2, h: 1, sizes: [[2, 1], [1, 1], [4, 1], [2, 2]] },
+        { id: "airplane",   label: I18n.tr("Airplane Mode"), glyph: "airplane",   w: 1, h: 1, sizes: [[1, 1], [2, 1], [4, 1], [2, 2]] },
+        { id: "focus",      label: I18n.tr("Focus"),         glyph: "moon",       w: 2, h: 1, sizes: [[2, 1], [1, 1], [4, 1], [2, 2]] },
+        { id: "nightshift", label: I18n.tr("Night Shift"),   glyph: "nightshift", w: 1, h: 1, sizes: [[1, 1], [2, 1], [4, 1], [2, 2]] },
+        { id: "keepawake",  label: I18n.tr("Keep Awake"),    glyph: "coffee",     w: 1, h: 1, sizes: [[1, 1], [2, 1], [4, 1], [2, 2]] },
+        { id: "darkmode",   label: I18n.tr("Dark Mode"),     glyph: "contrast",   w: 1, h: 1, sizes: [[1, 1], [2, 1], [4, 1], [2, 2]] },
+        { id: "gaming",     label: I18n.tr("Game Mode"),     glyph: "gamepad",    w: 2, h: 1, sizes: [[2, 1], [1, 1], [4, 1], [2, 2]] },
+        { id: "record",     label: I18n.tr("Screen Recording"), glyph: "record",  w: 2, h: 1, sizes: [[2, 1], [1, 1], [4, 1], [2, 2]] },
+        { id: "nowplaying", label: I18n.tr("Now Playing"),   glyph: "note",       w: 2, h: 2, sizes: [[2, 2], [4, 2]], range: [2, 4, 2, 2] },
+        { id: "display",    label: I18n.tr("Display"),       glyph: "sun",        w: 4, h: 1, sizes: [[4, 1], [3, 1], [2, 1]], range: [2, 4, 1, 1] },
+        { id: "sound",      label: I18n.tr("Sound"),         glyph: "speaker",    w: 4, h: 1, sizes: [[4, 1], [3, 1], [2, 1]], range: [2, 4, 1, 1] },
+        { id: "lock",        label: I18n.tr("Lock Screen"),     glyph: "lock",    w: 1, h: 1, sizes: [[1, 1], [2, 1], [4, 1], [2, 2]] },
+        { id: "screenshot",  label: I18n.tr("Screenshot"),      glyph: "camera",  w: 1, h: 1, sizes: [[1, 1], [2, 1], [4, 1], [2, 2]] },
+        { id: "colorpicker", label: I18n.tr("Color Picker"),    glyph: "dropper", w: 1, h: 1, sizes: [[1, 1], [2, 1], [4, 1], [2, 2]] },
+        { id: "wallpapers",  label: I18n.tr("Wallpapers"),      glyph: "photo",   w: 1, h: 1, sizes: [[1, 1], [2, 1], [4, 1], [2, 2]] },
+        { id: "settings",    label: I18n.tr("System Settings"), glyph: "gear",    w: 1, h: 1, sizes: [[1, 1], [2, 1], [4, 1], [2, 2]] },
+        { id: "micmute",     label: I18n.tr("Microphone"),      glyph: "mic",     w: 1, h: 1, sizes: [[1, 1], [2, 1], [4, 1], [2, 2]] },
+        { id: "powermode",   label: I18n.tr("Power Mode"),      glyph: "bolt",    w: 1, h: 1, sizes: [[1, 1], [2, 1], [4, 1], [2, 2]] }
     ]
     property var ccSizes: ({})             // control id → "WxH" the user picked (only for controls that offer several sizes)
+    function ccRange(id) {
+        var d = ccDef(id);
+        return d && d.range ? d.range : [1, 4, 1, 2];
+    }
     function ccSizeFor(id) {
         var d = ccDef(id);
         if (!d) return [1, 1];
-        var opts = d.sizes || [], want = String(ccSizes[id] || "");
-        for (var i = 0; i < opts.length; i++) if (opts[i][0] + "x" + opts[i][1] === want) return opts[i];
+        var m = /^(\d)x(\d)$/.exec(String(ccSizes[id] || "")), r = ccRange(id);
+        if (m) {
+            var w = parseInt(m[1]), h = parseInt(m[2]);
+            if (w >= r[0] && w <= r[1] && h >= r[2] && h <= r[3]) return [w, h];
+        }
         return [d.w, d.h];
     }
     function ccSetSize(id, w, h) { var m = {}; for (var k in ccSizes) m[k] = ccSizes[k]; m[id] = w + "x" + h; ccSizes = m; }
+    // resize by hand (the corner handle, the badge, Settings): the tile keeps its cell and wins over whatever it now overlaps
+    function ccResizeTo(id, w, h) {
+        var r = ccRange(id);
+        w = Math.max(r[0], Math.min(r[1], w)); h = Math.max(r[2], Math.min(r[3], h));
+        var cur = ccSizeFor(id);
+        if (cur[0] === w && cur[1] === h) return;
+        if (ccFree) {
+            var me = ccItem(id), pos = ccFreezeMap();
+            if (me) {
+                var col = Math.min(me.col, 4 - w);
+                pos[id] = col + "," + me.row;
+                // what it now covers is unpinned, so it flows to the next free cell instead of overlapping
+                var it = ccPlan.items;
+                for (var i = 0; i < it.length; i++) {
+                    var o = it[i];
+                    if (o.id !== id && col < o.col + o.w && o.col < col + w && me.row < o.row + o.h && o.row < me.row + h) delete pos[o.id];
+                }
+            }
+            ccPos = pos;
+        }
+        ccSetSize(id, w, h);
+    }
     function ccCycleSize(id) {
         var d = ccDef(id);
         if (!d || !d.sizes || d.sizes.length < 2) return;
         var cur = ccSizeFor(id), at = 0;
         for (var i = 0; i < d.sizes.length; i++) if (d.sizes[i][0] === cur[0] && d.sizes[i][1] === cur[1]) at = i;
         var nx = d.sizes[(at + 1) % d.sizes.length];
-        ccSetSize(id, nx[0], nx[1]);
+        ccResizeTo(id, nx[0], nx[1]);
     }
-    function ccResetLayout() { ccControls = ccDefault.slice(); ccSizes = ({}); }
-    function ccResetAll() { ccResetLayout(); ccTileSize = "regular"; ccSpacing = "normal"; ccOnColor = ""; }
+    function ccResetLayout() { ccControls = ccDefault.slice(); ccSizes = ({}); ccPos = ({}); }
+    function ccResetAll() { ccResetLayout(); ccRowH = 66; ccGapPx = 6; ccOnColor = ""; }
     // looks of the Control Center (Settings → Control Center)
-    property string ccTileSize: "regular"  // compact | regular | large: the height of one row of tiles
-    property string ccSpacing: "normal"    // tight | normal | loose: the gap between tiles
+    property real ccRowH: 66               // height of one row of tiles, px (the old Compact / Regular / Large were 56 / 66 / 78)
+    property real ccGapPx: 6               // gap between tiles, px (the old Tight / Normal / Loose were 3 / 6 / 10)
+    property var ccPos: ({})               // control id → "col,row": dropped on that cell by hand. Empty = everything packs in order.
+    readonly property bool ccFree: Object.keys(ccPos).length > 0
+    function ccTidy() { ccPos = ({}); }
     property string ccOnColor: ""          // "" = white; otherwise the colour a switched-on tile (or its icon disc) turns
     readonly property color ccOnFill: ccOnColor !== "" ? Qt.color(ccOnColor) : Qt.color("white")
     readonly property bool ccOnLight: (0.299 * ccOnFill.r + 0.587 * ccOnFill.g + 0.114 * ccOnFill.b) > 0.62
@@ -463,10 +497,25 @@ Scope {
         function mark(r, c, w, h) {
             for (var y = r; y < r + h; y++) { if (!occ[y]) occ[y] = []; for (var x = c; x < c + w; x++) occ[y][x] = true; }
         }
+        var todo = [];
         for (var i = 0; i < ids.length; i++) {
             var d = ccDef(ids[i]);
             if (!d || seen[d.id]) continue;
             seen[d.id] = true;
+            todo.push(d);
+        }
+        // controls dropped on a cell by hand keep it (the earlier one in the list wins a clash); the rest pack first-fit around them
+        var rest = [];
+        for (var q = 0; q < todo.length; q++) {
+            var pz = ccSizeFor(todo[q].id), pin = ccPosOf(todo[q].id);
+            if (pin && pin[0] + pz[0] <= cols && isFree(pin[1], pin[0], pz[0], pz[1])) {
+                mark(pin[1], pin[0], pz[0], pz[1]);
+                out.push({ id: todo[q].id, col: pin[0], row: pin[1], w: pz[0], h: pz[1] });
+                rows = Math.max(rows, pin[1] + pz[1]);
+            } else rest.push(todo[q]);
+        }
+        for (var i2 = 0; i2 < rest.length; i2++) {
+            var d = rest[i2];
             var sz = ccSizeFor(d.id), dw = sz[0], dh = sz[1];
             var placed = false;
             for (var r = 0; !placed; r++) {
@@ -487,16 +536,33 @@ Scope {
             if (out[k].id === "display" || out[k].id === "sound")
                 for (var rr = out[k].row; rr < out[k].row + out[k].h; rr++) sliderRow[rr] = true;
         }
-        for (var r2 = 0; r2 < rows; r2++)
+        for (var r2 = 0; r2 <= rows; r2++)           // one more than there are rows: the empty row below, where a control can be dropped
             ys[r2] = r2 === 0 ? 0 : ys[r2 - 1] + ccCellH + ((sliderRow[r2] || sliderRow[r2 - 1]) ? ccSliderGap : ccGap);
         for (var m = 0; m < out.length; m++) {
             out[m].y = ys[out[m].row];
             out[m].hpx = ys[out[m].row + out[m].h - 1] + ccCellH - ys[out[m].row];
         }
-        return { items: out, rows: rows, total: rows > 0 ? ys[rows - 1] + ccCellH : 0 };
+        return { items: out, rows: rows, ys: ys, total: rows > 0 ? ys[rows - 1] + ccCellH : 0 };
     }
-    readonly property real ccCellH: ({ compact: 56, regular: 66, large: 78 })[ccTileSize] || 66
-    readonly property real ccGap: ({ tight: 3, normal: 6, loose: 10 })[ccSpacing] || 6
+    function ccPosOf(id) {
+        var p = String(ccPos[id] || "").split(",");
+        if (p.length !== 2) return null;
+        var c = parseInt(p[0]), r = parseInt(p[1]);
+        return (isNaN(c) || isNaN(r) || c < 0 || c > 3 || r < 0 || r > 40) ? null : [c, r];
+    }
+    function ccItem(id) {
+        var it = ccPlan.items;
+        for (var i = 0; i < it.length; i++) if (it[i].id === id) return it[i];
+        return null;
+    }
+    // every control on the grid pinned to the cell it is in now (what a manual drop starts from, so nothing else moves)
+    function ccFreezeMap() {
+        var m = {}, it = ccPlan.items;
+        for (var i = 0; i < it.length; i++) m[it[i].id] = it[i].col + "," + it[i].row;
+        return m;
+    }
+    readonly property real ccCellH: Math.max(40, Math.min(110, ccRowH))
+    readonly property real ccGap: Math.max(1, Math.min(20, ccGapPx))
     readonly property real ccSliderGap: ccGap + 4
     readonly property var ccPlan: ccLayout(ccControls)
     function ccAdd(id) {
@@ -504,9 +570,53 @@ Scope {
     }
     function ccRemove(id) {
         ccControls = ccControls.filter(function (x) { return x !== id; });
+        if (ccPos[id] !== undefined) { var m = {}; for (var k in ccPos) if (k !== id) m[k] = ccPos[k]; ccPos = m; }
     }
-    // dropped control `id` with the pointer at (px, py) in grid coordinates: it takes the slot of the nearest control
-    function ccDrop(id, px, py, cw, ch, gridH) {
+    // Where would control `id` land if it were dropped with its top-left corner at (tx, ty), in grid pixels? → null, or
+    //   { col, row, kind }  kind: "stay" (same cell) | "free" (empty cells: it is pinned there) | "swap" (trades places with `other`)
+    //                              | "order" (automatic layout only: reorders, like dropping on the nearest control) | "none" (doesn't fit)
+    function ccTarget(id, tx, ty, cw) {
+        var me = ccItem(id);
+        if (!me) return null;
+        var plan = ccPlan, it = plan.items, i;
+        var col = Math.max(0, Math.min(4 - me.w, Math.round(tx / (cw + ccGap)))), row = 0, best = 1e18;
+        for (var r = 0; r <= plan.rows; r++) {
+            var dd = Math.abs(plan.ys[r] - ty);
+            if (dd < best) { best = dd; row = r; }
+        }
+        function clash(c, r2, w, h, skipA, skipB) {
+            var hit = [];
+            for (var k = 0; k < it.length; k++) {
+                var o = it[k];
+                if (o.id === skipA || o.id === skipB) continue;
+                if (c < o.col + o.w && o.col < c + w && r2 < o.row + o.h && o.row < r2 + h) hit.push(o);
+            }
+            return hit;
+        }
+        if (col === me.col && row === me.row) return { col: col, row: row, kind: "stay" };
+        var hits = clash(col, row, me.w, me.h, id, "");
+        if (hits.length === 0) return { col: col, row: row, kind: "free" };
+        if (!ccFree) return { col: col, row: row, kind: "order" };
+        if (hits.length === 1) {
+            var o2 = hits[0];                                    // it takes our place, if it fits there and nothing else is in the way
+            if (me.col + o2.w <= 4 && clash(me.col, me.row, o2.w, o2.h, id, o2.id).length === 0
+                && !(me.col < col + me.w && col < me.col + o2.w && me.row < row + me.h && row < me.row + o2.h))
+                return { col: col, row: row, kind: "swap", other: o2 };
+        }
+        return { col: col, row: row, kind: "none" };
+    }
+    // dropped: (tx, ty) = the tile's top-left in the grid, (px, py) = the pointer
+    function ccDrop(id, tx, ty, px, py, cw) {
+        var t = ccTarget(id, tx, ty, cw);
+        if (!t || t.kind === "stay" || t.kind === "none") return;
+        if (t.kind === "free" || t.kind === "swap") {
+            var me = ccItem(id), pos = ccFreezeMap();
+            pos[id] = t.col + "," + t.row;
+            if (t.kind === "swap" && me) pos[t.other.id] = me.col + "," + me.row;
+            ccPos = pos;
+            return;
+        }
+        // automatic layout: it takes the slot of the nearest control
         var order = ccControls.slice(), from = order.indexOf(id);
         if (from < 0) return;
         var to = -1, best = 1e18, it = ccPlan.items;
@@ -518,7 +628,6 @@ Scope {
             var dd = (cx - px) * (cx - px) + (cy - py) * (cy - py);
             if (dd < best) { best = dd; to = order.indexOf(o.id); }
         }
-        if (py > gridH + ccSliderGap) to = order.length - 1;
         if (to < 0 || to === from) return;
         order.splice(from, 1);
         order.splice(to, 0, id);
@@ -3822,7 +3931,7 @@ Scope {
     onGamingAutoChanged: { if (!gamingAuto) gamingAutoActive = false; else gameProbeDelay.restart(); }
 
     // ═════════════ SETTINGS PERSISTENCE ═════════════
-    readonly property string settingsSig: settingKeys.map(function (k) { return k === "ccSizes" ? JSON.stringify(root[k]) : String(root[k]); }).join("|")
+    readonly property string settingsSig: settingKeys.map(function (k) { return (k === "ccSizes" || k === "ccPos") ? JSON.stringify(root[k]) : String(root[k]); }).join("|")
     property bool settingsReady: false
     onSettingsSigChanged: if (settingsReady) saveTimer.restart()
     Timer { id: saveTimer; interval: 400; onTriggered: root.saveSettings() }
@@ -3863,7 +3972,12 @@ Scope {
         path: ""
         printErrors: false
         onLoaded: {
-            try { root.applySettings(JSON.parse(text()), root.settingKeys); } catch (err) { }
+            try {
+                var saved = JSON.parse(text());
+                root.applySettings(saved, root.settingKeys);
+                if (saved.ccRowH === undefined && saved.ccTileSize !== undefined) root.ccRowH = ({ compact: 56, regular: 66, large: 78 })[saved.ccTileSize] || 66;
+                if (saved.ccGapPx === undefined && saved.ccSpacing !== undefined) root.ccGapPx = ({ tight: 3, normal: 6, loose: 10 })[saved.ccSpacing] || 6;
+            } catch (err) { }
             if ((root.wallpaperDirs || []).length === 0 && (root.wallpaperDir || "").trim() !== "") root.wallpaperDirs = [root.wallpaperDir.trim()];
             root.wallpaperDir = "";                                     // the old single-folder setting now lives in wallpaperDirs
             if (!root.ccMigGame) {
@@ -7527,7 +7641,8 @@ Scope {
                     id: cc
                     z: 10
                     width: 300
-                    height: ui.ccPage === "" ? ccCol.height : (ui.ccPage === "wifi" ? ccWifiPage.height : ccBtPage.height)
+                    readonly property real maxH: Math.max(260, (ui.height - cc.y - 14) / Math.max(0.5, root.barPopupScale))
+                    height: ui.ccPage === "" ? Math.min(ccCol.height, maxH) : (ui.ccPage === "wifi" ? ccWifiPage.height : ccBtPage.height)
                     x: Math.max(8, ui.width - width - 10)
                     y: root.barH + 6
                     // opening (ColorOS 17): the panel springs out from the Control Center button, overshoots a little and
@@ -8133,10 +8248,24 @@ Scope {
                         }
                     }
 
+                    // Taller than the screen (many rows, big tiles, Edit Controls with its empty rows)? The panel scrolls instead of
+                    // running off the bottom. The 10 px around it keep the glass edges and the edit badges that overhang the tiles.
+                    Flickable {
+                        id: ccFlick
+                        x: -10; y: -10
+                        width: cc.width + 20
+                        height: cc.height + 20
+                        contentWidth: width
+                        contentHeight: ccCol.height + 20
+                        clip: true
+                        interactive: contentHeight > height + 1
+                        boundsBehavior: Flickable.StopAtBounds
+                        flickableDirection: Flickable.VerticalFlick
+
                     Column {
                         id: ccCol
-                        x: 0; y: 0
-                        width: parent.width
+                        x: 10; y: 10
+                        width: cc.width
                         spacing: 10
                         opacity: ui.ccPage === "" ? 1 : 0
                         visible: opacity > 0.01
@@ -8214,9 +8343,26 @@ Scope {
                         Item {
                             id: ccGrid
                             width: parent.width
-                            height: Math.max(root.ccCellH, root.ccPlan.total)
+                            height: Math.max(root.ccCellH, root.ccPlan.total + (ui.ccEdit ? root.ccCellH + root.ccGap : 0))     // edit mode: one empty row below to drop into
+                            Behavior on height { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
                             readonly property real cw: (width - 3 * root.ccGap) / 4
                             readonly property real chh: root.ccCellH
+
+                            // edit mode: the cells of the grid, so it is clear where a control can be dropped
+                            Repeater {
+                                model: ui.ccEdit ? (root.ccPlan.rows + 1) * 4 : 0
+                                delegate: Rectangle {
+                                    required property int index
+                                    readonly property int cr: Math.floor(index / 4)
+                                    x: (index % 4) * (ccGrid.cw + root.ccGap)
+                                    y: root.ccPlan.ys[cr] !== undefined ? root.ccPlan.ys[cr] : 0
+                                    width: ccGrid.cw; height: root.ccCellH
+                                    radius: Math.min(width, height) * 0.3
+                                    color: ccPal.dark ? Qt.rgba(1, 1, 1, 0.035) : Qt.rgba(0, 0, 0, 0.035)
+                                    border.width: 1
+                                    border.color: ccPal.dark ? Qt.rgba(1, 1, 1, 0.09) : Qt.rgba(0, 0, 0, 0.09)
+                                }
+                            }
 
                             Text {
                                 visible: root.ccPlan.items.length === 0
@@ -8296,11 +8442,85 @@ Scope {
                                         }
                                         onReleased: mouse => {
                                             var q = mapToItem(ccGrid, mouse.x, mouse.y);
+                                            var tx = ct.x, ty = ct.y;           // the tile's top-left right now (includes the drag offset)
                                             ct.dragging = false;
                                             ct.dx = 0; ct.dy = 0;
-                                            root.ccDrop(ct.modelData.id, q.x, q.y, ccGrid.cw, ccGrid.chh, ccGrid.height);
+                                            root.ccDrop(ct.modelData.id, tx, ty, q.x, q.y, ccGrid.cw);
                                         }
                                         onCanceled: { ct.dragging = false; ct.dx = 0; ct.dy = 0; }
+                                    }
+
+                                    // while dragging: the cells it would land on (red when it doesn't fit there)
+                                    readonly property var tgt: dragging ? root.ccTarget(modelData.id, x, y, ccGrid.cw) : null
+                                    Rectangle {
+                                        readonly property bool ok: ct.tgt !== null && (ct.tgt.kind === "free" || ct.tgt.kind === "swap")
+                                        visible: ct.tgt !== null && (ok || ct.tgt.kind === "none")
+                                        z: -1
+                                        x: ct.tgt ? ct.tgt.col * (ccGrid.cw + root.ccGap) - ct.x : 0
+                                        y: ct.tgt ? root.ccPlan.ys[ct.tgt.row] - ct.y : 0
+                                        width: ct.slot ? ct.slot.w * ccGrid.cw + (ct.slot.w - 1) * root.ccGap : 0
+                                        height: ct.slot ? ct.slot.hpx : 0
+                                        radius: Math.min(width, height) * 0.3
+                                        color: ok ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(1, 0.27, 0.23, 0.18)
+                                        border.width: 1.5
+                                        border.color: ok ? Qt.rgba(1, 1, 1, 0.55) : Qt.rgba(1, 0.27, 0.23, 0.7)
+                                    }
+
+                                    // resize by hand: drag the corner handle, the tile snaps to whole cells (and shows the size it will get)
+                                    property int rw: slot ? slot.w : 1
+                                    property int rh: slot ? slot.h : 1
+                                    property bool resizing: false
+                                    readonly property var rng: root.ccRange(modelData.id)
+                                    Rectangle {
+                                        visible: ct.resizing
+                                        z: -1
+                                        width: ct.rw * ccGrid.cw + (ct.rw - 1) * root.ccGap
+                                        height: ct.rh * root.ccCellH + (ct.rh - 1) * root.ccGap
+                                        radius: Math.min(width, height) * 0.3
+                                        color: Qt.rgba(1, 1, 1, 0.12)
+                                        border.width: 1.5
+                                        border.color: Qt.rgba(1, 1, 1, 0.6)
+                                    }
+                                    Rectangle {
+                                        id: grip
+                                        visible: ui.ccEdit && (ct.rng[1] > ct.rng[0] || ct.rng[3] > ct.rng[2])
+                                        z: 70
+                                        width: 20; height: 20; radius: 10
+                                        anchors.right: parent.right; anchors.bottom: parent.bottom
+                                        anchors.rightMargin: -4; anchors.bottomMargin: -4
+                                        color: ccPal.dark ? "#636366" : "#8E8E93"
+                                        border.width: 1.5
+                                        border.color: ccPal.dark ? Qt.rgba(1, 1, 1, 0.35) : "white"
+                                        scale: gripMa.pressed ? 1.18 : 1
+                                        Behavior on scale { NumberAnimation { duration: 160; easing.type: Easing.OutBack; easing.overshoot: 2.4 } }
+                                        Text {                          // a diagonal double arrow
+                                            anchors.centerIn: parent
+                                            text: "\u2922"
+                                            color: "white"; font.pixelSize: 11
+                                        }
+                                        MouseArea {
+                                            id: gripMa
+                                            anchors.fill: parent; anchors.margins: -4
+                                            preventStealing: true
+                                            cursorShape: Qt.SizeFDiagCursor
+                                            property point startP: Qt.point(0, 0)
+                                            onPressed: mouse => {
+                                                var q = mapToItem(ccGrid, mouse.x, mouse.y);
+                                                startP = Qt.point(q.x, q.y);
+                                                ct.rw = ct.slot ? ct.slot.w : 1; ct.rh = ct.slot ? ct.slot.h : 1;
+                                                ct.resizing = true;
+                                            }
+                                            onPositionChanged: mouse => {
+                                                if (!pressed || !ct.slot) return;
+                                                var q = mapToItem(ccGrid, mouse.x, mouse.y);
+                                                var wc = Math.round((ct.width + (q.x - startP.x) + root.ccGap) / (ccGrid.cw + root.ccGap));
+                                                var hc = Math.round((ct.height + (q.y - startP.y) + root.ccGap) / (root.ccCellH + root.ccGap));
+                                                ct.rw = Math.max(ct.rng[0], Math.min(Math.min(ct.rng[1], 4 - ct.slot.col), wc));
+                                                ct.rh = Math.max(ct.rng[2], Math.min(ct.rng[3], hc));
+                                            }
+                                            onReleased: { ct.resizing = false; root.ccResizeTo(ct.modelData.id, ct.rw, ct.rh); }
+                                            onCanceled: ct.resizing = false
+                                        }
                                     }
 
                                     // size badge (edit mode): click to switch between the sizes this control offers
@@ -8308,8 +8528,8 @@ Scope {
                                         readonly property var opts: ct.modelData.sizes || []
                                         visible: ui.ccEdit && opts.length > 1
                                         z: 60
-                                        anchors.right: parent.right; anchors.bottom: parent.bottom
-                                        anchors.rightMargin: -3; anchors.bottomMargin: -3
+                                        anchors.right: parent.right; anchors.top: parent.top
+                                        anchors.rightMargin: -3; anchors.topMargin: -5
                                         width: sizeLbl.implicitWidth + 12; height: 20; radius: 10
                                         color: ccPal.dark ? "#636366" : "#8E8E93"
                                         border.width: 1.5
@@ -8317,7 +8537,7 @@ Scope {
                                         Text {
                                             id: sizeLbl
                                             anchors.centerIn: parent
-                                            text: ct.slot ? (ct.slot.w + "×" + ct.slot.h) : ""
+                                            text: ct.resizing ? (ct.rw + "×" + ct.rh) : (ct.slot ? (ct.slot.w + "×" + ct.slot.h) : "")
                                             color: "white"; font.family: root.fontForWeight(Font.DemiBold, ccPal.fam); font.pixelSize: 10; font.weight: Font.DemiBold
                                         }
                                         MouseArea {
@@ -8416,6 +8636,12 @@ Scope {
                                 anchors.centerIn: parent
                                 spacing: 8
                                 CCPill {
+                                    visible: ui.ccEdit && root.ccFree
+                                    t: ccPal; gx: ccg
+                                    text: I18n.tr("Tidy Up")
+                                    onClicked: root.ccTidy()
+                                }
+                                CCPill {
                                     visible: ui.ccEdit
                                     t: ccPal; gx: ccg
                                     text: I18n.tr("Reset")
@@ -8429,6 +8655,7 @@ Scope {
                                 }
                             }
                         }
+                    }
                     }
                 }
             }

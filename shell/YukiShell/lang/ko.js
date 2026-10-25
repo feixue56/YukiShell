@@ -766,7 +766,6 @@ var strings = {
     "The color a switched-on control turns": "켜진 제어 항목의 색상",
     "Reset Control Center": "제어 센터 재설정",
     "Back to the default controls, sizes and looks": "기본 제어 항목, 크기, 모양으로 되돌립니다",
-    "Choose which controls appear in Control Center and how big each one is. You can also drag them around in Control Center → Edit Controls.": "제어 센터에 표시할 제어 항목과 각각의 크기를 선택합니다. 제어 센터 → ‘제어 항목 편집’에서 끌어서 순서를 바꿀 수도 있습니다.",
     "Add Super, Ctrl or Alt to that key": "이 키에 Super, Ctrl 또는 Alt를 함께 누르세요",
     "Already used by": "이미 사용 중:",
     "Already used by another shortcut": "다른 단축키에서 이미 사용 중입니다",
@@ -814,5 +813,8 @@ var strings = {
     "Mirror": "대칭",
     "Wave": "파형",
     "Cover": "커버",
-    "Accent": "강조색"
+    "Accent": "강조색",
+    "Choose which controls appear in Control Center and how big each one is. In Control Center → Edit Controls you can also drag a control onto any free cell and pull its corner handle to resize it.": "제어 센터에 표시할 제어 항목과 각각의 크기를 선택합니다. 제어 센터 → ‘제어 항목 편집’에서 제어 항목을 빈 칸으로 끌어 놓거나 모서리 핸들을 당겨 크기를 바꿀 수도 있습니다.",
+    "Tidy Up": "정리",
+    "You placed some controls by hand. Pack them together again, in order": "일부 제어 항목을 직접 배치했습니다. 순서대로 다시 모아 정렬합니다"
 };

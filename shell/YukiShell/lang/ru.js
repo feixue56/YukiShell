@@ -777,7 +777,6 @@ var strings = {
     "The color a switched-on control turns": "Цвет включённого элемента",
     "Reset Control Center": "Сбросить Пункт управления",
     "Back to the default controls, sizes and looks": "Вернуть стандартные элементы, размеры и оформление",
-    "Choose which controls appear in Control Center and how big each one is. You can also drag them around in Control Center → Edit Controls.": "Выберите, какие элементы показывать в Пункте управления и какого они размера. Их также можно перетаскивать в Пункт управления → Изменить элементы.",
     "Add Super, Ctrl or Alt to that key": "Добавьте к этой клавише Super, Ctrl или Alt",
     "Already used by": "Уже используется для",
     "Already used by another shortcut": "Уже используется другим сочетанием",
@@ -825,5 +824,8 @@ var strings = {
     "Mirror": "Зеркало",
     "Wave": "Волна",
     "Cover": "Обложка",
-    "Accent": "Акцент"
+    "Accent": "Акцент",
+    "Choose which controls appear in Control Center and how big each one is. In Control Center → Edit Controls you can also drag a control onto any free cell and pull its corner handle to resize it.": "Выберите, какие элементы показывать в Пункте управления и какого они размера. В режиме «Изменить элементы» элемент можно перетащить в любую свободную ячейку, а размер изменить, потянув за угловой маркер.",
+    "Tidy Up": "Упорядочить",
+    "You placed some controls by hand. Pack them together again, in order": "Часть элементов вы расставили вручную. Снова сдвинуть их вплотную, по порядку"
 };

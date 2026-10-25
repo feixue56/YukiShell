@@ -766,7 +766,6 @@ var strings = {
     "The color a switched-on control turns": "オンになったコントロールの色",
     "Reset Control Center": "コントロールセンターをリセット",
     "Back to the default controls, sizes and looks": "コントロール、サイズ、見た目を初期状態に戻します",
-    "Choose which controls appear in Control Center and how big each one is. You can also drag them around in Control Center → Edit Controls.": "コントロールセンターに表示するコントロールと、それぞれの大きさを選びます。コントロールセンター →「コントロールを編集」でドラッグして並べ替えることもできます。",
     "Add Super, Ctrl or Alt to that key": "このキーには Super、Ctrl、Alt のいずれかを組み合わせてください",
     "Already used by": "すでに使用中:",
     "Already used by another shortcut": "他のショートカットですでに使用されています",
@@ -814,5 +813,8 @@ var strings = {
     "Mirror": "ミラー",
     "Wave": "ウェーブ",
     "Cover": "カバー",
-    "Accent": "アクセント"
+    "Accent": "アクセント",
+    "Choose which controls appear in Control Center and how big each one is. In Control Center → Edit Controls you can also drag a control onto any free cell and pull its corner handle to resize it.": "コントロールセンターに表示するコントロールと、それぞれの大きさを選びます。コントロールセンター →「コントロールを編集」では、コントロールを空いているマスへドラッグしたり、角のハンドルを引いてサイズを変えたりすることもできます。",
+    "Tidy Up": "整頓",
+    "You placed some controls by hand. Pack them together again, in order": "一部のコントロールを手動で配置しています。順番どおりに詰めて並べ直します"
 };

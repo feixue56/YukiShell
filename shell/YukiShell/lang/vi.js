@@ -724,7 +724,6 @@ var strings = {
     "The color a switched-on control turns": "Màu của điều khiển khi được bật",
     "Reset Control Center": "Đặt lại Trung tâm điều khiển",
     "Back to the default controls, sizes and looks": "Quay về các điều khiển, kích thước và giao diện mặc định",
-    "Choose which controls appear in Control Center and how big each one is. You can also drag them around in Control Center → Edit Controls.": "Chọn các điều khiển hiển thị trong Trung tâm điều khiển và kích thước của từng mục. Bạn cũng có thể kéo để sắp xếp trong Trung tâm điều khiển → Chỉnh sửa điều khiển.",
     "Add Super, Ctrl or Alt to that key": "Hãy thêm Super, Ctrl hoặc Alt vào phím này",
     "Already used by": "Đã được dùng cho",
     "Already used by another shortcut": "Đã được dùng cho một phím tắt khác",
@@ -772,5 +771,8 @@ var strings = {
     "Mirror": "Đối xứng",
     "Wave": "Sóng",
     "Cover": "Bìa",
-    "Accent": "Màu nhấn"
+    "Accent": "Màu nhấn",
+    "Choose which controls appear in Control Center and how big each one is. In Control Center → Edit Controls you can also drag a control onto any free cell and pull its corner handle to resize it.": "Chọn các điều khiển hiển thị trong Trung tâm điều khiển và kích thước của từng mục. Trong Trung tâm điều khiển → Chỉnh sửa điều khiển, bạn cũng có thể kéo một điều khiển vào bất kỳ ô trống nào và kéo núm ở góc để đổi kích thước.",
+    "Tidy Up": "Sắp xếp lại",
+    "You placed some controls by hand. Pack them together again, in order": "Bạn đã tự đặt một số điều khiển. Xếp chúng lại gọn gàng theo thứ tự"
 };

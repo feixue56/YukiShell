@@ -90,10 +90,12 @@ helper show up in Settings by their description, and `tools/i18n-check.py` remin
   Control Center tile. It uses `cava` and only listens while something is playing and a visualizer is on screen; **Settings → Widgets → Audio Visualizer**
   has the style, the colour (cover / white / accent), the height and a live preview. Without `cava` it just stays off.
 - The chosen option is always a **Liquid Glass** capsule: the segmented controls in Settings, and the selected pane in the Settings sidebar (a glass tile that slides to it).
-- **A Control Center you can shape**: *Edit Controls* (or **Settings → Control Center**) lets you add, remove and drag the controls, and switch most of them between
-  a small round button and a wide tile (the grey `1×1` / `2×1` badge in edit mode). Seven extra controls are available besides the usual switches: Lock Screen,
-  Screenshot, Color Picker, Wallpapers, System Settings, Microphone mute and Power Mode (power-profiles-daemon). Settings also has the row height
-  (Compact / Regular / Large), the spacing between controls, and the colour a switched-on control turns (white by default). All of it is saved and has a Reset.
+- **A Control Center you can shape by hand**: *Edit Controls* (or **Settings → Control Center**) lets you add and remove controls, **drop any control on any free
+  cell** of the 4-column grid (an empty cell shows where; dropping on a control of the same size swaps them, *Tidy Up* packs everything together again), **pull the
+  corner handle to resize** it to whole cells (1–4 wide, 1–2 tall, sliders 2–4 wide), or tap the grey `2×1` badge to cycle through the common sizes. Seven extra controls are
+  available besides the usual switches: Lock Screen, Screenshot, Color Picker, Wallpapers, System Settings, Microphone mute and Power Mode (power-profiles-daemon).
+  Settings has sliders for the row height and the gap between controls (in pixels), and the colour a switched-on control turns (white by default). A panel taller than
+  the screen scrolls. All of it is saved and has a Reset.
 - **Settings → Users & Groups → Picture** lets you crop your profile picture (drag, scroll to zoom) before it is saved.
 - **Hardware that is not there is not offered**: Airplane Mode follows the real radio switches (rfkill), and on a PC with no Wi-Fi or Bluetooth adapter
   those Control Center tiles are greyed out (N/A), the Bluetooth icon leaves the menu bar and the two Settings panes disappear. Plug an adapter in and they come back.

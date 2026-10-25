@@ -3009,32 +3009,34 @@ Scope {
             id: paneCC
             Column {
                 spacing: 10
-                SLabel { t: pal; text: I18n.tr("Choose which controls appear in Control Center and how big each one is. You can also drag them around in Control Center → Edit Controls.") }
+                SLabel { t: pal; text: I18n.tr("Choose which controls appear in Control Center and how big each one is. In Control Center → Edit Controls you can also drag a control onto any free cell and pull its corner handle to resize it.") }
                 SLabel { t: pal; header: true; text: I18n.tr("Appearance") }
                 SCard {
                     t: pal
                     SRow {
                         t: pal
                         title: I18n.tr("Tile size")
-                        subtitle: I18n.tr("How tall each row of controls is")
-                        SSegmented {
+                        subtitle: I18n.tr("How tall each row of controls is") + " (" + Math.round(root.bar ? root.bar.ccRowH : 66) + " px)"
+                        SSlider {
                             t: pal
-                            model: ["Compact", "Regular", "Large"]
-                            segWidth: 76
-                            current: Math.max(0, ["compact", "regular", "large"].indexOf(root.bar ? root.bar.ccTileSize : "regular"))
-                            onPicked: i => { if (root.bar) root.bar.ccTileSize = ["compact", "regular", "large"][i]; }
+                            from: 44; to: 100; stepSize: 1
+                            value: root.bar ? root.bar.ccRowH : 66
+                            leftLabel: I18n.tr("Compact"); rightLabel: I18n.tr("Large")
+                            resetValue: 66
+                            onMoved: v => { if (root.bar) root.bar.ccRowH = Math.round(v); }
                         }
                     }
                     SRow {
                         t: pal
                         title: I18n.tr("Spacing")
-                        subtitle: I18n.tr("The gap between controls")
-                        SSegmented {
+                        subtitle: I18n.tr("The gap between controls") + " (" + Math.round(root.bar ? root.bar.ccGapPx : 6) + " px)"
+                        SSlider {
                             t: pal
-                            model: ["Tight", "Normal", "Loose"]
-                            segWidth: 76
-                            current: Math.max(0, ["tight", "normal", "loose"].indexOf(root.bar ? root.bar.ccSpacing : "normal"))
-                            onPicked: i => { if (root.bar) root.bar.ccSpacing = ["tight", "normal", "loose"][i]; }
+                            from: 2; to: 16; stepSize: 1
+                            value: root.bar ? root.bar.ccGapPx : 6
+                            leftLabel: I18n.tr("Tight"); rightLabel: I18n.tr("Loose")
+                            resetValue: 6
+                            onMoved: v => { if (root.bar) root.bar.ccGapPx = Math.round(v); }
                         }
                     }
                     SRow {
@@ -3057,14 +3059,7 @@ Scope {
                                         border.width: 1
                                         border.color: Qt.rgba(0, 0, 0, 0.18)
                                     }
-                                    Rectangle {
-                                        x: 0; y: 0
-                                        visible: ccsw.sel
-                                        width: 26; height: 26; radius: 13
-                                        color: "transparent"
-                                        border.width: 2
-                                        border.color: pal.text3
-                                    }
+                                    GlassRing { x: 0; y: 0; width: 26; height: 26; radius: 13; ringW: 2; on: ccsw.sel; dark: pal.dark }
                                     MouseArea {
                                         anchors.fill: parent
                                         onClicked: { if (root.bar) root.bar.ccOnColor = ccsw.modelData; }
@@ -3092,10 +3087,14 @@ Scope {
                                     visible: ccRow.resizable
                                     opacity: ccRow.enabledHere ? 1 : 0.45
                                     t: pal
-                                    model: ["Small", "Wide"]
-                                    segWidth: 58
-                                    current: root.bar && root.bar.ccSizeFor(ccRow.modelData.id)[0] > 1 ? 1 : 0
-                                    onPicked: i => { if (root.bar) root.bar.ccSetSize(ccRow.modelData.id, i === 0 ? 1 : 2, 1); }
+                                    model: (ccRow.modelData.sizes || []).map(function (z) { return z[0] + "\u00D7" + z[1]; })
+                                    segWidth: 46
+                                    current: {
+                                        var cur = root.bar ? root.bar.ccSizeFor(ccRow.modelData.id) : [0, 0], l = ccRow.modelData.sizes || [];
+                                        for (var i = 0; i < l.length; i++) if (l[i][0] === cur[0] && l[i][1] === cur[1]) return i;
+                                        return -1;
+                                    }
+                                    onPicked: i => { if (root.bar) root.bar.ccResizeTo(ccRow.modelData.id, ccRow.modelData.sizes[i][0], ccRow.modelData.sizes[i][1]); }
                                 }
                                 SSwitch {
                                     t: pal
@@ -3113,6 +3112,13 @@ Scope {
                 }
                 SCard {
                     t: pal
+                    SRow {
+                        t: pal
+                        visible: root.bar ? root.bar.ccFree : false
+                        title: I18n.tr("Tidy Up")
+                        subtitle: I18n.tr("You placed some controls by hand. Pack them together again, in order")
+                        SButton { t: pal; text: I18n.tr("Tidy Up"); onClicked: { if (root.bar) root.bar.ccTidy(); } }
+                    }
                     SRow {
                         t: pal
                         title: I18n.tr("Reset Control Center")

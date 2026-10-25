@@ -766,7 +766,6 @@ var strings = {
     "The color a switched-on control turns": "已开启的控制项所显示的颜色",
     "Reset Control Center": "重置控制中心",
     "Back to the default controls, sizes and looks": "恢复默认的控制项、大小和外观",
-    "Choose which controls appear in Control Center and how big each one is. You can also drag them around in Control Center → Edit Controls.": "选择控制中心中显示哪些控制项以及各自的大小。也可以在“控制中心 → 编辑控制项”中拖动调整位置。",
     "Add Super, Ctrl or Alt to that key": "请为该按键加上 Super、Ctrl 或 Alt",
     "Already used by": "已用于",
     "Already used by another shortcut": "已被其他快捷键使用",
@@ -814,5 +813,8 @@ var strings = {
     "Mirror": "镜像",
     "Wave": "波形",
     "Cover": "封面",
-    "Accent": "强调色"
+    "Accent": "强调色",
+    "Choose which controls appear in Control Center and how big each one is. In Control Center → Edit Controls you can also drag a control onto any free cell and pull its corner handle to resize it.": "选择控制中心中显示哪些控制项以及各自的大小。在“控制中心 → 编辑控制项”中，还可以把控制项拖到任意空格，或拖动角上的手柄调整大小。",
+    "Tidy Up": "整理",
+    "You placed some controls by hand. Pack them together again, in order": "你手动摆放了部分控制项。按顺序重新紧凑排列"
 };
