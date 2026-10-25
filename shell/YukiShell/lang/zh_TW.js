@@ -664,7 +664,7 @@ var strings = {
     "Wi-Fi": "Wi-Fi",
     "Wi-Fi and network": "Wi-Fi 與網路",
     "Wi-Fi is turned off": "Wi-Fi 已關閉",
-    "Wi-Fi Settings…": "Wi-Fi 設定…",
+    "Network Settings…": "網路設定…",
     "Widget size": "小工具大小",
     "Window": "視窗",
     "Windows behind the Dock stream live (every frame); workspace switches, new windows and wallpaper changes show through at once": "Dock 背後的視窗即時串流（每一格畫面）；切換工作區、新視窗和桌面圖片變更會立即顯示出來",

@@ -664,7 +664,7 @@ var strings = {
     "Wi-Fi": "Wi-Fi",
     "Wi-Fi and network": "Wi-Fi 및 네트워크",
     "Wi-Fi is turned off": "Wi-Fi가 꺼져 있음",
-    "Wi-Fi Settings…": "Wi-Fi 설정…",
+    "Network Settings…": "네트워크 설정…",
     "Widget size": "위젯 크기",
     "Window": "윈도우",
     "Windows behind the Dock stream live (every frame); workspace switches, new windows and wallpaper changes show through at once": "Dock 뒤의 윈도우를 실시간(매 프레임)으로 스트리밍합니다. 워크스페이스 전환, 새 윈도우, 배경화면 변경이 즉시 반영됩니다",

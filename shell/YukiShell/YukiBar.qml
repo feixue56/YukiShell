@@ -7405,7 +7405,7 @@ Scope {
                             }
                             Text {
                                 x: 10; anchors.verticalCenter: parent.verticalCenter
-                                text: I18n.tr("Wi-Fi Settings\u2026")
+                                text: I18n.tr("Network Settings\u2026")
                                 color: wsa.containsMouse ? "white" : pp.fg
                                 font.family: root.fontForWeight(Font.Normal, pp.fam); font.pixelSize: 13
                             }
@@ -7413,7 +7413,7 @@ Scope {
                                 id: wsa
                                 anchors.fill: parent
                                 hoverEnabled: true
-                                onClicked: { ui.pop = ""; root.openSettings(root.hasWifi ? "wifi" : "network"); }
+                                onClicked: { ui.pop = ""; root.openSettings("network"); }
                             }
                         }
                     }

@@ -449,7 +449,7 @@ var strings = {
 
     // Wi-Fi / Bluetooth / network
     "Wi-Fi is turned off": "Wi-Fi выключен",
-    "Wi-Fi Settings…": "Настройки Wi-Fi…",
+    "Network Settings…": "Настройки сети…",
     "Known Networks & Other Networks": "Известные и другие сети",
     "Networks": "Сети",
     "No networks found": "Сети не найдены",

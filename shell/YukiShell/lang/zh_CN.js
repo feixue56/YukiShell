@@ -664,7 +664,7 @@ var strings = {
     "Wi-Fi": "Wi-Fi",
     "Wi-Fi and network": "Wi-Fi 与网络",
     "Wi-Fi is turned off": "Wi-Fi 已关闭",
-    "Wi-Fi Settings…": "Wi-Fi 设置…",
+    "Network Settings…": "网络设置…",
     "Widget size": "小组件大小",
     "Window": "窗口",
     "Windows behind the Dock stream live (every frame); workspace switches, new windows and wallpaper changes show through at once": "程序坞背后的窗口实时流动（每一帧）；切换工作区、新窗口和墙纸更改会立即显示出来",

@@ -664,7 +664,7 @@ var strings = {
     "Wi-Fi": "Wi-Fi",
     "Wi-Fi and network": "Wi-Fi và mạng",
     "Wi-Fi is turned off": "Wi-Fi đang tắt",
-    "Wi-Fi Settings…": "Cài đặt Wi-Fi…",
+    "Network Settings…": "Cài đặt mạng…",
     "Widget size": "Kích thước tiện ích",
     "Window": "Cửa sổ",
     "Windows behind the Dock stream live (every frame); workspace switches, new windows and wallpaper changes show through at once": "Các cửa sổ phía sau Dock được truyền trực tiếp (từng khung hình); chuyển không gian làm việc, cửa sổ mới và thay đổi hình nền hiện ra ngay lập tức",

@@ -664,7 +664,7 @@ var strings = {
     "Wi-Fi": "Wi-Fi",
     "Wi-Fi and network": "Wi-Fi とネットワーク",
     "Wi-Fi is turned off": "Wi-Fi はオフです",
-    "Wi-Fi Settings…": "Wi-Fi 設定…",
+    "Network Settings…": "ネットワーク設定…",
     "Widget size": "ウィジェットのサイズ",
     "Window": "ウインドウ",
     "Windows behind the Dock stream live (every frame); workspace switches, new windows and wallpaper changes show through at once": "Dock の背後のウインドウをライブでストリーミングします（毎フレーム）。ワークスペースの切り替え、新しいウインドウ、壁紙の変更がすぐに反映されます",
