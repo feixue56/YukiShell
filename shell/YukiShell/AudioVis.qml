@@ -50,11 +50,13 @@ Scope {
     Process {
         id: cava
         running: av.wanted && av.available && !retry.running
-        // the config is written next to the runtime files each time: mono, 32 bars, 30 frames/s, values 0..100 separated by ";"
+        // the config is written next to the runtime files each time: mono, 32 bars, 60 frames/s, values 0..100 separated by ";".
+        // 60 frames/s and light smoothing (noise_reduction 25; it was 30 frames/s and 60) so the bars jump with the beat instead of
+        // gliding after it; much less smoothing makes them jittery
         command: ["sh", "-c",
             "cfg=\"${XDG_RUNTIME_DIR:-/tmp}/yukishell-cava.conf\"; "
-            + "printf '%s\\n' '[general]' \"bars = $1\" 'framerate = 30' '[input]' 'method = pipewire' '[output]' 'method = raw' 'channels = mono' 'mono_option = average' "
-            + "'raw_target = /dev/stdout' 'data_format = ascii' 'ascii_max_range = 100' 'bar_delimiter = 59' 'frame_delimiter = 10' '[smoothing]' 'noise_reduction = 60' > \"$cfg\"; "
+            + "printf '%s\\n' '[general]' \"bars = $1\" 'framerate = 60' '[input]' 'method = pipewire' '[output]' 'method = raw' 'channels = mono' 'mono_option = average' "
+            + "'raw_target = /dev/stdout' 'data_format = ascii' 'ascii_max_range = 100' 'bar_delimiter = 59' 'frame_delimiter = 10' '[smoothing]' 'noise_reduction = 25' > \"$cfg\"; "
             + "exec cava -p \"$cfg\"", "sh", String(av.count)]
         stdout: SplitParser { onRead: line => av.feed(line) }
         onExited: {
