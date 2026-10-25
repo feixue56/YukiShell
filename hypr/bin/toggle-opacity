@@ -3,7 +3,9 @@
     solid        - fully opaque background
     glass        - the liquid-glass look (background_opacity from kitty.conf, blurred by Hyprland)
     clear        - completely transparent background, blur off, so whatever is behind shows straight through
-Only the BACKGROUND changes (kitty's own background_opacity), so the text is never touched. Other apps are left alone."""
+Only the BACKGROUND changes (kitty's own background_opacity), so the text is never touched.
+Dolphin (the Files app) cycles the same three looks, but Hyprland can only fade a finished window, so there the text fades with it.
+Other apps are left alone."""
 import json, os, subprocess, sys
 
 def glass_level():
@@ -18,6 +20,8 @@ def glass_level():
 
 LEVEL = {"solid": 1.0, "glass": glass_level(), "clear": 0.0}   # kitty background opacity per state
 NEXT = {"solid": "glass", "glass": "clear", "clear": "solid"}    # the cycle, in the order solid -> glass -> clear
+# apps that cannot change only their background: the whole window is faded instead (blur stays on, so the text keeps a calm backdrop)
+FADED = {"org.kde.dolphin": {"glass": 0.84, "clear": 0.62}}
 
 def hc(*a):
     return subprocess.run(["hyprctl", *a], capture_output=True, text=True).stdout
@@ -95,11 +99,21 @@ if w["class"] == "kitty" or w["class"].startswith("dash-"):
         json.dump(state, open(STATE, "w"))
     set_no_blur(nxt == "clear")
     sys.exit(0)
-# Not a terminal. Hyprland only ever sees the finished window, so it can only fade the whole thing (text included): there is
+if w["class"] in FADED:
+    levels = FADED[w["class"]]
+    cur = window_opacity()
+    if cur < 0 or cur >= 0.99:                          # untouched: solid -> glass
+        set_window_opacity(str(levels["glass"]))
+    elif cur > (levels["glass"] + levels["clear"]) / 2:   # glass -> clear
+        set_window_opacity(str(levels["clear"]))
+    else:                                               # clear -> solid (-1 hands the opacity back to the window)
+        set_window_opacity("-1")
+    sys.exit(0)
+# Not a terminal or Files. Hyprland only ever sees the finished window, so it can only fade the whole thing (text included): there is
 # no background-only transparency for other apps, and this key deliberately leaves them alone. A leftover whole-window fade
 # from an older version of this script is still removed.
 if 0 < window_opacity() < 1:
     set_window_opacity("-1")
 else:
-    subprocess.run(["notify-send", "-a", "Transparency", "-t", "2000", "Terminals only",
-                    "Super+Shift+Tab cycles kitty: solid, glass, clear."], capture_output=True)
+    subprocess.run(["notify-send", "-a", "Transparency", "-t", "2000", "Terminals and Files only",
+                    "Super+Shift+Tab cycles kitty and Dolphin: solid, glass, clear."], capture_output=True)

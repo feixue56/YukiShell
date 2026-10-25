@@ -427,7 +427,7 @@ Scope {
         { id: "colorpicker", label: I18n.tr("Color Picker"),    glyph: "dropper", w: 1, h: 1, sizes: [[1, 1], [2, 1], [4, 1], [2, 2]] },
         { id: "wallpapers",  label: I18n.tr("Wallpapers"),      glyph: "photo",   w: 1, h: 1, sizes: [[1, 1], [2, 1], [4, 1], [2, 2]] },
         { id: "settings",    label: I18n.tr("System Settings"), glyph: "gear",    w: 1, h: 1, sizes: [[1, 1], [2, 1], [4, 1], [2, 2]] },
-        { id: "micmute",     label: I18n.tr("Microphone"),      glyph: "mic",     w: 1, h: 1, sizes: [[1, 1], [2, 1], [4, 1], [2, 2]] },
+        { id: "micmute",     label: I18n.tr("Microphone"),      glyph: "mic",     w: 4, h: 1, sizes: [[4, 1], [3, 1], [2, 1]], range: [2, 4, 1, 1] },
         { id: "powermode",   label: I18n.tr("Power Mode"),      glyph: "bolt",    w: 1, h: 1, sizes: [[1, 1], [2, 1], [4, 1], [2, 2]] }
     ]
     property var ccSizes: ({})             // control id → "WxH" the user picked (only for controls that offer several sizes)
@@ -535,10 +535,10 @@ Scope {
                 }
             }
         }
-        // pixel layout: tiles sit ccGap apart; the two slider tiles (Display, Sound) keep the wider ccSliderGap around them
+        // pixel layout: tiles sit ccGap apart; the slider tiles (Display, Sound, Microphone) keep the wider ccSliderGap around them
         var sliderRow = [], ys = [];
         for (var k = 0; k < out.length; k++) {
-            if (out[k].id === "display" || out[k].id === "sound")
+            if (out[k].id === "display" || out[k].id === "sound" || out[k].id === "micmute")
                 for (var rr = out[k].row; rr < out[k].row + out[k].h; rr++) sliderRow[rr] = true;
         }
         for (var r2 = 0; r2 <= rows; r2++)           // one more than there are rows: the empty row below, where a control can be dropped
@@ -8037,13 +8037,34 @@ Scope {
                     }
                     Component {
                         id: cMic
-                        CCSimpleTile {
-                            clickable: true
-                            on: root.micMuted
-                            onClicked: root.toggleMicMute()
+                        CCTile {
                             t: ccPal; gx: ccg
-                            kind: "mic"; flag: root.micMuted; tint: "#FF453A"; onTint: "#FF453A"
-                            title: I18n.tr("Microphone"); status: root.micMuted ? I18n.tr("Muted") : I18n.tr("On")
+                            radius: 26
+                            Text {
+                                x: 14; y: 8
+                                text: I18n.tr("Microphone")
+                                color: ccPal.fg; font.family: root.fontForWeight(Font.DemiBold, ccPal.fam); font.pixelSize: 12; font.weight: Font.DemiBold
+                            }
+                            HoverHandler { id: tileHovMic }
+                            CCSlider {
+                                tileHover: tileHovMic.hovered
+                                t: ccPal
+                                gx: ccg; glassMul: root.ccStyle === "macos" ? 3 : 1
+                                x: 12; y: 28
+                                width: parent.width - 24 - 36
+                                value: root.micMuted ? 0 : root.micVolume
+                                leftKind: "mic"; rightKind: "mic"
+                                onMoved: v => root.setMicVolume(v)
+                            }
+                            CCBtn {
+                                t: ccPal; gx: ccg
+                                d: 28
+                                glass: false
+                                x: parent.width - 12 - 28; y: 28
+                                kind: "mic"; flag: root.micMuted
+                                on: root.micMuted
+                                onClicked: root.toggleMicMute()
+                            }
                         }
                     }
                     Component {

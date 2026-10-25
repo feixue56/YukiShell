@@ -6,17 +6,16 @@ local mod = "SUPER"
 local bind = require("rice.keys").bind
 
 bind(mod .. " + Return",         hl.dsp.exec_cmd("kitty"), "Open Terminal")
-bind(mod .. " + SHIFT + Return", hl.dsp.exec_cmd("kitty", { float = true, center = true, size = "900 560" }), "Open a Floating Terminal")   -- floating terminal
 bind(mod .. " + E",              hl.dsp.exec_cmd("dolphin"), "Open Files")
 bind(mod .. " + W",              hl.dsp.exec_cmd("chromium"), "Open Browser")
-bind(mod .. " + SHIFT + E",      hl.dsp.exec_cmd("dolphin", { float = true, center = true, size = "1100 700" }), "Open a Floating Files Window")     -- floating file manager
-bind(mod .. " + SHIFT + W",      hl.dsp.exec_cmd("~/.config/hypr/bin/float-chromium"), "Open a Floating Browser Window")                             -- floating browser window (script: a running Chromium ignores exec rules)
+bind(mod .. " + SHIFT + Return", hl.dsp.exec_cmd("kitty", { float = true, center = true, size = "900 560" }), "Open a Floating Terminal")   -- floating terminal
+bind(mod .. " + SHIFT + E",      hl.dsp.exec_cmd("dolphin", { float = true, center = true, size = "1100 700" }), "Open a Floating Files Explorer")   -- floating file manager
+bind(mod .. " + SHIFT + W",      hl.dsp.exec_cmd("~/.config/hypr/bin/float-chromium"), "Open a Floating Browser")                             -- floating browser window (script: a running Chromium ignores exec rules)
 bind(mod .. " + Q",              hl.dsp.window.close(), "Close Window")
 bind(mod .. " + F",              hl.dsp.window.fullscreen(), "Full Screen")
-bind(mod .. " + T",              hl.dsp.window.float({ action = "toggle" }), "Toggle Floating")
-hl.bind(mod .. " + ALT + space",  hl.dsp.window.float({ action = "toggle" }))
+bind(mod .. " + ALT + space",    hl.dsp.window.float({ action = "toggle" }), "Toggle Floating")     -- the only key for it (Super+T was a leftover of the first rice commit)
 bind(mod .. " + ALT + D",      hl.dsp.exec_cmd("~/.config/hypr/bin/dashboard"), "Dashboard")
-bind(mod .. " + SHIFT + Tab",   hl.dsp.exec_cmd("~/.config/hypr/bin/toggle-opacity"), "Terminal Transparency")
+bind(mod .. " + SHIFT + Tab",   hl.dsp.exec_cmd("~/.config/hypr/bin/toggle-opacity"), "Terminal and Files Transparency")
 hl.bind(mod .. " + P",              hl.dsp.window.pseudo())
 bind(mod .. " + J",              hl.dsp.layout("togglesplit"), "Toggle Split Direction")
 

@@ -47,8 +47,8 @@ Before using it, check:
 | `Super+Shift+W` / `Super+Shift+E` | floating Chromium / Dolphin (1280×800 / 1100×700, centred) |
 | `Super+Q` | close window |
 | `Super+F` | fullscreen |
-| `Super+T` or `Super+Alt+Space` | toggle floating |
-| `Super+Shift+Tab` | terminal opacity: solid → liquid glass → completely transparent |
+| `Super+Alt+Space` | toggle floating |
+| `Super+Shift+Tab` | terminal and Dolphin opacity: solid → liquid glass → completely transparent (a terminal fades only its background, Dolphin fades the whole window) |
 | `Super+Alt+D` | dashboard (fastfetch, clock, cava) |
 | `Super+1..0` | go to workspace 1-10 |
 | `Super+Shift+1..0` or `Super+Alt+1..0` | move window to workspace |
@@ -92,10 +92,15 @@ helper show up in Settings by their description, and `tools/i18n-check.py` remin
   Control Center tile. It uses `cava` and only listens while something is playing and a visualizer is on screen; **Settings → Widgets → Audio Visualizer**
   has the style, the colour (cover / white / accent), the height and a live preview. Without `cava` it just stays off.
 - The chosen option is always a **Liquid Glass** capsule: the segmented controls in Settings, and the selected pane in the Settings sidebar (a glass tile that slides to it).
+- **Any colour you like**: the accent colour, the Dock icon tint, the Control Center highlight and the lock screen clock colour each have a row of presets plus a
+  rainbow dot that opens a palette and a field taking a **hex code** (`#0A84FF`, `0a84ff`, `#08f`) or an **RGB code** (`rgb(10, 132, 255)`, `10, 132, 255`).
+- **Your own apps in the Dock**: **Settings → Applications → Add to Dock** picks any installed app from a searchable list, or makes a *custom app* (a name, a command,
+  an icon and "run in a terminal"), saved as `~/.local/share/applications/yuki-custom-<name>.desktop` and removed again when you take it out of the Dock.
 - **A Control Center you can shape by hand**: *Edit Controls* (or **Settings → Control Center**) lets you add and remove controls, **drop any control on any free
   cell** of the 4-column grid (an empty cell shows where; dropping on a control of the same size swaps them, *Tidy Up* packs everything together again), **pull the
   corner handle to resize** it to whole cells (1–4 wide, 1–2 tall, sliders 2–4 wide), or tap the grey `2×1` badge to cycle through the common sizes. Seven extra controls are
-  available besides the usual switches: Lock Screen, Screenshot, Color Picker, Wallpapers, System Settings, Microphone mute and Power Mode (power-profiles-daemon).
+  available besides the usual switches: Lock Screen, Screenshot, Color Picker, Wallpapers, System Settings, Microphone and Power Mode (power-profiles-daemon).
+  **Microphone** is a slider like Sound (with a mute button beside it) that sets the input volume.
   Settings has sliders for the row height and the gap between controls (in pixels), and the colour a switched-on control turns (white by default). A panel taller than
   the screen scrolls. All of it is saved and has a Reset.
 - **Settings → Users & Groups → Picture** lets you crop your profile picture (drag, scroll to zoom) before it is saved.

@@ -673,7 +673,7 @@ Scope {
             { id: "mouse",      sec: 6, name: "Mouse",           wg: "mouse",      c1: "#A7A7AD", c2: "#7C7C82", keys: "tracking speed scroll natural" },
             { id: "trackpad",   sec: 6, name: "Trackpad",        wg: "trackpad",   c1: "#A7A7AD", c2: "#7C7C82", keys: "tap click natural scroll touchpad gestures" },
             // 7 · Apps & About
-            { id: "apps",       sec: 7, name: "Applications",    glyph: "apps",     c1: "#FFB340", c2: "#FF9500", keys: "pinned apps keep remove reset dock" },
+            { id: "apps",       sec: 7, name: "Applications",    glyph: "apps",     c1: "#FFB340", c2: "#FF9500", keys: "pinned apps keep remove add custom dock" },
             { id: "about",      sec: 7, name: "About",           glyph: "about",    c1: "#A7A7AD", c2: "#7C7C82", keys: "version github profile source author credits config folder yukidock yukishell" }
         ]
 
@@ -891,7 +891,7 @@ Scope {
         }
         onCurChanged: flick.contentY = 0
 
-        Shortcut { sequences: ["Escape", "Ctrl+W"]; onActivated: { if (cropSheet.open) cropSheet.open = false; else prefsWindow.visible = false; } }
+        Shortcut { sequences: ["Escape", "Ctrl+W"]; onActivated: { if (appSheet.open) appSheet.open = false; else if (cropSheet.open) cropSheet.open = false; else prefsWindow.visible = false; } }
 
         // Settings always opens as a floating, centred window (no windowrule needed in hyprland.conf)
         onVisibleChanged: { if (!visible) kbStop(); if (visible) { showNormal(); applyScaledSize(); floatTries = 0; floatTimer.restart(); if (root.glassState === "idle") root.startGlass(); } }
@@ -1607,6 +1607,268 @@ Scope {
                 color: pal.text3
                 opacity: flick.moving ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 300 } }
+            }
+
+            // ── app sheet: choose an installed app, or describe a custom one, to keep in the Dock ──
+            Item {
+                id: appSheet
+                anchors.fill: parent
+                z: 61
+                visible: opacity > 0.01
+                opacity: open ? 1 : 0
+                Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+
+                property bool open: false
+                property string mode: "list"            // list | custom
+                property string query: ""
+                property var apps: []
+                property string cName: ""
+                property string cCmd: ""
+                property string cIcon: ""
+                property bool cTerm: false
+                readonly property bool canAdd: cName.trim() !== "" && cCmd.trim() !== ""
+
+                function begin(m) {
+                    mode = m; query = ""; cName = ""; cCmd = ""; cIcon = ""; cTerm = false;
+                    refresh(); open = true;
+                    Qt.callLater(function () { if (m === "list") searchField.forceActiveFocus(); else nameField.forceActiveFocus(); });
+                }
+                function refresh() {
+                    var out = [], vals = DesktopEntries.applications.values, q = query.trim().toLowerCase();
+                    for (var i = 0; i < vals.length; i++) {
+                        var e = vals[i];
+                        if (!e || e.noDisplay) continue;
+                        var nm = String(e.name || "");
+                        if (q !== "" && nm.toLowerCase().indexOf(q) < 0 && String(e.genericName || "").toLowerCase().indexOf(q) < 0 && String(e.id).toLowerCase().indexOf(q) < 0) continue;
+                        out.push({ id: String(e.id), name: nm, icon: String(e.icon || "") });
+                    }
+                    out.sort(function (a, b) { return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1; });
+                    apps = out;
+                }
+                onQueryChanged: refresh()
+                function addCustom() {
+                    if (!canAdd) return;
+                    root.addCustomApp(cName.trim(), cCmd.trim(), cIcon.trim(), cTerm);
+                    open = false;
+                }
+                Connections { target: DesktopEntries.applications; function onValuesChanged() { if (appSheet.open) appSheet.refresh(); } }
+                Connections { target: prefsWindow; function onVisibleChanged() { if (!prefsWindow.visible) appSheet.open = false; } }
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 12
+                    color: Qt.rgba(0, 0, 0, 0.5)
+                    MouseArea { anchors.fill: parent; hoverEnabled: true; onWheel: w => w.accepted = true; onClicked: appSheet.open = false }
+                }
+                Rectangle {
+                    id: appCard
+                    anchors.centerIn: parent
+                    width: Math.min(460, parent.width - 40)
+                    height: Math.min(appSheet.mode === "list" ? 600 : 392, parent.height - 40)
+                    radius: 16
+                    color: pal.card
+                    border.width: 1
+                    border.color: pal.windowBorder
+                    MouseArea { anchors.fill: parent }
+                    Text {
+                        y: 18; anchors.horizontalCenter: parent.horizontalCenter
+                        text: appSheet.mode === "list" ? I18n.tr("Choose an App") : I18n.tr("Custom App")
+                        color: pal.text
+                        font.family: root.fontForWeight(Font.DemiBold, pal.fam); font.pixelSize: 16; font.weight: Font.DemiBold
+                    }
+
+                    // ── choose an installed app ──
+                    Item {
+                        visible: appSheet.mode === "list"
+                        x: 16; y: 54; width: parent.width - 32; height: parent.height - 54 - 16
+                        Rectangle {
+                            id: searchBox
+                            width: parent.width; height: 28; radius: 7
+                            color: pal.field
+                            border.width: 1; border.color: pal.cardBorder
+                            TextInput {
+                                id: searchField
+                                anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10
+                                verticalAlignment: TextInput.AlignVCenter
+                                clip: true; selectByMouse: true
+                                color: pal.text; selectionColor: pal.accent
+                                font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 13
+                                text: appSheet.query
+                                onTextChanged: appSheet.query = text
+                                Text {
+                                    visible: searchField.text === ""
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: I18n.tr("Search")
+                                    color: pal.text3; font: searchField.font
+                                }
+                            }
+                        }
+                        ListView {
+                            id: appList
+                            y: searchBox.height + 10
+                            width: parent.width; height: parent.height - y - 44
+                            clip: true
+                            boundsBehavior: Flickable.StopAtBounds
+                            model: appSheet.apps
+                            delegate: Rectangle {
+                                id: ar
+                                required property var modelData
+                                readonly property bool inDock: root.isPinned(modelData.id)
+                                width: appList.width; height: 44; radius: 8
+                                color: arMa.containsMouse && !inDock ? pal.hover : "transparent"
+                                Image {
+                                    x: 8; anchors.verticalCenter: parent.verticalCenter
+                                    width: 28; height: 28
+                                    source: root.iconSrc(ar.modelData.icon)
+                                    sourceSize: Qt.size(56, 56)
+                                    fillMode: Image.PreserveAspectFit
+                                    smooth: true; mipmap: true
+                                }
+                                Text {
+                                    x: 48; anchors.verticalCenter: parent.verticalCenter
+                                    width: parent.width - 48 - 84
+                                    elide: Text.ElideRight
+                                    text: ar.modelData.name
+                                    color: pal.text
+                                    font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 13
+                                }
+                                Text {
+                                    visible: ar.inDock
+                                    anchors.right: parent.right; anchors.rightMargin: 12; anchors.verticalCenter: parent.verticalCenter
+                                    text: "✓ " + I18n.tr("In Dock")
+                                    color: pal.text2
+                                    font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12
+                                }
+                                SButton {
+                                    visible: !ar.inDock
+                                    t: pal
+                                    anchors.right: parent.right; anchors.rightMargin: 8; anchors.verticalCenter: parent.verticalCenter
+                                    text: I18n.tr("Add")
+                                    onClicked: root.pinId(ar.modelData.id)
+                                }
+                                MouseArea { id: arMa; anchors.fill: parent; hoverEnabled: true; z: -1; onClicked: if (!ar.inDock) root.pinId(ar.modelData.id) }
+                            }
+                        }
+                        SButton { t: pal; anchors.right: parent.right; anchors.bottom: parent.bottom; text: I18n.tr("Done"); onClicked: appSheet.open = false }
+                    }
+
+                    // ── describe a custom app ──
+                    Column {
+                        visible: appSheet.mode === "custom"
+                        x: 20; y: 56; width: parent.width - 40
+                        spacing: 12
+                        Column {
+                            width: parent.width; spacing: 5
+                            Text { text: I18n.tr("Name"); color: pal.text2; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12 }
+                            Rectangle {
+                                width: parent.width; height: 28; radius: 7; color: pal.field
+                                border.width: 1; border.color: pal.cardBorder
+                                TextInput {
+                                    id: nameField
+                                    anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10
+                                    verticalAlignment: TextInput.AlignVCenter
+                                    clip: true; selectByMouse: true; maximumLength: 60
+                                    color: pal.text; selectionColor: pal.accent
+                                    font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 13
+                                    text: appSheet.cName
+                                    onTextChanged: appSheet.cName = text
+                                    KeyNavigation.tab: cmdField
+                                    onAccepted: cmdField.forceActiveFocus()
+                                }
+                            }
+                        }
+                        Column {
+                            width: parent.width; spacing: 5
+                            Text { text: I18n.tr("Command"); color: pal.text2; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12 }
+                            Rectangle {
+                                width: parent.width; height: 28; radius: 7; color: pal.field
+                                border.width: 1; border.color: pal.cardBorder
+                                TextInput {
+                                    id: cmdField
+                                    anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10
+                                    verticalAlignment: TextInput.AlignVCenter
+                                    clip: true; selectByMouse: true; maximumLength: 400
+                                    color: pal.text; selectionColor: pal.accent
+                                    font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 13
+                                    text: appSheet.cCmd
+                                    onTextChanged: appSheet.cCmd = text
+                                    KeyNavigation.tab: iconField
+                                    onAccepted: appSheet.addCustom()
+                                }
+                            }
+                            Text {
+                                width: parent.width; wrapMode: Text.WordWrap
+                                text: I18n.tr("The command as you would type it in a terminal. Put quotes around a path that contains spaces.")
+                                color: pal.text3
+                                font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 11
+                            }
+                        }
+                        Column {
+                            width: parent.width; spacing: 5
+                            Text { text: I18n.tr("Icon"); color: pal.text2; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12 }
+                            Row {
+                                width: parent.width; spacing: 8
+                                Image {
+                                    width: 28; height: 28
+                                    source: root.iconSrc(appSheet.cIcon.trim())
+                                    sourceSize: Qt.size(56, 56)
+                                    fillMode: Image.PreserveAspectFit
+                                    smooth: true; mipmap: true
+                                }
+                                Rectangle {
+                                    width: parent.width - 28 - 8 - chooseIcon.width - 8; height: 28; radius: 7; color: pal.field
+                                    border.width: 1; border.color: pal.cardBorder
+                                    TextInput {
+                                        id: iconField
+                                        anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10
+                                        verticalAlignment: TextInput.AlignVCenter
+                                        clip: true; selectByMouse: true; maximumLength: 400
+                                        color: pal.text; selectionColor: pal.accent
+                                        font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 13
+                                        text: appSheet.cIcon
+                                        onTextChanged: appSheet.cIcon = text
+                                        KeyNavigation.tab: nameField
+                                        onAccepted: appSheet.addCustom()
+                                    }
+                                }
+                                SButton {
+                                    id: chooseIcon
+                                    t: pal; y: 2
+                                    text: I18n.tr("Choose…")
+                                    onClicked: root.filePicker.pick({ mode: "image", title: I18n.tr("Choose a picture") }, function (f) { if (f !== "") appSheet.cIcon = f; })
+                                }
+                            }
+                            Text {
+                                width: parent.width; wrapMode: Text.WordWrap
+                                text: I18n.tr("An icon name (like firefox) or a picture. Leave it empty for the default icon.")
+                                color: pal.text3
+                                font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 11
+                            }
+                        }
+                        Item {
+                            width: parent.width; height: 30
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: I18n.tr("Run in a terminal")
+                                color: pal.text
+                                font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 13
+                            }
+                            SSwitch { t: pal; anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; checked: appSheet.cTerm; onToggled: v => appSheet.cTerm = v }
+                        }
+                        Row {
+                            anchors.right: parent.right
+                            spacing: 10
+                            SButton { t: pal; text: I18n.tr("Cancel"); onClicked: appSheet.open = false }
+                            Rectangle {
+                                width: addLbl.implicitWidth + 26; height: 24; radius: 6
+                                color: addMa.pressed ? Qt.darker(pal.accent, 1.2) : pal.accent
+                                opacity: appSheet.canAdd ? 1 : 0.4
+                                Text { id: addLbl; anchors.centerIn: parent; text: I18n.tr("Add to Dock"); color: "white"; font.family: root.fontForWeight(Font.DemiBold, pal.fam); font.pixelSize: 13; font.weight: Font.DemiBold }
+                                MouseArea { id: addMa; anchors.fill: parent; enabled: appSheet.canAdd; onClicked: appSheet.addCustom() }
+                            }
+                        }
+                    }
+                }
             }
 
             // ── crop sheet: covers the window while a new profile picture is being framed ──
@@ -2383,41 +2645,12 @@ Scope {
                     SRow {
                         t: pal
                         title: I18n.tr("Colour")
-                        opacity: root.iconTint ? 1 : 0.45
-                        Row {
-                            spacing: 6
-                            Repeater {
-                                model: root.tintChoices
-                                delegate: Rectangle {
-                                    required property var modelData
-                                    width: 18; height: 18; radius: 9
-                                    color: modelData.c
-                                    border.width: String(root.iconTintColor).toLowerCase() === modelData.c ? 2 : 1
-                                    border.color: String(root.iconTintColor).toLowerCase() === modelData.c ? pal.text : pal.cardBorder
-                                    MouseArea { anchors.fill: parent; enabled: root.iconTint; onClicked: root.iconTintColor = parent.modelData.c }
-                                }
-                            }
-                            Rectangle {
-                                width: 74; height: 22; radius: 6
-                                color: pal.ctrl
-                                border.width: 1
-                                border.color: pal.cardBorder
-                                TextInput {
-                                    anchors.fill: parent
-                                    anchors.leftMargin: 7; anchors.rightMargin: 7
-                                    verticalAlignment: TextInput.AlignVCenter
-                                    clip: true
-                                    selectByMouse: true
-                                    enabled: root.iconTint
-                                    maximumLength: 7
-                                    color: pal.text
-                                    selectionColor: pal.accent
-                                    font.family: root.fontForWeight(Font.Normal, pal.fam)
-                                    font.pixelSize: 12
-                                    text: root.iconTintColor
-                                    onEditingFinished: { if (/^#[0-9a-fA-F]{6}$/.test(text)) root.iconTintColor = text.toLowerCase(); else text = root.iconTintColor; }
-                                }
-                            }
+                        ColorChoice {
+                            t: pal
+                            active: root.iconTint
+                            presets: root.tintChoices.map(function (a) { return a.c; })
+                            current: String(root.iconTintColor)
+                            onPicked: hex => root.iconTintColor = hex
                         }
                     }
                     SRow {
@@ -2519,29 +2752,11 @@ Scope {
                         t: pal
                         title: I18n.tr("Accent color")
                         subtitle: I18n.tr("Highlights in the Dock menu and this window")
-                        Row {
-                            spacing: 6
-                            Repeater {
-                                model: root.accentChoices
-                                delegate: Item {
-                                    id: sw
-                                    required property var modelData
-                                    readonly property bool sel: String(root.accent).toLowerCase() === modelData.c.toLowerCase()
-                                    width: 26; height: 26
-                                    Rectangle {
-                                        x: 4; y: 4
-                                        width: 18; height: 18; radius: 9
-                                        color: sw.modelData.c
-                                        border.width: 1
-                                        border.color: Qt.rgba(0, 0, 0, 0.18)
-                                    }
-                                    GlassRing { x: 0; y: 0; width: 26; height: 26; radius: 13; ringW: 2; on: sw.sel; dark: pal.dark }   // selection ring: same centre as the dot
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        onClicked: root.setLook("accent", sw.modelData.c)
-                                    }
-                                }
-                            }
+                        ColorChoice {
+                            t: pal
+                            presets: root.accentChoices.map(function (a) { return a.c; })
+                            current: String(root.accent)
+                            onPicked: hex => root.setLook("accent", hex)
                         }
                     }
                 }
@@ -2761,17 +2976,23 @@ Scope {
                         }
                     }
                 }
-                SLabel { t: pal; text: I18n.tr("Drag icons in the Dock to reorder them. Pins are saved to ~/.config/yukidock/pinned.json.") }
-
+                SLabel { t: pal; header: true; text: I18n.tr("Add to Dock") }
                 SCard {
                     t: pal
                     SRow {
                         t: pal
-                        title: I18n.tr("Reset Dock Items")
-                        subtitle: I18n.tr("Go back to the default set of apps")
-                        SButton { t: pal; text: I18n.tr("Reset"); onClicked: root.resetPins() }
+                        title: I18n.tr("Choose an app")
+                        subtitle: I18n.tr("Pick any installed app to keep in the Dock.")
+                        SButton { t: pal; text: I18n.tr("Choose App\u2026"); onClicked: appSheet.begin("list") }
+                    }
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Add a custom app")
+                        subtitle: I18n.tr("A program or script of your own, with its own name, command and icon.")
+                        SButton { t: pal; text: I18n.tr("Custom App\u2026"); onClicked: appSheet.begin("custom") }
                     }
                 }
+                SLabel { t: pal; text: I18n.tr("Drag icons in the Dock to reorder them. Pins are saved to ~/.config/yukidock/pinned.json.") }
             }
         }
 
@@ -3048,29 +3269,11 @@ Scope {
                         t: pal
                         title: I18n.tr("Highlight color")
                         subtitle: I18n.tr("The color a switched-on control turns")
-                        Row {
-                            spacing: 6
-                            Repeater {
-                                model: ["", "#0A84FF", "#30D158", "#FFD60A", "#FF9F0A", "#FF453A", "#FF375F", "#64D2FF"]
-                                delegate: Item {
-                                    id: ccsw
-                                    required property string modelData
-                                    readonly property bool sel: (root.bar ? root.bar.ccOnColor : "").toLowerCase() === modelData.toLowerCase()
-                                    width: 26; height: 26
-                                    Rectangle {
-                                        x: 4; y: 4
-                                        width: 18; height: 18; radius: 9
-                                        color: ccsw.modelData === "" ? "white" : ccsw.modelData
-                                        border.width: 1
-                                        border.color: Qt.rgba(0, 0, 0, 0.18)
-                                    }
-                                    GlassRing { x: 0; y: 0; width: 26; height: 26; radius: 13; ringW: 2; on: ccsw.sel; dark: pal.dark }
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        onClicked: { if (root.bar) root.bar.ccOnColor = ccsw.modelData; }
-                                    }
-                                }
-                            }
+                        ColorChoice {
+                            t: pal
+                            presets: ["", "#0A84FF", "#30D158", "#FFD60A", "#FF9F0A", "#FF453A", "#FF375F", "#64D2FF"]
+                            current: root.bar ? root.bar.ccOnColor : ""
+                            onPicked: hex => { if (root.bar) root.bar.ccOnColor = hex; }
                         }
                     }
                 }
@@ -3784,23 +3987,11 @@ Scope {
                     }
                     SRow {
                         t: pal; title: I18n.tr("Color")
-                        Row {
-                            spacing: 8
-                            Repeater {
-                                model: ["#FFFFFF", "#FFE7C2", "#FFC2D6", "#D9C8FF", "#BFE3FF", "#C6F2D6", "#FFF3A8"]
-                                delegate: Rectangle {
-                                    required property string modelData
-                                    readonly property bool sel: root.bar && root.bar.lockClockTint.toUpperCase() === modelData
-                                    width: 22; height: 22; radius: 11
-                                    color: modelData
-                                    border.width: 1
-                                    border.color: Qt.rgba(0, 0, 0, 0.2)
-                                    GlassRing { anchors.fill: parent; anchors.margins: -2; radius: width / 2; ringW: 2; on: parent.sel; dark: pal.dark }
-                                    scale: swMa.pressed ? 0.88 : 1
-                                    Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutQuint } }
-                                    MouseArea { id: swMa; anchors.fill: parent; anchors.margins: -3; cursorShape: Qt.PointingHandCursor; onClicked: if (root.bar) root.bar.lockClockTint = parent.modelData }
-                                }
-                            }
+                        ColorChoice {
+                            t: pal
+                            presets: ["#FFFFFF", "#FFE7C2", "#FFC2D6", "#D9C8FF", "#BFE3FF", "#C6F2D6", "#FFF3A8"]
+                            current: root.bar ? root.bar.lockClockTint : "#FFFFFF"
+                            onPicked: hex => { if (root.bar) root.bar.lockClockTint = hex.toUpperCase(); }
                         }
                     }
                     SRow {
@@ -4642,10 +4833,40 @@ Scope {
         else openPrefs(pane);
     }
 
-    function resetPins() {
-        pinned = defaultPinned;
-        store.setText(JSON.stringify(defaultPinned.slice(), null, 2));
+    // an app id in the saved pins? (ids come with or without ".desktop", in any case)
+    function isPinned(id) {
+        var k = String(id).replace(/\.desktop$/, "").toLowerCase();
+        for (var i = 0; i < pinned.length; i++)
+            if (String(pinned[i]).replace(/\.desktop$/, "").toLowerCase() === k) return true;
+        return false;
+    }
+    function pinId(id) {
+        if (!id || isPinned(id)) return;
+        var out = pinned.slice();
+        out.push(String(id));
+        pinned = out;
+        store.setText(JSON.stringify(out, null, 2));
         rebuild();
+    }
+
+    // A custom app is a desktop entry of its own in ~/.local/share/applications (yuki-custom-<name>.desktop), so the Dock, Spotlight and
+    // `gtk-launch` treat it like any installed app. The values travel as arguments, never inside the script, and newlines are stripped
+    // so a name or command cannot add keys of its own to the entry.
+    function addCustomApp(name, cmd, icon, term) {
+        customApp.command = ["sh", "-c", [
+            'd="${XDG_DATA_HOME:-$HOME/.local/share}/applications"; mkdir -p "$d" || exit 1',
+            'name=$(printf %s "$1" | tr -d "\r\n"); cmd=$(printf %s "$2" | tr -d "\r\n" | sed "s/%/%%/g"); icon=$(printf %s "$3" | tr -d "\r\n")',
+            'slug=$(printf %s "$name" | tr "A-Z" "a-z" | tr -c "a-z0-9" "-" | sed "s/--*/-/g; s/^-//; s/-$//" | cut -c1-32)',
+            '[ -n "$slug" ] || slug=app',
+            'id="yuki-custom-$slug"; n=2; while [ -e "$d/$id.desktop" ]; do id="yuki-custom-$slug-$n"; n=$((n + 1)); done',
+            '{ printf "[Desktop Entry]\nType=Application\nName=%s\nExec=%s\n" "$name" "$cmd"; [ -n "$icon" ] && printf "Icon=%s\n" "$icon"; printf "Terminal=%s\nCategories=Utility;\nX-YukiShell-Custom=true\n" "$4"; } > "$d/$id.desktop.tmp" \\',
+            '  && mv -f "$d/$id.desktop.tmp" "$d/$id.desktop" && echo "$id"'
+        ].join("\n"), "sh", name, cmd, icon, term ? "true" : "false"];
+        customApp.running = true;
+    }
+    Process {
+        id: customApp
+        stdout: StdioCollector { onStreamFinished: { var id = text.trim(); if (/^yuki-custom-[a-z0-9-]+$/.test(id)) root.pinId(id); } }
     }
 
     // ── settings persistence (~/.config/yukidock/settings.json) ──
@@ -4804,6 +5025,9 @@ Scope {
         pinned = out;
         store.setText(JSON.stringify(out, null, 2));
         rebuild();
+        // a custom app exists only for the Dock: taking it out deletes its desktop entry too
+        if (found && item.entry && /^yuki-custom-[a-z0-9-]+$/.test(String(item.entry.id)))
+            Quickshell.execDetached(["sh", "-c", 'rm -f "${XDG_DATA_HOME:-$HOME/.local/share}/applications/$1.desktop"', "sh", String(item.entry.id)]);
     }
 
     function reorderPinned(from, to) {
