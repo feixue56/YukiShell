@@ -9197,7 +9197,7 @@ Scope {
                                 readonly property bool removable: root.wpDirsEff.length > 1
                                 height: 30; radius: 10
                                 width: Math.min(220, chipTxt.implicitWidth + 24 + (removable ? 22 : 0))
-                                color: chipMa.containsMouse ? pal.btnHover : pal.tile
+                                color: pal.tile
                                 border.width: 1; border.color: pal.tileBorder
                                 Text {
                                     id: chipTxt
@@ -9208,7 +9208,8 @@ Scope {
                                     color: pal.fg
                                     font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12
                                 }
-                                MouseArea { id: chipMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: Quickshell.execDetached(["xdg-open", dirChip.modelData]) }
+                                // only a label: clicking it used to open the folder (xdg-open, which can be a terminal), and closing that terminal again
+                                // took the whole shell down
                                 Rectangle {
                                     visible: dirChip.removable
                                     anchors.right: parent.right; anchors.rightMargin: 5; anchors.verticalCenter: parent.verticalCenter
