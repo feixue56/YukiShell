@@ -38,6 +38,10 @@ if pgrep -u "$(id -u)" -f "(^|/)(qs|quickshell)( .*)? (-c|--config) $NAME( |\$)"
 # ── environment: the variables Qt and Quickshell need, whatever started this script ──
 export XDG_SESSION_TYPE="${XDG_SESSION_TYPE:-wayland}"
 export XDG_CURRENT_DESKTOP="${XDG_CURRENT_DESKTOP:-Hyprland}"
+# terminals the shell opens (About → Open, "Run in a terminal", ...) start $SHELL: always the account's login shell, never the
+# shell of whatever script or terminal happened to (re)start YukiShell
+login_shell=$(getent passwd "$(id -un)" 2>/dev/null | cut -d: -f7)
+[ -n "$login_shell" ] && [ -x "$login_shell" ] && export SHELL="$login_shell"
 export XDG_SESSION_DESKTOP="${XDG_SESSION_DESKTOP:-Hyprland}"
 export QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-wayland}"
 # graphics settings this script picked by itself after crashes (lowest priority), then your own settings, which win

@@ -161,17 +161,18 @@ Scope {
     property int kbRepeatDelay: 250
     property real mouseSens: 0
     property bool mouseNatural: false
+    property bool mouseAccel: true      // pointer acceleration: on = libinput's default (adaptive), off = flat (1:1)
     property bool tpNatural: true
     property bool tpTap: true
     property bool tpDwt: true
     property real tpScroll: 0.7
-    readonly property string inputSig: [kbRepeatRate, kbRepeatDelay, mouseSens, mouseNatural, tpNatural, tpTap, tpDwt, tpScroll].join("|")
+    readonly property string inputSig: [kbRepeatRate, kbRepeatDelay, mouseSens, mouseNatural, mouseAccel, tpNatural, tpTap, tpDwt, tpScroll].join("|")
     onInputSigChanged: if (settingsReady) inputApplyT.restart()
     Timer { id: inputApplyT; interval: 150; onTriggered: root.applyInput() }
     function applyInput() {
         function b(v) { return v ? "true" : "false"; }
         Quickshell.execDetached(["hyprctl", "eval", "hl.config({ input = { repeat_rate = " + Math.round(kbRepeatRate) + ", repeat_delay = " + Math.round(kbRepeatDelay)
-            + ", sensitivity = " + mouseSens.toFixed(2) + ", natural_scroll = " + b(mouseNatural)
+            + ", sensitivity = " + mouseSens.toFixed(2) + ", accel_profile = \"" + (mouseAccel ? "" : "flat") + "\", natural_scroll = " + b(mouseNatural)
             + ", touchpad = { natural_scroll = " + b(tpNatural) + ", tap_to_click = " + b(tpTap) + ", disable_while_typing = " + b(tpDwt)
             + ", scroll_factor = " + tpScroll.toFixed(2) + " } } })"]);
     }
@@ -376,7 +377,7 @@ Scope {
         "filesCmd", "clipboardCmd", "appUsage", "clipHistory", "clipAutoPaste", "emojiRecent", "screenshotDir", "screenshotSave", "screenshotClipboard", "screenshotNotify", "nightTemp", "ccControls", "ccSizes", "ccPos", "ccRowH", "ccGapPx", "ccOnColor", "ccMigRec", "visOn", "visStyle", "visColor", "visGain", "visInCC", "wallpaperDir", "wallpaperDirs", "wallpaperFavs", "wallpaperCmd", "wallpaperVideo", "wpRestorePath", "uiSounds", "gamingMode", "gamingAuto", "ccMigGame", "lockArtBackground",
         "lockClockStyle", "switcherStyle", "lockClockFont", "lockClockWeight", "lockClockMaterial", "lockClockIntensity", "lockClockTint", "lockClockDate", "autoContrast", "wallpaperAppearance", "wpPairLight", "wpPairDark",
         "notifDnd", "dnd", "nightOn", "keepAwake",
-        "kbRepeatRate", "kbRepeatDelay", "mouseSens", "mouseNatural", "tpNatural", "tpTap", "tpDwt", "tpScroll"]
+        "kbRepeatRate", "kbRepeatDelay", "mouseSens", "mouseNatural", "mouseAccel", "tpNatural", "tpTap", "tpDwt", "tpScroll"]
     // Optional bar widgets; tray and Spotlight use their existing showTray/showSearch settings.
     property var barWidgets: ["appleMenu", "appMenus", "workspaces", "volume", "keyboard", "notifications", "wifi", "bluetooth", "privacy", "controlCenter", "clock"]
     function barWidgetEnabled(id) { return barWidgets.indexOf(id) >= 0; }

@@ -670,7 +670,7 @@ Scope {
             { id: "users",      sec: 5, name: "Users & Groups",  wg: "smile",      c1: "#3D9BFF", c2: "#0A6CFF", keys: "account user name picture avatar" },
             // 6 · Input
             { id: "keyboard",   sec: 6, name: "Keyboard",        wg: "keyboard",   c1: "#A7A7AD", c2: "#7C7C82", keys: "repeat rate delay layout typing" },
-            { id: "mouse",      sec: 6, name: "Mouse",           wg: "mouse",      c1: "#A7A7AD", c2: "#7C7C82", keys: "tracking speed scroll natural" },
+            { id: "mouse",      sec: 6, name: "Mouse",           wg: "mouse",      c1: "#A7A7AD", c2: "#7C7C82", keys: "tracking speed scroll natural acceleration" },
             { id: "trackpad",   sec: 6, name: "Trackpad",        wg: "trackpad",   c1: "#A7A7AD", c2: "#7C7C82", keys: "tap click natural scroll touchpad gestures" },
             // 7 · Apps & About
             { id: "apps",       sec: 7, name: "Applications",    glyph: "apps",     c1: "#FFB340", c2: "#FF9500", keys: "pinned apps keep remove add custom dock" },
@@ -3999,7 +3999,9 @@ Scope {
                     SRow {
                         t: pal; title: I18n.tr("Date")
                         SSegmented {
-                            t: pal; model: ["Friday, October 16", "Fri Oct 16"]; segWidth: 130
+                            // today's date as the lock screen will write it, in the chosen language (same formats as YukiLock's I18n.js)
+                            t: pal; segWidth: 170
+                            model: { var d = new Date(); return [I18n.locale().toString(d, I18n.tr("dddd, MMMM d")), I18n.locale().toString(d, I18n.tr("ddd MMM d"))]; }
                             current: root.bar && root.bar.lockClockDate === "short" ? 1 : 0
                             onPicked: i => { if (root.bar) { root.bar.lockClockDate = i === 1 ? "short" : "long"; root.bar.lockClockStyle = "custom"; } }
                         }
@@ -4194,6 +4196,11 @@ Scope {
                         t: pal; title: I18n.tr("Natural scrolling")
                         subtitle: I18n.tr("Content tracks finger movement")
                         SSwitch { t: pal; checked: root.bar ? root.bar.mouseNatural : false; onToggled: v => { if (root.bar) root.bar.mouseNatural = v; } }
+                    }
+                    SRow {
+                        t: pal; title: I18n.tr("Mouse acceleration")
+                        subtitle: I18n.tr("The pointer goes further when you move the mouse faster; off moves it the same distance at any speed")
+                        SSwitch { t: pal; checked: root.bar ? root.bar.mouseAccel : true; onToggled: v => { if (root.bar) root.bar.mouseAccel = v; } }
                     }
                 }
             }
