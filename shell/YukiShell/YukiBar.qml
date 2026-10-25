@@ -2261,9 +2261,10 @@ Scope {
         stdout: StdioCollector {
             onStreamFinished: {
                 var l = text.split("\n");
-                root.wifiOn = (l[0] || "").trim() === "enabled";
-                root.ethernetUp = l.some(function (x) { return x.trim() === "eth"; });
                 root.hasWifi = !l.some(function (x) { return x.trim() === "nohw"; });
+                // nmcli reports the radio "enabled" even with no adapter at all: without one, Wi-Fi is simply off
+                root.wifiOn = root.hasWifi && (l[0] || "").trim() === "enabled";
+                root.ethernetUp = l.some(function (x) { return x.trim() === "eth"; });
                 var a = (l[1] || "").trim();
                 if (a !== "") {
                     var parts = a.split(":");
@@ -2274,6 +2275,7 @@ Scope {
         }
     }
     function toggleWifi() {
+        if (!root.hasWifi) return;
         root.wifiOn = !root.wifiOn;
         Quickshell.execDetached(["nmcli", "radio", "wifi", root.wifiOn ? "on" : "off"]);
         settleTimer.restart();
@@ -2304,7 +2306,7 @@ Scope {
         return s !== "" ? s : I18n.tr("Couldn't join the network.");
     }
     function scanWifi() {
-        if (wifiListProc.running) return;
+        if (wifiListProc.running || !hasWifi) return;
         wifiScanning = true;
         wifiListProc.running = true;
     }
@@ -2347,6 +2349,7 @@ Scope {
         onExited: root.wifiScanning = false
     }
     function connectWifi(ssid, pw) {
+        if (!hasWifi) return;
         if (wifiConnProc.running) return;
         wifiError = "";
         wifiBusy = ssid;
@@ -2548,7 +2551,7 @@ Scope {
         sh(turnOn ? "rfkill block all"
                   : "rfkill unblock all; sleep 0.5; rfkill list bluetooth 2>/dev/null | grep -q . && timeout 5 bluetoothctl power on");
         airplane = turnOn;
-        wifiOn = !turnOn; btOn = !turnOn;
+        wifiOn = !turnOn && hasWifi; btOn = !turnOn;
         settleTimer.restart();
     }
     Timer { id: settleTimer; interval: 900; onTriggered: { root.refreshWifi(); root.refreshBt(); root.refreshAirplane(); } }
@@ -7190,6 +7193,8 @@ Scope {
                                 anchors.right: parent.right; anchors.rightMargin: 4
                                 anchors.verticalCenter: parent.verticalCenter
                                 checked: root.wifiOn
+                                enabled: root.hasWifi           // no Wi-Fi adapter: the switch can't be used
+                                opacity: root.hasWifi ? 1 : 0.4
                                 onToggled: { root.toggleWifi(); wifiAfter.restart(); }
                             }
                         }
@@ -7211,7 +7216,7 @@ Scope {
                         }
 
                         Text {
-                            visible: !root.wifiOn
+                            visible: !root.wifiOn && root.hasWifi
                             width: parent.width; height: 56
                             horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
                             text: I18n.tr("Wi-Fi is turned off")
@@ -7219,10 +7224,10 @@ Scope {
                             font.family: root.fontForWeight(Font.Normal, pp.fam); font.pixelSize: 13
                         }
                         Text {
-                            visible: root.wifiOn && root.wifiNets.length === 0
+                            visible: !root.hasWifi || (root.wifiOn && root.wifiNets.length === 0)
                             width: parent.width; height: 56
                             horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                            text: root.wifiScanning ? I18n.tr("Searching\u2026") : I18n.tr("No networks found")
+                            text: !root.hasWifi ? I18n.tr("No Wi-Fi adapter") : root.wifiScanning ? I18n.tr("Searching\u2026") : I18n.tr("No networks found")
                             color: pp.fg2
                             font.family: root.fontForWeight(Font.Normal, pp.fam); font.pixelSize: 13
                         }

@@ -407,6 +407,7 @@ var strings = {
     "No lyrics found": "未找到歌词",
     "No matching files": "没有匹配的文件",
     "No networks found": "未找到网络",
+    "No Wi-Fi adapter": "没有 Wi-Fi 适配器",
     "No new devices found": "未发现新设备",
     "No Notifications": "没有通知",
     "No output devices": "没有输出设备",

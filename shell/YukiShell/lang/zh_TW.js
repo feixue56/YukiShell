@@ -407,6 +407,7 @@ var strings = {
     "No lyrics found": "找不到歌詞",
     "No matching files": "沒有符合的檔案",
     "No networks found": "找不到網路",
+    "No Wi-Fi adapter": "沒有 Wi-Fi 介面卡",
     "No new devices found": "沒有發現新裝置",
     "No Notifications": "沒有通知",
     "No output devices": "沒有輸出裝置",

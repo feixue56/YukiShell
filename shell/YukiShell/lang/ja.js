@@ -407,6 +407,7 @@ var strings = {
     "No lyrics found": "歌詞が見つかりません",
     "No matching files": "一致するファイルがありません",
     "No networks found": "ネットワークが見つかりません",
+    "No Wi-Fi adapter": "Wi-Fiアダプタがありません",
     "No new devices found": "新しいデバイスは見つかりません",
     "No Notifications": "通知なし",
     "No output devices": "出力デバイスがありません",

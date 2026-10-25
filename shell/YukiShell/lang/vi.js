@@ -407,6 +407,7 @@ var strings = {
     "No lyrics found": "Không tìm thấy lời bài hát",
     "No matching files": "Không có tệp phù hợp",
     "No networks found": "Không tìm thấy mạng",
+    "No Wi-Fi adapter": "Không có bộ thu Wi-Fi",
     "No new devices found": "Không tìm thấy thiết bị mới",
     "No Notifications": "Không có thông báo",
     "No output devices": "Không có thiết bị đầu ra",

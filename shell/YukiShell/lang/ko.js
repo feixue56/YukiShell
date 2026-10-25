@@ -407,6 +407,7 @@ var strings = {
     "No lyrics found": "가사를 찾을 수 없음",
     "No matching files": "일치하는 파일 없음",
     "No networks found": "네트워크를 찾을 수 없음",
+    "No Wi-Fi adapter": "Wi-Fi 어댑터 없음",
     "No new devices found": "새로운 기기를 찾지 못함",
     "No Notifications": "알림 없음",
     "No output devices": "출력 기기 없음",

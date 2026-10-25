@@ -742,7 +742,7 @@ Item {
             width: 56 * w.k
             height: 52 * w.k
             kind: w.playing ? "pause" : "play"
-            col: w.fa(w.dark ? 0.84 : 0.78)
+            col: w.ia(w.dark ? 0.84 : 0.78)
             gw: (w.playing ? 30 : 32) * w.k
             gh: 38 * w.k
             onClicked: w.togglePlaying()

@@ -453,6 +453,7 @@ var strings = {
     "Known Networks & Other Networks": "Известные и другие сети",
     "Networks": "Сети",
     "No networks found": "Сети не найдены",
+    "No Wi-Fi adapter": "Нет адаптера Wi-Fi",
     "Connected": "Подключено",
     "Not Connected": "Не подключено",
     "Not connected": "Не подключено",
