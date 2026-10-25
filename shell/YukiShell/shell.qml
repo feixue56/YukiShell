@@ -22,6 +22,13 @@ import Quickshell.Io
 import Quickshell.Hyprland
 
 ShellRoot {
+    id: shellRoot
+    // the big parts are created from file:// URLs in Component.onCompleted below (see makePart), so these start empty
+    property var yukiBar: null
+    property var yukiDock: null
+    property var yukiWidgets: null
+    property var clockApp: null
+    property var aboutApp: null
     // The UI font ("Open Runde") ships with YukiShell: registered here, first, so every Text below can use it
     // without installing anything. (The installer also copies it to ~/.local/share/fonts.)
     FontLoader { id: uiFontLoader; source: Qt.resolvedUrl("assets/fonts/OpenRunde-Regular.otf") }
@@ -116,7 +123,7 @@ ShellRoot {
         // crashed. While something records, the glass keeps its last frames (and refreshes slowly, only while a popover is open);
         // live capture resumes 1.5 s after the recording ends, spread over 0.6 s.
         property bool captureQuiet: false
-        readonly property bool wantQuiet: yukiBar.recording || yukiBar.recRun || yukiBar.privacy.share.length > 0
+        readonly property bool wantQuiet: !!yukiBar && (yukiBar.recording || yukiBar.recRun || yukiBar.privacy.share.length > 0)
         onWantQuietChanged: { if (wantQuiet) { quietRelease.stop(); captureQuiet = true; } else quietRelease.restart(); }
         Timer { id: quietRelease; interval: 1500; onTriggered: sharedHub.captureQuiet = false }
 
@@ -131,17 +138,17 @@ ShellRoot {
         //   stage 2 (captureCut, 0.5 s later): the capture source is released. A short hold never reaches stage 2.
         // The hold starts on every openwindow / closewindow and ends 1.2 s after the last one; the previews then resume.
         // windowCapture = false (Dock Preferences, or  qs -c <config> ipc call glass captures false) switches the window previews off.
-        readonly property bool windowCapture: yukiDock.windowCapture      // Dock Preferences -> "Live window capture" (saved in yukidock/settings.json)
+        readonly property bool windowCapture: yukiDock ? yukiDock.windowCapture : true      // Dock Preferences -> "Live window capture" (saved in yukidock/settings.json)
         property bool churn: false
-        readonly property bool captureHold: churn || !windowCapture || yukiBar.gaming
+        readonly property bool captureHold: churn || !windowCapture || (!!yukiBar && yukiBar.gaming)
         // Liquid Glass: only stage 1, and only while windows open / close. Live capture pauses (the glass keeps its last frame, the capture
         // source stays attached, so nothing goes blank), then resumes. Not tied to the previews switch, never cut.
-        readonly property bool glassHold: churn || yukiBar.gaming
+        readonly property bool glassHold: churn || (!!yukiBar && yukiBar.gaming)
         property bool captureCut: false
         // Dock previews no longer pause as a whole while windows open / close (that froze every preview for ~1.5 s):
         // only the CLOSING window's own preview stops its live capture, the moment Hyprland announces the close
         // (before the toplevel is destroyed, so no frame is ever aborted in flight). Everything else keeps running.
-        readonly property bool previewHold: !windowCapture || yukiBar.gaming
+        readonly property bool previewHold: !windowCapture || (!!yukiBar && yukiBar.gaming)
         property var closingWins: ({})
         onCaptureHoldChanged: { if (captureHold) cutDelay.restart(); else { cutDelay.stop(); captureCut = false; } }
         Timer { id: cutDelay; interval: 500; onTriggered: sharedHub.captureCut = true }
@@ -376,16 +383,29 @@ ShellRoot {
     }
 
     AudioVis { id: audioVis }
-    YukiBar { id: yukiBar; hub: sharedHub }
-    YukiDock { id: yukiDock; hub: sharedHub; bar: yukiBar }
-    YukiWidgets { id: yukiWidgets; hub: sharedHub }
-    ClockApp { id: clockApp; hub: sharedHub }
-    AboutApp { id: aboutApp; hub: sharedHub }
 
+    // Startup speed: Quickshell hands its config to Qt through its own qs:@/ URLs, and Qt only keeps compiled QML on disk
+    // (~/.cache/quickshell/qmlcache) for file:// URLs. So every start compiled all ~1.2 MB of QML again: 3.7 s before anything
+    // showed. Created from file:// URLs instead, a start after the first one reads the compiled copies (YukiBar.qml: 2.5 s -> 0.05 s).
+    // A file that changed is simply compiled again. If the file:// route fails for some reason, the normal route is used.
+    function makePart(name, props) {
+        var urls = ["file://" + String(Quickshell.shellDir).replace(/\/$/, "") + "/" + name + ".qml", Qt.resolvedUrl(name + ".qml")];
+        for (var i = 0; i < urls.length; i++) {
+            var c = Qt.createComponent(urls[i], Component.PreferSynchronous);
+            if (c.status === Component.Ready) {
+                var o = c.createObject(shellRoot, props);
+                if (o) return o;
+            }
+            console.warn("[startup] could not load", urls[i], c.status === Component.Error ? c.errorString() : "");
+        }
+        return null;
+    }
     Component.onCompleted: {
-        sharedHub.bar = yukiBar;
-        sharedHub.dock = yukiDock;
-        sharedHub.widgets = yukiWidgets;
+        yukiBar = makePart("YukiBar", { hub: sharedHub });
+        yukiDock = makePart("YukiDock", { hub: sharedHub, bar: yukiBar });
+        yukiWidgets = makePart("YukiWidgets", { hub: sharedHub });
+        clockApp = makePart("ClockApp", { hub: sharedHub });
+        aboutApp = makePart("AboutApp", { hub: sharedHub });
     }
 
     // reopen settings even when both the Dock and the Menu Bar are disabled:

@@ -4723,7 +4723,8 @@ Scope {
         wpApplyProc.command = ["sh", "-c", script, "sh", p];
         wpApplyProc.running = true;
     }
-    Timer { interval: 3500; running: true; onTriggered: root.wpRestore() }
+    // (an animated wallpaper is usually playing by now: yuki-start starts it at login, and then this leaves it alone)
+    Timer { interval: 1000; running: true; onTriggered: root.wpRestore() }
     Process {
         id: setwallProc
         stdout: StdioCollector {

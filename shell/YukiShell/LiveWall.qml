@@ -30,11 +30,21 @@ Item {
     //   * a decoder is only torn down once the pause has LASTED (30-60 s, a different moment for each), and resuming earlier cancels the teardown;
     //   * a decoder that is gone is started again at a random moment within ~5 s of the resume (they would keep the main thread busy
     //     for good if they all started together), the still picture shows until then.
-    property bool active: wanted
+    //   * the very first video player in the shell costs ~1 s of main-thread time (Qt Multimedia setting itself up, measured with
+    //     one player alone, hardware decoding on or off). At startup that froze the bar and the Dock just as they slid in, so the
+    //     long-lived players (startDelay -1) wait until ~3 s after they were made; the still picture shows until then.
+    property bool active: false
+    readonly property real born: Date.now()
+    function startSoon() {
+        var d = startDelay >= 0 ? Math.max(1, startDelay) : Math.max(300 + Math.random() * 4700, born + 3000 - Date.now());
+        startT.interval = d;
+        startT.restart();
+    }
+    Component.onCompleted: if (wanted) startSoon()
     onWantedChanged: {
         if (wanted) {
             stopT.stop();
-            if (!active) { startT.interval = startDelay >= 0 ? Math.max(1, startDelay) : 300 + Math.random() * 4700; startT.restart(); }
+            if (!active) startSoon();
         } else if (active) {
             startT.stop();
             // switched off for good (no video, real-time glass off): gone at once. Only a covered desktop waits.

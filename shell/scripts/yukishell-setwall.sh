@@ -127,6 +127,16 @@ stop_video() {
     pkill -KILL -x mpvpaper 2>/dev/null
 }
 
+# this video is already the wallpaper and its supervisor is alive (yuki-start restored it at login before the shell was up):
+# nothing to do. Restarting it would make the desktop blink and start the clip over.
+video_running() {
+    [ "$(cat "$state" 2>/dev/null)" = "$1" ] && [ -f "$supfile" ] || return 1
+    while read -r g; do
+        [ -n "$g" ] && tr '\0' ' ' < "/proc/$g/cmdline" 2>/dev/null | grep -q ' wallsup ' && pgrep -x mpvpaper >/dev/null && return 0
+    done < "$supfile"
+    return 1
+}
+
 # keeps mpvpaper running for as long as this video is the chosen wallpaper (restarts it if it crashes)
 start_video() {
     src="$1"; play="$2"
@@ -180,9 +190,17 @@ esac
 
 if is_video "$f"; then
     still=$(frame_for "$f")
+    if video_running "$f"; then printf '%s\n' "$still"; exit 0; fi
     printf '%s\n' "$f" > "$state"
     # the frame goes up first, so there is never a black flash and the glass has something to refract right away
-    awww_ready && [ -s "$still" ] && awww img "$still" --transition-type grow --transition-duration 0.8 >/dev/null 2>&1
+    # (at login awww has usually restored that very frame already: then it is not faded in a second time;
+    # at login the player must not wait for the awww daemon to come up, so there this runs on the side)
+    put_still() {
+        if awww_ready && [ -s "$still" ] && ! { [ "$1" = --restore ] && awww query 2>/dev/null | grep -qF -- "$still"; }; then
+            awww img "$still" --transition-type grow --transition-duration 0.8 >/dev/null 2>&1
+        fi
+    }
+    if [ "$1" = --restore ]; then put_still --restore >/dev/null 2>&1 </dev/null & else put_still; fi
     printf '%s\n' "$still"
     # build the optimized copy in the background (only the first time), then play it
     (

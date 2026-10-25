@@ -78,6 +78,13 @@ if command -v awww-daemon >/dev/null 2>&1 && [ -n "$(ls -A "${XDG_CACHE_HOME:-$H
         awww restore >/dev/null 2>&1
     ) 9>&- &
 fi
+# animated wallpaper: start the player now, side by side with the shell, instead of waiting for the shell to be up and ask for it
+# (that took ~8 s after login: the shell loading, then its restore timer, then mpvpaper). The shell sees it already playing and
+# leaves it alone.
+setwall="$CONF/hypr-yukishell/scripts/yukishell-setwall.sh"
+if [ -s "$CONF/yukishell/wallpaper-video" ] && [ -x "$setwall" ] && command -v mpvpaper >/dev/null 2>&1; then
+    "$setwall" --restore >/dev/null 2>&1 </dev/null 9>&- &
+fi
 
 # --- run the shell; restart it when it crashes. After repeated quick crashes, try simpler graphics settings (only the
 # ones you have not set yourself): OpenGL, then the basic render loop, then software drawing (no Liquid Glass).
