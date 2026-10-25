@@ -34,6 +34,18 @@ for i = 1, 10 do
     bind(mod .. " + ALT + " .. key,   hl.dsp.window.move({ workspace = i, follow = false }), i == 1 and "Send Window to Workspace 1–10" or nil, { fixed = true })
 end
 
+-- the Window menu's actions (the menu bar shows these keys next to them)
+bind(mod .. " + M",              hl.dsp.window.move({ workspace = "special:minimized", follow = false }), "Minimize Window")
+bind(mod .. " + SHIFT + M",      hl.dsp.workspace.toggle_special("minimized"), "Show Minimized Windows")
+bind(mod .. " + ALT + H",        hl.dsp.window.move({ workspace = "special:hidden", follow = false }), "Hide Window")
+bind(mod .. " + SHIFT + H",      hl.dsp.workspace.toggle_special("hidden"), "Show Hidden Windows")
+bind(mod .. " + SHIFT + F",      hl.dsp.window.fullscreen({ mode = "maximized", action = "toggle" }), "Maximize Window")
+bind(mod .. " + SHIFT + P",      hl.dsp.window.pin({ action = "toggle" }), "Pin Window to All Workspaces")
+bind(mod .. " + C",              hl.dsp.window.center(), "Center Window")
+bind(mod .. " + SHIFT + Page_Down", hl.dsp.window.move({ workspace = "+1" }), "Move Window to Next Workspace")
+bind(mod .. " + SHIFT + Page_Up",   hl.dsp.window.move({ workspace = "-1" }), "Move Window to Previous Workspace")
+bind(mod .. " + SHIFT + O",      hl.dsp.window.move({ monitor = "+1" }), "Move Window to Next Monitor")
+
 bind(mod .. " + S",         hl.dsp.workspace.toggle_special("magic"), "Scratchpad")
 bind(mod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:magic" }), "Send Window to Scratchpad")
 

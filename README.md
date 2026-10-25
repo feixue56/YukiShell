@@ -59,6 +59,17 @@ Before using it, check:
 | `Super+Left/Right mouse` | drag / resize a window |
 | `Super+S`, `Super+Shift+S` | scratchpad, send window to it |
 | `Super+Shift+Arrows` | swap the window with its neighbour |
+| `Super+M` / `Super+Shift+M` | minimize the window / show minimized windows |
+| `Super+Alt+H` / `Super+Shift+H` | hide the window / show hidden windows |
+| `Super+Shift+F` | maximize (keeps the bar and gaps) |
+| `Super+Shift+P` | pin a floating window to all workspaces |
+| `Super+C` | centre a floating window |
+| `Super+Shift+PgDn` / `Super+Shift+PgUp` | move the window to the next / previous workspace |
+| `Super+Shift+O` | move the window to the next monitor |
+| `Super+A` | Control Center |
+| `Super+Alt+R` | start / stop screen recording |
+| `Super+Alt+C` | pick a colour |
+| `Super+Alt+A` | toggle dark mode |
 | `Super+Z` | System Settings |
 | `Super` (tap) or `Super+Space` / `Super+V` / `Super+.` | Spotlight / clipboard history / emoji |
 | `Alt+Tab` | window switcher |

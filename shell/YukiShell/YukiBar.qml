@@ -2886,7 +2886,7 @@ Scope {
         var k = bindKeys[desc];
         if (!k) return "";
         var names = { SUPER: "Super", SHIFT: "Shift", CTRL: "Ctrl", CONTROL: "Ctrl", ALT: "Alt", Return: "Enter", space: "Space", Space: "Space",
-                      period: ".", comma: ",", PRINT: "Print", Print: "Print", Tab: "Tab", TAB: "Tab", left: "\u2190", right: "\u2192", up: "\u2191", down: "\u2193" };
+                      period: ".", comma: ",", PRINT: "Print", Print: "Print", Tab: "Tab", TAB: "Tab", left: "\u2190", right: "\u2192", up: "\u2191", down: "\u2193", Page_Down: "PgDn", Page_Up: "PgUp" };
         return k.split("+").map(function (x) { x = x.trim(); return names[x] || (x.length === 1 ? x.toUpperCase() : x); }).join("+");
     }
     function mi(label, shortcut, run) { return { kind: "item", label: label, shortcut: shortcut || "", run: run }; }
@@ -3484,8 +3484,8 @@ Scope {
                         m.push((files ? mi("Preferences\u2026", "Ctrl+Shift+,", keys(["ctrl", "shift"], "comma")) : mi("Preferences\u2026", "Ctrl+,", keys(["ctrl"], "comma"))));
                     }
                     m.push(msep());
-                    m.push(mi(I18n.tr("Hide ") + n, "", disp('hl.dsp.window.move({ workspace = "special:hidden", follow = false })')));
-                    m.push(mi("Show Hidden Windows", "", disp('hl.dsp.workspace.toggle_special("hidden")')));
+                    m.push(mi(I18n.tr("Hide ") + n, hk("Hide Window"), disp('hl.dsp.window.move({ workspace = "special:hidden", follow = false })')));
+                    m.push(mi("Show Hidden Windows", hk("Show Hidden Windows"), disp('hl.dsp.workspace.toggle_special("hidden")')));
                     m.push(msep());
                     m.push(mi(I18n.tr("Quit ") + n, (term || (browser && !/firefox|librewolf|floorp|zen|waterfox/.test(id))) ? "Ctrl+Shift+Q" : "Ctrl+Q", function () { root.quitActive(); }));
                     m.push(mc(I18n.tr("Force Quit ") + n, function () { root.forceQuitActive(aw); }));
@@ -3519,8 +3519,8 @@ Scope {
                 if (aw) m.push(mi("Screenshot Window", hk("Screenshot a Window"), function () { root.shotWindow(aw); }));
                 m.push(mi("Screenshot Selection\u2026", hk("Screenshot a Region"), function () { root.shot("sel"); }));
                 m.push(mi("Screenshot Screen", hk("Screenshot the Screen"), function () { root.shot(""); }));
-                m.push(mi(root.recording ? "Stop Screen Recording" : "Start Screen Recording", "", function () { root.toggleRecording(); }));
-                m.push(mi("Pick Color", "", function () { root.pickColor(); }));
+                m.push(mi(root.recording ? "Stop Screen Recording" : "Start Screen Recording", hk("Start or Stop Screen Recording"), function () { root.toggleRecording(); }));
+                m.push(mi("Pick Color", hk("Pick Color"), function () { root.pickColor(); }));
             } else if (name === "edit") {
                 if (has && term) {
                     m.push(mi("Copy", "Ctrl+Shift+C", keys(["ctrl", "shift"], "c")));
@@ -3545,8 +3545,8 @@ Scope {
                     m.push(mi(fsMode === 2 ? "Exit Full Screen" : "Enter Full Screen", hk("Full Screen"), disp('hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" })')));
                     m.push(msep());
                     m.push(mchk("Floating", hk("Toggle Floating"), floating, disp('hl.dsp.window.float({ action = "toggle" })')));
-                    m.push(dis(mchk("Pin to All Workspaces", "", aw && aw.pinned === true, disp('hl.dsp.window.pin({ action = "toggle" })')), !floating));
-                    m.push(dis(mi("Center Window", "", disp('hl.dsp.window.center()')), !floating));
+                    m.push(dis(mchk("Pin to All Workspaces", hk("Pin Window to All Workspaces"), aw && aw.pinned === true, disp('hl.dsp.window.pin({ action = "toggle" })')), !floating));
+                    m.push(dis(mi("Center Window", hk("Center Window"), disp('hl.dsp.window.center()')), !floating));
                     m.push(dis(mi("Toggle Split Direction", hk("Toggle Split Direction"), disp('hl.dsp.layout("togglesplit")')), floating));
                     if (!term) {
                         m.push(msep());
@@ -3564,24 +3564,24 @@ Scope {
                     }
                     m.push(msep());
                 }
-                m.push(mchk("Dark Mode", "", root.darkMode, function () { root.setAppearance(root.darkMode ? "light" : "dark"); }));
+                m.push(mchk("Dark Mode", hk("Dark Mode"), root.darkMode, function () { root.setAppearance(root.darkMode ? "light" : "dark"); }));
             } else if (name === "window") {
                 if (has) {
-                    m.push(mi("Minimize", "", disp('hl.dsp.window.move({ workspace = "special:minimized", follow = false })')));
-                    m.push(mchk("Zoom", "", fsMode === 1, disp('hl.dsp.window.fullscreen({ mode = "maximized", action = "toggle" })')));
+                    m.push(mi("Minimize", hk("Minimize Window"), disp('hl.dsp.window.move({ workspace = "special:minimized", follow = false })')));
+                    m.push(mchk("Zoom", hk("Maximize Window"), fsMode === 1, disp('hl.dsp.window.fullscreen({ mode = "maximized", action = "toggle" })')));
                     m.push(mi(floating ? "Tile Window" : "Float Window", hk("Toggle Floating"), disp('hl.dsp.window.float({ action = "toggle" })')));
                     m.push(msep());
-                    m.push(mi("Move Window Left", "", disp('hl.dsp.window.move({ direction = "left" })')));
-                    m.push(mi("Move Window Right", "", disp('hl.dsp.window.move({ direction = "right" })')));
-                    m.push(mi("Make Wider", "", disp('hl.dsp.window.resize({ x = 100, y = 0, relative = true })')));
-                    m.push(mi("Make Narrower", "", disp('hl.dsp.window.resize({ x = -100, y = 0, relative = true })')));
-                    if (Quickshell.screens.length > 1) m.push(mi("Move to Next Monitor", "", disp('hl.dsp.window.move({ monitor = "+1" })')));
-                    m.push(mi("Move to Next Workspace", "", disp('hl.dsp.window.move({ workspace = "+1" })')));
-                    m.push(mi("Move to Previous Workspace", "", disp('hl.dsp.window.move({ workspace = "-1" })')));
+                    m.push(mi("Move Window Left", hk("Swap Window with Neighbour"), disp('hl.dsp.window.swap({ direction = "left" })')));
+                    m.push(mi("Move Window Right", hk("Swap Window with Neighbour").replace("\u2190", "\u2192"), disp('hl.dsp.window.swap({ direction = "right" })')));
+                    m.push(mi("Make Wider", hk("Resize Window").replace("\u2190", "\u2192"), disp('hl.dsp.window.resize({ x = 100, y = 0, relative = true })')));
+                    m.push(mi("Make Narrower", hk("Resize Window"), disp('hl.dsp.window.resize({ x = -100, y = 0, relative = true })')));
+                    if (Quickshell.screens.length > 1) m.push(mi("Move to Next Monitor", hk("Move Window to Next Monitor"), disp('hl.dsp.window.move({ monitor = "+1" })')));
+                    m.push(mi("Move to Next Workspace", hk("Move Window to Next Workspace"), disp('hl.dsp.window.move({ workspace = "+1" })')));
+                    m.push(mi("Move to Previous Workspace", hk("Move Window to Previous Workspace"), disp('hl.dsp.window.move({ workspace = "-1" })')));
                     m.push(msep());
                 }
-                m.push(mi("Show Hidden Windows", "", disp('hl.dsp.workspace.toggle_special("hidden")')));
-                m.push(mi("Show Minimized Windows", "", disp('hl.dsp.workspace.toggle_special("minimized")')));
+                m.push(mi("Show Hidden Windows", hk("Show Hidden Windows"), disp('hl.dsp.workspace.toggle_special("hidden")')));
+                m.push(mi("Show Minimized Windows", hk("Show Minimized Windows"), disp('hl.dsp.workspace.toggle_special("minimized")')));
                 var tls = ToplevelManager.toplevels.values;
                 if (tls.length > 0) m.push(msep());
                 for (i = 0; i < tls.length && i < 8; i++) {
@@ -3659,6 +3659,13 @@ Scope {
             if (code === 0) root.shotOpen = true;
             else root.shotClose();
         }
+    }
+    IpcHandler {
+        // menu actions with a keyboard shortcut (hypr/rice/shell.lua)
+        target: "actions"
+        function recording(): void { root.toggleRecording(); }
+        function pickColor(): void { root.pickColor(); }
+        function darkMode(): void { root.setAppearance(root.darkMode ? "light" : "dark"); }
     }
     IpcHandler {
         target: "screenshot"
@@ -6706,7 +6713,12 @@ Scope {
                 Item {
                     id: menuPop
                     z: 10
-                    width: 260
+                    // as wide as the longest label + its shortcut needs (at least 260, at most 440)
+                    width: {
+                        var w = 248;
+                        for (var i = 0; i < menuRep.count; i++) { var c = menuRep.itemAt(i); if (c) w = Math.max(w, c.need); }
+                        return Math.min(Math.ceil(w), 428) + 12;
+                    }
                     height: menuCol.height + 14
                     x: Math.max(6, Math.min(ui.width - width * root.barPopupScale - 6, ui.menuX - 4))
                     y: root.barH + 3
@@ -6751,11 +6763,14 @@ Scope {
                         x: 6; y: 7
                         width: parent.width - 12
                         Repeater {
+                            id: menuRep
                             model: ui.menuModel
                             delegate: Item {
                                 id: it
                                 required property var modelData
                                 readonly property bool isSep: modelData.kind === "sep"
+                                // width this row needs to show its label and shortcut without cutting either
+                                readonly property real need: isSep ? 0 : (ui.menuLead ? 28 : 12) + lbl.implicitWidth + (sc.visible ? sc.implicitWidth + 24 : 12) + 8
                                 readonly property bool armedNow: !isSep && modelData.confirm === true && ui.armed === modelData.label
                                 readonly property bool off: !isSep && modelData.disabled === true
                                 readonly property bool hot: !isSep && !off && ima.containsMouse
@@ -6793,6 +6808,7 @@ Scope {
                                     font.weight: Font.Normal
                                 }
                                 Text {
+                                    id: lbl
                                     visible: !it.isSep
                                     x: ui.menuLead ? 28 : 12
                                     anchors.verticalCenter: parent.verticalCenter
