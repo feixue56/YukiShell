@@ -3442,7 +3442,7 @@ Scope {
                 m.push(mi("Search\u2026", "", function () { root.search(); }));
                 if (has) m.push(mi(n + " Help", "", function () { root.helpFor(id, n); }));
                 m.push(msep());
-                m.push(mi("Hyprland Keybinds", "", function () { Quickshell.execDetached(["xdg-open", "https://github.com/feixue56/YukiShell#keybinds"]); }));
+                m.push(mi("Hyprland Keybinds", "", function () { Quickshell.execDetached(["xdg-open", "https://github.com/xuefeng1331/YukiShell#keybinds"]); }));
                 m.push(mi("Reload Hyprland Config", "", function () { Quickshell.execDetached(["hyprctl", "reload"]); }));
                 m.push(msep());
                 m.push(mi("Hyprland Wiki", "", function () { Quickshell.execDetached(["xdg-open", "https://wiki.hypr.land"]); }));

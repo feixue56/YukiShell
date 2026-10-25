@@ -11,14 +11,14 @@ A Catppuccin Mocha (mauve + pink) rice for **Hyprland** with its own desktop she
 YukiShell is a fork of [MacShell](https://github.com/0-ss/MacShell) by Rickky and vSuol (MIT). It is completely separate from
 upstream: it has its own name, config path, installer and Settings app, and it never phones home to MacShell.
 
-Made by [Phong (@feixue56)](https://github.com/feixue56).
+Made by [雪風 (@xuefeng1331)](https://github.com/xuefeng1331).
 
 ## Install
 
 Needs Hyprland with the **Lua config** (written and tested on 0.56.2, CachyOS, NVIDIA) and Quickshell.
 
 ```sh
-git clone https://github.com/feixue56/YukiShell.git ~/hypr-rice
+git clone https://github.com/xuefeng1331/YukiShell.git ~/hypr-rice
 cd ~/hypr-rice && ./install.sh
 ```
 

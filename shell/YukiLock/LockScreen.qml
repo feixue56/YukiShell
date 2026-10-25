@@ -1165,7 +1165,7 @@ Item {
         '  r=$(jq -nc --arg l "$l" "{syncedLyrics: \\$l}"); }',
         'ne "$a $bare" || ne "$bare"',
         // ── 2. LRCLIB (rate-limited per second: wait and retry briefly), length-checked too
-        'ua="YukiLock/1.0 (https://github.com/feixue56/YukiShell)"; api=https://lrclib.net/api',
+        'ua="YukiLock/1.0 (https://github.com/xuefeng1331/YukiShell)"; api=https://lrclib.net/api',
         'req() { n=0; while [ $n -lt 2 ]; do code=$(curl -s --max-time 8 -A "$ua" -o "$tmp" -w "%{http_code}" -G "$@"); case "$code" in 200) answered=1; return 0;; 404) answered=1; return 1;; 429) n=$((n+1)); sleep 1.5;; *) return 1;; esac; done; return 1; }',
         'pick=\'[.[] | select(.syncedLyrics != null or .plainLyrics != null) | select($d == 0 or (((.duration // 0) - $d) | fabs) <= 4)] | ([.[] | select(.syncedLyrics != null)][0] // .[0]) // empty\'',
         'lsearch() { req "$api/search" "$@" && r=$(jq -c --argjson d "$d" "$pick" "$tmp"); }',

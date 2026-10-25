@@ -4271,8 +4271,8 @@ Scope {
             Column {
                 id: aboutCol
                 spacing: 10
-                readonly property string ghUser: "feixue56"
-                readonly property string ghName: "Phong"
+                readonly property string ghUser: "xuefeng1331"
+                readonly property string ghName: "雪風"
                 readonly property string repoUrl: "https://github.com/" + ghUser + "/YukiShell"
 
                 SCard {
@@ -4322,7 +4322,7 @@ Scope {
                             Item { id: gpMask; anchors.fill: parent; visible: false; layer.enabled: true; Rectangle { anchors.fill: parent; radius: width / 2; color: "black" } }
                             Image {
                                 anchors.fill: parent
-                                source: Qt.resolvedUrl("assets/credits/feixue56.jpg")
+                                source: Qt.resolvedUrl("assets/credits/xuefeng1331.jpg")
                                 sourceSize: Qt.size(112, 112)
                                 fillMode: Image.PreserveAspectCrop; smooth: true; mipmap: true
                                 layer.enabled: true
