@@ -1,186 +1,405 @@
 <p align="center"><img src="shell/YukiShell/assets/yukishell-logo.png" width="128" alt="YukiShell"></p>
 
-# YukiShell
+<h1 align="center">YukiShell</h1>
 
-A Catppuccin Mocha (mauve + pink) rice for **Hyprland** with its own desktop shell, built on **Quickshell**.
+<p align="center">
+  A Catppuccin Mocha rice for Hyprland, with its own desktop shell built on Quickshell.<br>
+  Forked and maintained by <a href="https://github.com/xuefeng1331">雪風 (@xuefeng1331)</a>
+</p>
 
-- **YukiShell**: menu bar, dock, Spotlight, Control Center, widgets, notifications and a Settings app
+---
+
+This is the setup I use every day. It started as a fork of [MacShell](https://github.com/0-ss/MacShell) by
+[Rickky](https://github.com/0-ss) and [vSuol](https://github.com/vsoultann), and over time it turned into its own thing: a different
+name, its own config folders, its own installer and Settings app. It doesn't talk to MacShell at all anymore, so you can't break one
+by updating the other.
+
+What you get:
+
+- **YukiShell**: the menu bar, Dock, Spotlight, Control Center, desktop widgets, notifications and a Settings app, all in Liquid Glass
 - **YukiLock**: the lock screen
-- The Hyprland config (Lua), kitty, fish, fastfetch, btop, cava, GTK 3/4 and Qt/KDE themes to match
+- Matching configs for Hyprland (Lua), kitty, fish, fastfetch, btop, cava, GTK 3/4 and Qt/KDE apps
 
-YukiShell is a fork of [MacShell](https://github.com/0-ss/MacShell) by Rickky and vSuol (MIT). It is completely separate from
-upstream: it has its own name, config path, installer and Settings app, and it never phones home to MacShell.
+Mauve and pink accents, a lot of glass, and an animated wallpaper if you want one.
 
-Forked and maintained by [雪風 (@xuefeng1331)](https://github.com/xuefeng1331).
+## Contents
 
-## Install
+- [Requirements](#requirements)
+- [Installing](#installing)
+- [Before you log in](#before-you-log-in)
+- [Keybinds](#keybinds)
+- [What's in it](#whats-in-it)
+- [Configuring it](#configuring-it)
+- [Things that conflict with it](#things-that-conflict-with-it)
+- [Files](#files)
+- [Q&A](#qa)
+- [Working on it](#working-on-it)
+- [Credits and license](#credits-and-license)
 
-Needs Hyprland with the **Lua config** (written and tested on 0.56.2, CachyOS, NVIDIA) and Quickshell.
+## Requirements
+
+I built and test this on **CachyOS** with **Hyprland 0.56.2**, **Quickshell 0.3.2** (Qt 6) and an **NVIDIA** card. Other Arch-based
+distros should be fine. Package names below are the Arch ones.
+
+**You need these, nothing works without them:**
+
+| Package | Why |
+| --- | --- |
+| `hyprland` | 0.56 or newer, using the **Lua config** (`~/.config/hypr/hyprland.lua`). The old `hyprland.conf` format is not supported. |
+| `quickshell` | runs YukiShell and YukiLock |
+| `kitty`, `fish` | the terminal and the shell the configs are written for |
+
+**Strongly recommended** (the rice looks wrong without them):
+`adw-gtk-theme papirus-icon-theme plasma-integration ttf-jetbrains-mono-nerd` and the **Bibata-Modern-Classic** cursor.
+
+**Optional.** Each one turns on a feature, and if it's missing that feature just switches itself off:
+
+| Package | What it's for |
+| --- | --- |
+| `grim`, `slurp` | screenshots, auto-contrast, windows showing through the glass |
+| `imagemagick` | auto-contrast, cropping your profile picture |
+| `awww`, `mpvpaper`, `ffmpeg`, `jq` | still and animated wallpapers |
+| `wl-clipboard`, `cliphist` | copying, clipboard history (`Super+V`) |
+| `playerctl`, `cava` | Now Playing widget, media keys, the audio visualizer |
+| `networkmanager`, `bluez-utils` | Wi-Fi and Bluetooth menus |
+| `wireplumber`, `pipewire` | volume, UI sounds |
+| `brightnessctl`, `ddcutil` | brightness for laptops / for external monitors over DDC/CI |
+| `hyprsunset` | Night Shift |
+| `power-profiles-daemon` | power mode |
+| `inotify-tools` | wallpaper folders refresh by themselves |
+| `wtype` | typing emoji from Spotlight |
+| `fcitx5`, `fcitx5-bamboo`, `fcitx5-chinese-addons` | Vietnamese and Chinese typing |
+| `dolphin`, `chromium` | the default file manager and browser (`Super+E`, `Super+W`) |
+| `python-numpy` | only used once, to generate the UI sound effects |
+
+Don't feel like reading the table? Run `tools/doctor`. It checks your machine and tells you exactly what's missing and what that turns off.
+
+## Installing
 
 ```sh
 git clone https://github.com/xuefeng1331/YukiShell.git ~/hypr-rice
 cd ~/hypr-rice && ./install.sh
 ```
 
-`install.sh` symlinks the files into `~/.config` (anything already there is moved to `*.pre-rice` once), adds one `require`
-line to `~/.config/hypr/hyprland.lua`, and sets the GTK/Qt/btop themes. Re-run it any time; it is idempotent.
+What `install.sh` does:
 
-Packages the rice expects: `kitty fish fastfetch btop cava tty-clock fcitx5 fcitx5-bamboo adw-gtk-theme papirus-icon-theme
-plasma-integration ddcutil brightnessctl python-numpy` and the Bibata cursor and JetBrainsMono Nerd Font. The shell itself uses `nmcli`, `playerctl`,
-`powerprofilesctl`, `grim`, `imagemagick`, `wl-clipboard`, `cliphist` and `hyprsunset` for the matching features; whatever is missing just disables that feature.
-`python-numpy` is only for generating the UI sound effects. **`tools/doctor`** (run by the installer too) lists exactly what is missing on your machine and what it would disable.
+1. **Symlinks** the configs into `~/.config` (and the `yuki-*` commands into `~/.local/bin`). If you already have a file there, it gets moved to
+   `<name>.pre-rice` once, so nothing of yours is deleted.
+2. Adds **one `require` line** to `~/.config/hypr/hyprland.lua` (a backup goes to `hyprland.lua.pre-rice`).
+3. Sets the GTK, Qt and btop themes and generates the UI sounds.
+4. Runs `tools/doctor` at the end.
 
-Before using it, check:
+It's safe to run again whenever you pull new changes. Only want to see what's missing without touching anything? `./install.sh --doctor`.
 
-- `hypr/rice/monitor.lua`: resolution and refresh rate (it is pinned to 1920x1080@100 for my monitor)
-- `fastfetch/config.jsonc`: `logo.source` points at a personal picture that is not in this repo; change it or remove the image
+To undo it, delete the symlinks and rename the `*.pre-rice` files back.
+
+## Before you log in
+
+Two things are personal to my machine and you'll probably want to change them:
+
+- **`hypr/rice/monitor.lua`**: my monitor is pinned to `HDMI-A-1` at 1920x1080@100. Put your own output name in (run `hyprctl monitors`).
+- **`fastfetch/config.jsonc`**: `logo.source` points at a picture that isn't in this repo. Change it or delete the line.
+
+Then log out and back into Hyprland. The shell starts by itself (`yuki-start` keeps it running and restarts it if it crashes).
 
 ## Keybinds
 
-`Super` is the main modifier.
+`Super` is the main key. Every shortcut can be changed in **System Settings → Keyboard → Keyboard Shortcuts**, and the menus in the
+menu bar show each item's shortcut next to it.
 
-| Keys | Action |
+**Apps and windows**
+
+| Keys | What it does |
 | --- | --- |
-| `Super+Enter` | terminal (kitty) |
+| `Super+Enter` | terminal |
 | `Super+Shift+Enter` | floating terminal |
 | `Super+W` / `Super+E` | Chromium / Dolphin |
-| `Super+Shift+W` / `Super+Shift+E` | floating Chromium / Dolphin (1280×800 / 1100×700, centred) |
+| `Super+Shift+W` / `Super+Shift+E` | floating Chromium / Dolphin, centred |
 | `Super+Q` | close window |
-| `Super+F` | fullscreen (press again to go back to the window's old size) |
+| `Super+F` | fullscreen (press again to go back) |
+| `Super+Shift+F` | maximize, keeping the bar and gaps |
 | `Super+Alt+Space` | toggle floating |
-| `Super+Shift+Tab` | terminal and Dolphin opacity: solid → liquid glass → completely transparent (a terminal fades only its background, Dolphin fades the whole window) |
-| `Super+Alt+D` | dashboard (fastfetch, clock, cava) |
-| `Super+1..0` | go to workspace 1-10 |
-| `Super+Shift+1..0` | move window to workspace (and go there) |
-| `Super+Alt+1..0` | send window to workspace (stay here) |
-| `Super+Scroll` | next / previous workspace |
-| `Super+Arrows` (or `H K N`) | move focus |
-| `Super+Ctrl+Arrows` | resize the window from the keyboard |
-| `Super+Left/Right mouse` | drag / resize a window |
-| `Super+S`, `Super+Shift+S` | scratchpad, send window to it |
-| `Super+Shift+Arrows` | swap the window with its neighbour |
-| `Super+M` / `Super+Shift+M` | minimize the window / show minimized windows |
-| `Super+Alt+H` / `Super+Shift+H` | hide the window / show hidden windows |
-| `Super+Shift+F` | maximize (keeps the bar and gaps) |
-| `Super+Shift+P` | pin a floating window to all workspaces |
 | `Super+C` | centre a floating window |
-| `Super+Shift+PgDn` / `Super+Shift+PgUp` | move the window to the next / previous workspace |
+| `Super+Shift+P` | pin a floating window to every workspace |
+| `Super+M` / `Super+Shift+M` | minimize / show minimized windows |
+| `Super+Alt+H` / `Super+Shift+H` | hide / show hidden windows |
+| `Super+Shift+Tab` | terminal and Dolphin see-through: solid → glass → clear |
+| `Super+Alt+D` | dashboard (fastfetch, clock, cava) |
+
+**Moving around**
+
+| Keys | What it does |
+| --- | --- |
+| `Super+1…0` | go to workspace 1–10 |
+| `Super+Shift+1…0` | move the window there and follow it |
+| `Super+Alt+1…0` | send the window there and stay where you are |
+| `Super+Shift+PgDn` / `PgUp` | move the window to the next / previous workspace |
 | `Super+Shift+O` | move the window to the next monitor |
+| `Super+Scroll` | next / previous workspace |
+| `Super+Arrows` (or `H` `K` `N`) | move focus |
+| `Super+Shift+Arrows` | swap with the neighbouring window |
+| `Super+Ctrl+Arrows` | resize from the keyboard (hold it) |
+| `Super+Left / Right mouse` | drag / resize a window |
+| `Super+S`, `Super+Shift+S` | scratchpad, send the window to it |
+
+**Shell**
+
+| Keys | What it does |
+| --- | --- |
+| tap `Super` or `Super+Space` | Spotlight |
+| `Super+V` / `Super+.` | clipboard history / emoji |
 | `Super+A` | Control Center |
-| `Super+Alt+R` | start / stop screen recording |
-| `Super+Alt+C` | pick a colour |
-| `Super+Alt+A` | toggle dark mode |
+| `Super+,` | notifications |
 | `Super+Z` | System Settings |
-| `Super` (tap on its own) or `Super+Space` / `Super+V` / `Super+.` | Spotlight / clipboard history / emoji |
 | `Alt+Tab` | window switcher |
-| `Print` / `Shift+Print` / `Ctrl+Print` | screenshot: region / screen / window |
-| `Super+G` | Game Mode (the shell pauses its effects) |
-| `Super+,` | notification centre |
-| `Super+L` | lock screen |
-| `Super+Shift+R` | restart the shell cleanly (`yuki-restart`) |
+| `Ctrl+Alt+W` | wallpaper picker |
+| `Print` / `Shift+Print` / `Ctrl+Print` | screenshot a region / the screen / a window |
+| `Super+Alt+R` | start / stop screen recording |
+| `Super+Alt+C` | colour picker |
+| `Super+Alt+A` | dark mode on / off |
+| `Super+G` | Game Mode (the shell drops its effects while you play) |
+| `Super+L` | lock |
+| `Super+Shift+R` | restart the shell |
 | `Super+Shift+C` | reload the Hyprland config |
 
-There is deliberately no key that exits Hyprland, restarts, shuts down or force-quits an app (their menu items ask for a second click). The full list is in
-`hypr/rice/binds.lua` and `shell.lua`. The **menu bar's menus show each item's shortcut** next to it, read from the same list, so a shortcut you change shows up there too.
+There's no key to quit Hyprland, reboot, shut down or force-quit an app. I've hit those by accident before. They're in the menus and need a second click.
 
-**Every shortcut can be changed** in **System Settings → Keyboard → Keyboard Shortcuts** (translated, and read live from the running Hyprland): click
-the keys, press the new combination, and it is applied at once. Esc cancels, Backspace removes the shortcut, *Reset* brings the default back, and a combination that
-is already taken is refused with the name of its owner. Groups of keys that belong together (the workspace numbers, the arrow keys) and `Alt+Tab` (the switcher waits for Alt to be
-let go) stay as they are. While it listens, Settings switches Hyprland to an empty `yuki-capture` submap so your own binds do not fire; `Ctrl+Alt+F1…F12` cannot be recorded, because the
-compositor keeps them for switching VTs.
+## What's in it
 
-How it works: `hypr/rice/keys.lua` provides `bind(keys, dispatcher, "Description", opts)`. Your choices are kept in `~/.config/yukishell/keybinds.tsv`
-(`description<TAB>keys`, empty keys = no shortcut) and replace the defaults when the config loads, then Settings runs `hyprctl reload`. Binds written with the
-helper show up in Settings by their description, and `tools/i18n-check.py` reminds you to translate it. Pass `{ fixed = true }` to keep one out of the editor.
+**Liquid Glass everywhere.** The menus, Dock, widgets and Settings are glass that bends and blurs whatever is behind them. If your
+wallpaper is a video, it plays *inside* the glass too, in sync with the desktop. Windows behind the Dock show through at 60 fps, and
+see-through terminals stay see-through in the glass instead of turning into a dark block.
 
-## What it does
+**Animated wallpapers.** Any video works (mpvpaper, hardware decoding). It plays at the clip's own frame rate, up to 60 fps, and is
+smoothed up to your monitor's refresh rate so it doesn't stutter on a 100 or 144 Hz screen. The picture-frame button in the menu bar
+pauses it. Game Mode stops it on its own, and *Settings → Wallpaper → Pause behind windows* saves power on a laptop.
 
-- **Liquid Glass** menus, Dock, widgets and Settings, optionally with the *animated wallpaper playing inside the glass*.
-- **Animated wallpaper** (mpvpaper): it plays at the clip's own frame rate (up to 60 fps, hardware-decoded) and is blended up to your monitor's
-  refresh rate (`video-sync=display-resample` + interpolation), so a 60 fps clip on a 100 / 144 Hz screen doesn't judder. The copy inside the glass
-  plays at the same frame rate and follows mpv's clock, so the glass shows the same frame as the desktop. One player per window (bar, Dock,
-  widgets) serves all of that window's glass. It keeps playing behind your windows and workspaces. The **menu bar button** (a picture frame, shown only while
-  the wallpaper is a video) pauses and resumes it by hand, also for the copy inside the glass, and the choice survives a restart. Game Mode stops it on its
-  own. **Settings → Wallpaper → Pause behind windows** (off by default) stops it while windows hide the desktop, to save power on a laptop.
-- **Windows seen through the glass**: the Dock's glass shows the windows behind it at 60 fps, so a terminal printing text doesn't lag behind, and a
-  see-through window (kitty's glass background, a faded Dolphin) keeps its transparency in the glass instead of showing up as a dark slab.
-- **Dock auto-hide** (**Settings → Desktop & Dock**): *Smart* hides it while a tiled window needs the space, *Windows* whenever the workspace has any window
-  open (floating ones too), *Always* until the pointer touches the bottom edge, *Never* keeps it and reserves the space.
-- **Links open where you can see them**: a web link clicked anywhere in the shell (About, Help, Spotlight) opens in your default browser and switches to the
-  workspace of the browser window it went to, instead of quietly adding a tab on another workspace.
-- Hover feedback everywhere: the menu bar and Dock buttons get a frosted-glass tile with a rim light that follows the pointer,
-  workspaces that have windows keep a resting glass tile, and the Dock's last button is a gear that opens Settings.
-- **Audio visualizer**: bars (or a mirrored row, or a smooth wave) that move with the music behind the Now Playing widget and next to the cover in the
-  Control Center tile. It uses `cava` and only listens while something is playing and a visualizer is on screen; **Settings → Widgets → Audio Visualizer**
-  has the style, the colour (cover / white / accent), the height and a live preview. Without `cava` it just stays off.
-- The chosen option is always a **Liquid Glass** capsule: the segmented controls in Settings, and the selected pane in the Settings sidebar (a glass tile that slides to it).
-- **Any colour you like**: the accent colour, the Dock icon tint, the Control Center highlight and the lock screen clock colour each have a row of presets plus a
-  rainbow dot that opens a palette and a field taking a **hex code** (`#0A84FF`, `0a84ff`, `#08f`) or an **RGB code** (`rgb(10, 132, 255)`, `10, 132, 255`).
-- **Your own apps in the Dock**: **Settings → Applications → Add to Dock** picks any installed app from a searchable list, or makes a *custom app* (a name, a command,
-  an icon and "run in a terminal"), saved as `~/.local/share/applications/yuki-custom-<name>.desktop` and removed again when you take it out of the Dock.
-- **A Control Center you can shape by hand**: *Edit Controls* (or **Settings → Control Center**) lets you add and remove controls, **drop any control on any free
-  cell** of the 4-column grid (an empty cell shows where; dropping on a control of the same size swaps them, *Tidy Up* packs everything together again), **pull the
-  corner handle to resize** it to whole cells (1–4 wide, 1–2 tall, sliders 2–4 wide), or tap the grey `2×1` badge to cycle through the common sizes. Seven extra controls are
-  available besides the usual switches: Lock Screen, Screenshot, Color Picker, Wallpapers, System Settings, Microphone and Power Mode (power-profiles-daemon).
-  **Microphone** is a slider like Sound (with a mute button beside it) that sets the input volume.
-  Settings has sliders for the row height and the gap between controls (in pixels), and the colour a switched-on control turns (white by default). A panel taller than
-  the screen scrolls. All of it is saved and has a Reset.
-- **Mouse** settings: tracking speed, natural scrolling and **mouse acceleration** on or off (off = the pointer moves the same distance at any speed).
-- **Settings → Users & Groups → Picture** lets you crop your profile picture (drag, scroll to zoom) before it is saved.
-- **Hardware that is not there is not offered**: Airplane Mode follows the real radio switches (rfkill), and on a PC with no Wi-Fi or Bluetooth adapter
-  those Control Center tiles are greyed out (N/A), the Bluetooth icon leaves the menu bar and the two Settings panes disappear. Plug an adapter in and they come back.
-- **Wallpapers from as many folders as you like** (Settings → Wallpaper → Wallpaper folders, or *Add Folder…* in the Ctrl+Alt+W picker). Pictures and videos you drop into
-  any of them, or delete, show up in the pickers by themselves (inotify, no refresh button).
-- **A picture chooser made for pictures**: the profile picture, image widgets and wallpaper folders open YukiShell's own chooser: big thumbnails (size slider),
-  a large preview of whatever you point at, places in a sidebar, a path bar and search. No zenity or kdialog needed. Other apps' dialogs ("Open", "Save") still float, centred, instead of tiling.
+**A Dock that gets out of the way.** In *Settings → Desktop & Dock* you pick how it hides:
 
-## Multi-language typing
+- **Smart**: hides while a tiled window needs the space
+- **Windows**: hides whenever there's any window on the workspace, floating ones too
+- **Always**: hidden until you touch the bottom edge
+- **Never**: always there, and windows leave room for it
 
-`hypr/rice/ime.lua` starts **fcitx5** with the session and exports the input-method variables; `chromium/chromium-flags.conf`
-lets Chromium use it on Wayland. The fcitx5 profile (Vietnamese Bamboo, Pinyin) lives in `~/.config/fcitx5`.
-**Ctrl+Space** switches the input method on and off (Telex: `chaof` → `chào`). Apps that were already running when fcitx5
-was added need a restart.
+You can pin your own apps, or make a custom one with your own name, command and icon.
 
-## Interface language
+**A Control Center you can rearrange.** Hit *Edit Controls*, drag things wherever you like on the grid and drag the corner to resize them.
+Besides the usual switches there are Lock Screen, Screenshot, Color Picker, Wallpapers, System Settings, a Microphone slider and Power Mode.
 
-**System Settings → General → Language** switches the whole shell (menu bar, Dock, Spotlight, Control Center, Settings, the
-widgets and the lock screen) live, no restart: English, 简体中文, 繁體中文, 日本語, 한국어, Tiếng Việt and Русский, or
-*Automatic* to follow `LANG`. Dates, day and month names follow the chosen language too. Anything without a translation
-falls back to English.
+**Small things I care about:**
 
-The tables are `shell/YukiShell/lang/<code>.js` (keys are the English texts used in the QML) plus a small block per language in
-`shell/YukiLock/I18n.js`. To add a language, copy `lang/vi.js`, translate the values, and register it in `dicts` and
-`languages` in `shell/YukiShell/I18n.js`. Typing in Japanese, Korean or Traditional Chinese needs the matching fcitx5 input
-method (`fcitx5-mozc`, `fcitx5-hangul`, `fcitx5-chewing`); the profile only ships Bamboo and Pinyin.
+- Links you click in the shell (About, Help, Spotlight) take you to the browser window they opened in, even when it's on another workspace.
+- Any accent colour you want: presets, a palette, or type a hex / RGB code.
+- Mouse settings including **acceleration on/off**.
+- Hardware you don't have isn't offered. No Wi-Fi card means no Wi-Fi tile.
+- Wallpapers from as many folders as you like, and new files show up by themselves.
+- Its own picture chooser with big thumbnails, so you don't need zenity or kdialog.
+- An audio visualizer behind the Now Playing widget (needs `cava`).
 
-## Layout
+**Seven languages.** *Settings → General → Language* switches everything live: English, 简体中文, 繁體中文, 日本語, 한국어, Tiếng Việt and
+Русский. Dates follow the language too, including on the lock screen.
+
+**Typing in other languages.** fcitx5 starts with the session. `Ctrl+Space` turns Vietnamese (Telex, `chaof` → `chào`) or Pinyin on and off.
+
+## Configuring it
+
+Most things are in **System Settings** (`Super+Z`). Here are the bits that live in files instead.
+
+### Your monitor
+
+`hypr/rice/monitor.lua`:
+
+```lua
+hl.monitor({
+    output   = "DP-1",            -- from `hyprctl monitors`
+    mode     = "2560x1440@144",
+    position = "0x0",
+    scale    = 1,
+})
+```
+
+### Environment variables
+
+Copy `shell/env.example` to `~/.config/hypr-rice/env` and uncomment what you need. `yuki-start` reads it before starting the shell:
+
+```sh
+# icons for the Dock and Spotlight
+export QS_ICON_THEME=Papirus-Dark
+
+# old or weak GPU and the shell feels slow? try these one at a time
+export QSG_RHI_BACKEND=opengl
+#export QT_QUICK_BACKEND=software   # last resort, turns off Liquid Glass
+```
+
+Run `yuki-restart` afterwards.
+
+### Your own keybinds
+
+Settings is the easy way. If you'd rather write them, add them to `hypr/rice/binds.lua` with the `bind` helper so they show up in Settings
+too:
+
+```lua
+local bind = require("rice.keys").bind
+
+bind("SUPER + B", hl.dsp.exec_cmd("firefox"), "Open Firefox")
+bind("SUPER + SHIFT + B", hl.dsp.exec_cmd("firefox --private-window"), "Private Firefox")
+```
+
+Changes you make in Settings are saved in `~/.config/yukishell/keybinds.tsv`, one line per shortcut, with the name and the keys
+separated by a tab. Leave the keys empty to turn a shortcut off:
+
+```
+Open Browser	SUPER + O
+Dashboard	
+```
+
+### Terminal, launcher and file manager the shell uses
+
+`~/.config/yukibar/settings.json`:
+
+```json
+{
+  "terminal": "kitty",
+  "launcher": "",
+  "filesCmd": "xdg-open \"$HOME\""
+}
+```
+
+Leave `launcher` empty to use Spotlight, or put in `fuzzel`, `rofi -show drun` and so on.
+
+### How see-through the terminal is
+
+`kitty/kitty.conf`:
+
+```
+background_opacity 0.55
+dynamic_background_opacity yes
+```
+
+The glass setting of `Super+Shift+Tab` uses this number too.
+
+### Colours
+
+The whole palette is in `hypr/rice/theme.lua`. The accent colour of the shell itself is in *Settings → Appearance*.
+
+## Things that conflict with it
+
+YukiShell does the jobs that a lot of separate tools usually do, so don't run those alongside it:
+
+| Don't run alongside it | Why |
+| --- | --- |
+| **waybar**, eww, ags, another Quickshell config | YukiShell is already the bar, and two of them fight over the space and the tray |
+| **mako**, dunst, swaync, fnott | YukiShell is the notification server. Only one program can be, so whichever starts first wins. |
+| **MacShell** | same idea as YukiShell, with its own bar, Dock and notifications. Pick one. |
+| hyprpaper, swww | wallpapers go through `awww` and `mpvpaper` |
+| hyprlock | use YukiLock (`Super+L`). hypridle can stay: the rice points its sleep hook at YukiLock when Hyprland starts. |
+| an old `hyprland.conf` | the rice is written for the Lua config only |
+
+If something's autostarting one of these (an old `exec-once`, a systemd user service), turn it off.
+
+## Files
+
+```
+hypr-rice/
+├── install.sh                 symlinks everything into place
+├── hypr/
+│   ├── rice/                  Hyprland, in Lua
+│   │   ├── theme.lua          palette
+│   │   ├── monitor.lua        your screen (change this)
+│   │   ├── look.lua           gaps, borders, blur, animations
+│   │   ├── input.lua          keyboard, mouse, touchpad
+│   │   ├── ime.lua            fcitx5
+│   │   ├── keys.lua           the bind() helper behind Settings → Keyboard Shortcuts
+│   │   ├── binds.lua          window and workspace keys
+│   │   ├── rules.lua          window rules
+│   │   └── shell.lua          starts YukiShell, its keys, the lock key
+│   └── bin/                   dashboard, toggle-opacity, float-chromium
+├── shell/
+│   ├── YukiShell/             the shell (Quickshell / QML)
+│   │   ├── shell.qml          entry point
+│   │   ├── YukiBar.qml        menu bar, menus, Spotlight, Control Center
+│   │   ├── YukiDock.qml       Dock and the Settings app
+│   │   ├── YukiWidgets.qml    desktop widgets
+│   │   ├── lang/              translations
+│   │   └── assets/            logo, credit pictures, small helpers
+│   ├── YukiLock/              the lock screen
+│   ├── bin/                   yuki-start, yuki-restart, yuki-brightness
+│   ├── scripts/               wallpaper, Game Mode and sound helpers
+│   └── env.example
+├── kitty/  fish/  fastfetch/  btop/  cava/
+├── gtk-3.0/  gtk-4.0/  qt/  chromium/
+└── tools/                     doctor, check, i18n-check.py, make-logo.py
+```
+
+Where things end up on your system:
 
 | Path | What |
 | --- | --- |
-| `hypr/rice/` | Hyprland Lua modules: `theme monitor look input ime keys binds rules shell` |
-| `hypr/bin/` | `dashboard`, `toggle-opacity`, `float-chromium` |
-| `shell/YukiShell`, `shell/YukiLock` | the Quickshell shell and lock screen (`qs -c YukiShell`, `qs -c YukiLock`) |
-| `shell/bin/` | `yuki-start` (keeps the shell running), `yuki-restart` (restarts it cleanly), `yuki-brightness` |
-| `shell/scripts/` | helpers the shell calls: wallpaper (`yukishell-setwall.sh`, `-dynwall.sh`, `-wallpause.sh`), Game Mode, UI sound generator |
-| `shell/YukiShell/assets/` | logo, credits pictures and small helpers (`open-url.py`, `tone.sh`, `about-info.sh`) |
-| `kitty fish fastfetch btop cava gtk-3.0 gtk-4.0 qt chromium` | app configs and themes |
-| `tools/` | `doctor` (what is missing on this machine), `check` (lints the repo), `i18n-check.py` (missing translations), `make-logo.py`, `fix-font-loops.py` |
+| `~/.config/quickshell/YukiShell`, `YukiLock` | symlinks to `shell/` |
+| `~/.config/yukibar`, `yukidock`, `yukishell`, `yukilock`, `yukiwidgets` | your settings |
+| `~/.config/hypr-rice/env` | your environment variables |
+| `~/.local/state/hypr-rice/YukiShell.log` | the shell's log |
 
-The palette lives in `hypr/rice/theme.lua`. Env overrides go in `~/.config/hypr-rice/env`; the shell log is
-`~/.local/state/hypr-rice/YukiShell.log`. Open Settings with `qs -c YukiShell ipc call settings open`. `yuki-start` gives the shell your login shell
-(from the account database) as `$SHELL`, so terminals it opens run your shell (fish here) whatever restarted it.
+## Q&A
 
-The shell keeps its settings in `~/.config/yukibar`, `yukidock`, `yukishell`, `yukilock` and `yukiwidgets`. They are its own
-folders: YukiShell never reads or writes MacShell's, and never runs MacShell's installer or updater.
+**The bar and Dock didn't show up after logging in.**
+Run `yuki-start` in a terminal and read `~/.local/state/hypr-rice/YukiShell.log`. Usually it's a missing `quickshell`, or Hyprland
+isn't using the Lua config. `tools/doctor` checks both.
 
-## Hacking on it
+**I got a "keeps crashing" notification.**
+`yuki-start` gives up after a few crashes in a row so it doesn't loop forever. Check the log, fix what it complains about, then `yuki-restart`.
 
-QML changes hot-reload as soon as you save; language tables (`lang/*.js`) are cached, so use `yuki-restart` (or `Super+Shift+R`)
-after editing those. Run `tools/check` before committing: it syntax-checks the Lua, fish, shell, Python, JSON, JS and QML files and
-reports every interface string that a language is missing. A quick CPU check: `top -p $(pgrep -f '^qs -c YukiShell')`.
+**How do I restart the shell?**
+`Super+Shift+R`, or `yuki-restart` in a terminal. Please don't use `qs kill`. Quickshell can crash on the way out, and then you end up with two shells.
+
+**It's using a lot of CPU / it's slow on my GPU.**
+Try Game Mode (`Super+G`) to see whether the effects are the cause. If it's an older GPU, see the environment variables above.
+The animated wallpaper costs the most, so try a still wallpaper too.
+
+**The wallpaper inside the glass is a little behind the desktop.**
+It catches up within a couple of seconds after it starts, because it syncs to the desktop player's clock. If it stays behind, `yuki-restart`.
+
+**My notifications from mako/dunst stopped working.**
+That's on purpose: YukiShell is the notification server now. See [Things that conflict with it](#things-that-conflict-with-it).
+
+**Terminals opened from the shell use the wrong shell.**
+They use your login shell (`chsh -s /usr/bin/fish` to change it). `yuki-start` reads it from your account, so restart the shell after changing it.
+
+**Can I use this without NVIDIA?**
+Yes. Nothing depends on NVIDIA. AMD and Intel should be fine, and there are fallbacks in `env.example` for older chips.
+
+**Does it work on multiple monitors?**
+The bar, Dock and wallpaper run per monitor. I only have one screen though, so tell me if something's off.
+
+**How do I add a language?**
+Copy `shell/YukiShell/lang/vi.js`, translate the right-hand side, register it in `shell/YukiShell/I18n.js` and add a small block to
+`shell/YukiLock/I18n.js`. `tools/i18n-check.py` lists anything you missed.
+
+**Will updating MacShell break this?**
+No. YukiShell doesn't read MacShell's folders and never runs its installer or updater.
+
+## Working on it
+
+QML changes reload as soon as you save. The language files are cached, so restart the shell after editing those.
+
+Before committing, run:
+
+```sh
+tools/check
+```
+
+It syntax-checks the Lua, fish, shell, Python, JSON, JS and QML, and lists any interface text that a language is missing. It takes about ten seconds.
+
+If you're wondering what the shell is spending CPU on: `top -p $(pgrep -f '^qs -c YukiShell')`.
+
+Issues and pull requests are welcome.
 
 ## Credits and license
 
-MIT, see [LICENSE](LICENSE). YukiShell and YukiLock are derived from [MacShell](https://github.com/0-ss/MacShell) by
-Rickky (original author) and vSuol (contributor), whose copyright notice is kept in the license. Bundled third-party pieces
-(the Open Runde fonts, GitHub gemoji data, icons) keep their own licenses.
+MIT, see [LICENSE](LICENSE).
+
+- **[雪風 (@xuefeng1331)](https://github.com/xuefeng1331)**: YukiShell, YukiLock and the rice
+- **[Rickky (@0-ss)](https://github.com/0-ss)**: original author of [MacShell](https://github.com/0-ss/MacShell), where the menu bar, Dock, Liquid Glass and widgets come from
+- **[vSuol (@vsoultann)](https://github.com/vsoultann)**: MacShell contributor, the Settings app
+
+Their copyright notice is kept in the license. The bundled Open Runde fonts, GitHub's gemoji data and the icons keep their own licenses.
