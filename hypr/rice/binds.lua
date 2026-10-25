@@ -31,7 +31,7 @@ for i = 1, 10 do
     local key = i % 10
     bind(mod .. " + " .. key,         hl.dsp.focus({ workspace = i }),       i == 1 and "Go to Workspace 1–10 (0 = 10)" or nil, { fixed = true })
     bind(mod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }), i == 1 and "Move Window to Workspace 1–10" or nil, { fixed = true })
-    hl.bind(mod .. " + ALT + " .. key,   hl.dsp.window.move({ workspace = i }))
+    bind(mod .. " + ALT + " .. key,   hl.dsp.window.move({ workspace = i, follow = false }), i == 1 and "Send Window to Workspace 1–10 (stay here)" or nil, { fixed = true })
 end
 
 bind(mod .. " + S",         hl.dsp.workspace.toggle_special("magic"), "Scratchpad")
