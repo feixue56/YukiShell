@@ -758,5 +758,19 @@ var strings = {
     "Screenshot folder": "Thư mục ảnh chụp màn hình",
     "Wallpaper folders": "Thư mục hình nền",
     "item": "mục",
-    "items": "mục"
+    "items": "mục",
+    "Audio Visualizer": "Hiệu ứng âm thanh",
+    "Show audio visualizer": "Hiện hiệu ứng âm thanh",
+    "Bars that move with the music, behind the Now Playing widget. They only listen while something is playing and the widget is on screen. Needs cava.": "Các thanh chuyển động theo nhạc, nằm sau widget Đang phát. Chỉ nghe âm thanh khi đang phát nhạc và widget đang hiện trên màn hình. Cần cava.",
+    "Cover takes the colour of the album art": "“Bìa” lấy màu từ ảnh bìa album",
+    "Height": "Chiều cao",
+    "Low": "Thấp",
+    "High": "Cao",
+    "Also in the Control Center": "Cũng hiện trong Trung tâm điều khiển",
+    "Next to the cover of the Now Playing tile": "Cạnh ảnh bìa của ô Đang phát",
+    "Bars": "Thanh",
+    "Mirror": "Đối xứng",
+    "Wave": "Sóng",
+    "Cover": "Bìa",
+    "Accent": "Màu nhấn"
 };

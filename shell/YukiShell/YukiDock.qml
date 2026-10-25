@@ -451,13 +451,14 @@ Scope {
                 }
             }
         }
-        Rectangle {   // selection / outline ring
+        Rectangle {   // outline
             width: 84; height: 56
             radius: 8
             color: "transparent"
-            border.width: tile.selected ? 3 : 1
-            border.color: tile.selected ? tile.t.accent : tile.t.sep
+            border.width: 1
+            border.color: tile.t.sep
         }
+        GlassRing { x: -1; y: -1; width: 86; height: 58; radius: 9; on: tile.selected; dark: tile.t.dark }   // the chosen one
         Text {
             y: 60
             anchors.horizontalCenter: parent.horizontalCenter
@@ -1316,7 +1317,14 @@ Scope {
                     x: 10; y: 90; width: parent.width - 20; height: 52; radius: 10
                     visible: prefsWindow.query === ""
                     readonly property int idx: { for (var i = 0; i < prefsWindow.panes.length; i++) if (prefsWindow.panes[i].id === "users") return i; return 0; }
-                    color: prefsWindow.cur === idx ? (prefsWindow.active ? pal.accent : pal.selInactive) : (acctMa.containsMouse ? pal.hover : "transparent")
+                    color: prefsWindow.cur === idx ? "transparent" : (acctMa.containsMouse ? pal.hover : "transparent")
+                    GlassHover {
+                        anchors.fill: parent
+                        radius: parent.radius
+                        dark: pal.dark
+                        open: prefsWindow.cur === acct.idx
+                        opacity: prefsWindow.active ? 1 : 0.55
+                    }
                     Item {
                         id: acctPic
                         x: 6; anchors.verticalCenter: parent.verticalCenter; width: 38; height: 38
@@ -1330,8 +1338,8 @@ Scope {
                     }
                     Column {
                         x: 52; anchors.verticalCenter: parent.verticalCenter
-                        Text { text: root.userName; color: prefsWindow.cur === acct.idx && prefsWindow.active ? "white" : pal.text; font.family: root.fontForWeight(Font.DemiBold, pal.fam); font.pixelSize: 13; font.weight: Font.DemiBold }
-                        Text { text: I18n.tr("Local Account"); color: prefsWindow.cur === acct.idx && prefsWindow.active ? Qt.rgba(1, 1, 1, 0.8) : pal.text2; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 11 }
+                        Text { text: root.userName; color: pal.text; font.family: root.fontForWeight(Font.DemiBold, pal.fam); font.pixelSize: 13; font.weight: Font.DemiBold }
+                        Text { text: I18n.tr("Local Account"); color: pal.text2; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 11 }
                     }
                     MouseArea { id: acctMa; anchors.fill: parent; hoverEnabled: true; onClicked: prefsWindow.go(acct.idx) }
                 }
@@ -1365,12 +1373,30 @@ Scope {
                     contentHeight: navCol.height
                     clip: true
                     boundsBehavior: Flickable.StopAtBounds
+                // the chosen pane: a Liquid Glass tile that slides to the row you pick (same glass as the menu bar hover)
+                GlassHover {
+                    id: navMark
+                    readonly property int pos: prefsWindow.filtered.indexOf(prefsWindow.cur)
+                    readonly property Item row: { navRep.count; return pos >= 0 ? navRep.itemAt(pos) : null; }
+                    z: 0
+                    x: 0; width: navCol.width; height: 34; radius: 8
+                    y: row ? row.y + (row.gap ? 12 : 0) : 0
+                    visible: row !== null && amt > 0.005
+                    dark: pal.dark
+                    open: row !== null
+                    opacity: prefsWindow.active ? 1 : 0.55
+                    Behavior on y { enabled: navMark.shown; NumberAnimation { duration: 340; easing.type: Easing.OutBack; easing.overshoot: 1.25 } }
+                    Behavior on opacity { NumberAnimation { duration: 150 } }
+                    property bool shown: false           // no slide on the very first placement
+                    Component.onCompleted: Qt.callLater(function () { navMark.shown = true; })
+                }
                 Column {
                     id: navCol
                     width: parent.width
                     spacing: 2
 
                     Repeater {
+                        id: navRep
                         model: prefsWindow.filtered
                         delegate: Item {
                             id: navItem
@@ -1388,8 +1414,7 @@ Scope {
                             width: parent.width
                             height: 34
                             radius: 8
-                            color: sel ? (prefsWindow.active ? pal.accent : pal.selInactive)
-                                       : (navMa.containsMouse ? pal.hover : "transparent")
+                            color: sel ? "transparent" : (navMa.containsMouse ? pal.hover : "transparent")
 
                             SGlyph {
 
@@ -1405,8 +1430,9 @@ Scope {
                                 x: 42
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: I18n.tr(navRow.p.name)
-                                color: (navRow.sel && prefsWindow.active) ? "white" : pal.text
-                                font.family: root.fontForWeight(Font.Normal, pal.fam)
+                                color: pal.text
+                                font.family: root.fontForWeight(navRow.sel ? Font.DemiBold : Font.Normal, pal.fam)
+                                font.weight: navRow.sel ? Font.DemiBold : Font.Normal
                                 font.pixelSize: 14
                             }
                             MouseArea {
@@ -2504,14 +2530,7 @@ Scope {
                                         border.width: 1
                                         border.color: Qt.rgba(0, 0, 0, 0.18)
                                     }
-                                    Rectangle {         // selection ring: same centre as the dot, whole pixels only
-                                        x: 0; y: 0
-                                        visible: sw.sel
-                                        width: 26; height: 26; radius: 13
-                                        color: "transparent"
-                                        border.width: 2
-                                        border.color: pal.text3
-                                    }
+                                    GlassRing { x: 0; y: 0; width: 26; height: 26; radius: 13; ringW: 2; on: sw.sel; dark: pal.dark }   // selection ring: same centre as the dot
                                     MouseArea {
                                         anchors.fill: parent
                                         onClicked: root.setLook("accent", sw.modelData.c)
@@ -3182,6 +3201,85 @@ Scope {
                     }
                 }
 
+                // ── Audio visualizer (Now Playing widget + Control Center tile) ──
+                SLabel { t: pal; header: true; text: I18n.tr("Audio Visualizer") }
+                SCard {
+                    t: pal
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Show audio visualizer")
+                        subtitle: I18n.tr("Bars that move with the music, behind the Now Playing widget. They only listen while something is playing and the widget is on screen. Needs cava.")
+                        SSwitch {
+                            t: pal
+                            checked: root.bar ? root.bar.visOn : true
+                            onToggled: v => { if (root.bar) root.bar.visOn = v; }
+                        }
+                    }
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Style")
+                        SSegmented {
+                            t: pal
+                            model: ["Bars", "Mirror", "Wave"]
+                            segWidth: 72
+                            current: ["bars", "mirror", "wave"].indexOf(root.bar ? root.bar.visStyle : "bars")
+                            onPicked: i => { if (root.bar) root.bar.visStyle = ["bars", "mirror", "wave"][i]; }
+                        }
+                    }
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Color")
+                        subtitle: I18n.tr("Cover takes the colour of the album art")
+                        SSegmented {
+                            t: pal
+                            model: ["Cover", "White", "Accent"]
+                            segWidth: 72
+                            current: ["art", "white", "accent"].indexOf(root.bar ? root.bar.visColor : "art")
+                            onPicked: i => { if (root.bar) root.bar.visColor = ["art", "white", "accent"][i]; }
+                        }
+                    }
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Height")
+                        SSlider {
+                            t: pal
+                            from: 0.5; to: 2; stepSize: 0.05
+                            value: root.bar ? root.bar.visGain : 1
+                            leftLabel: I18n.tr("Low"); rightLabel: I18n.tr("High")
+                            resetValue: 1.0
+                            onMoved: v => { if (root.bar) root.bar.visGain = Math.round(v * 100) / 100; }
+                        }
+                    }
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Also in the Control Center")
+                        subtitle: I18n.tr("Next to the cover of the Now Playing tile")
+                        SSwitch {
+                            t: pal
+                            checked: root.bar ? root.bar.visInCC : true
+                            onToggled: v => { if (root.bar) root.bar.visInCC = v; }
+                        }
+                    }
+                    // a live look: the real sound while music plays, a made-up pattern otherwise
+                    Item {
+                        width: parent.width; height: 92
+                        Rectangle { visible: parent.y > 0.5; x: 14; width: parent.width - 14; height: 1; color: pal.sep }
+                        VisBars {
+                            x: 18; y: 14
+                            width: parent.width - 36; height: 64
+                            src: root.hub ? root.hub.vis : null
+                            active: !!root.bar && root.bar.visOn && prefsWindow.visible
+                            demo: !(root.bar && root.bar.player && root.bar.player.isPlaying)
+                            style: root.bar ? root.bar.visStyle : "bars"
+                            gain: root.bar ? root.bar.visGain : 1
+                            count: 36
+                            readonly property color base: (root.bar && root.bar.visColor === "accent") ? pal.accent : pal.text
+                            colorTop: Qt.rgba(base.r, base.g, base.b, 0.75)
+                            colorBottom: Qt.rgba(base.r, base.g, base.b, 0.12)
+                        }
+                    }
+                }
+
                 // ── Add ──
                 // One tidy block per widget: name + hint on top, then   Style · Size · Add   on one line that wraps on a narrow window.
                 SLabel { t: pal; header: true; text: I18n.tr("Add a Widget") }
@@ -3617,8 +3715,7 @@ Scope {
                                             GradientStop { position: 0; color: "#8C7A6B" }
                                             GradientStop { position: 1; color: "#3E3530" }
                                         }
-                                        border.width: tile.sel ? 3 : 0; border.color: pal.accent
-                                        Behavior on border.width { NumberAnimation { duration: 160 } }
+                                        GlassRing { anchors.fill: parent; anchors.margins: -1; radius: 15; on: tile.sel; dark: pal.dark }
                                         Text {
                                             anchors.centerIn: parent
                                             text: "9:41"
@@ -3631,7 +3728,7 @@ Scope {
                                         }
                                         MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (root.bar) root.bar.applyLockClockPreset(tile.modelData.id) }
                                     }
-                                    Text { anchors.horizontalCenter: parent.horizontalCenter; text: I18n.tr(tile.modelData.name); color: tile.sel ? pal.accent : pal.text; font.family: root.fontForWeight(tile.sel ? Font.DemiBold : Font.Normal, pal.fam); font.pixelSize: 12; font.weight: tile.sel ? Font.DemiBold : Font.Normal }
+                                    Text { anchors.horizontalCenter: parent.horizontalCenter; text: I18n.tr(tile.modelData.name); color: pal.text; font.family: root.fontForWeight(tile.sel ? Font.DemiBold : Font.Normal, pal.fam); font.pixelSize: 12; font.weight: tile.sel ? Font.DemiBold : Font.Normal }
                                 }
                             }
                         }
@@ -3685,8 +3782,9 @@ Scope {
                                     readonly property bool sel: root.bar && root.bar.lockClockTint.toUpperCase() === modelData
                                     width: 22; height: 22; radius: 11
                                     color: modelData
-                                    border.width: sel ? 2.5 : 1
-                                    border.color: sel ? pal.accent : Qt.rgba(0, 0, 0, 0.2)
+                                    border.width: 1
+                                    border.color: Qt.rgba(0, 0, 0, 0.2)
+                                    GlassRing { anchors.fill: parent; anchors.margins: -2; radius: width / 2; ringW: 2; on: parent.sel; dark: pal.dark }
                                     scale: swMa.pressed ? 0.88 : 1
                                     Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutQuint } }
                                     MouseArea { id: swMa; anchors.fill: parent; anchors.margins: -3; cursorShape: Qt.PointingHandCursor; onClicked: if (root.bar) root.bar.lockClockTint = parent.modelData }
@@ -4235,12 +4333,13 @@ Scope {
                                     }
                                 }
                                 Rectangle {
-                                    anchors.fill: parent; anchors.margins: wt.cur ? -3 : 0
-                                    radius: wt.cur ? 12 : 9
+                                    anchors.fill: parent
+                                    radius: 9
                                     color: "transparent"
-                                    border.width: wt.cur ? 2.5 : 1
-                                    border.color: wt.cur ? pal.accent : pal.cardBorder
+                                    border.width: 1
+                                    border.color: pal.cardBorder
                                 }
+                                GlassRing { anchors.fill: parent; anchors.margins: -3; radius: 12; on: wt.cur; dark: pal.dark }
                                 MouseArea {
                                     id: wtMa
                                     anchors.fill: parent

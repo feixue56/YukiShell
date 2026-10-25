@@ -38,6 +38,7 @@ ShellRoot {
         // the single settings window lives in YukiDock.qml; everything else reaches it through here
         property var bar: yukiBar
         property var dock: yukiDock
+        readonly property var vis: audioVis                     // audio spectrum for the visualizers (only runs while one is showing)
         property var widgets: yukiWidgets
         property var clock: clockApp
         property var about: aboutApp
@@ -307,6 +308,7 @@ ShellRoot {
         }
     }
 
+    AudioVis { id: audioVis }
     YukiBar { id: yukiBar; hub: sharedHub }
     YukiDock { id: yukiDock; hub: sharedHub; bar: yukiBar }
     YukiWidgets { id: yukiWidgets; hub: sharedHub }

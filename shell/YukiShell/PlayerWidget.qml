@@ -49,6 +49,14 @@ Item {
 
     property bool canSeek: false
 
+    // audio visualizer: bars rising from the bottom of the card, behind the controls (spectrum from the shell's AudioVis)
+    property var visSrc: null
+    property bool visOn: false
+    property string visStyle: "bars"         // bars | mirror | wave
+    property string visColor: "art"          // art | white | accent
+    property real visGain: 1.0
+    property color visAccent: "#0A84FF"
+
     // lyrics (fetched by YukiWidgets): [{ t: seconds (-1 = not synced), text: "..." }]
     property var lyrics: []
     property string lyricsState: "idle"      // idle | loading | ok | none
@@ -310,6 +318,29 @@ Item {
                 property real ringW: 0
             }
         }
+    }
+
+    // ── audio visualizer: under the content, over the glass / face. Medium / large: a strip behind the control row, below the
+    //    time labels. Small: a little equaliser to the right of the artwork, under the play button. ──
+    VisBars {
+        id: visual
+        readonly property real sx0: (w.artX + w.artS + 14)                 // RU, small only
+        x: (w.isSmall ? sx0 : w.mx) * w.k
+        width: (w.isSmall ? w.wr - w.mx - sx0 : w.wr - 2 * w.mx) * w.k
+        y: (w.isSmall ? 77 : w.hr - 58) * w.k
+        height: (w.isSmall ? w.artY + w.artS - 77 : 46) * w.k
+        src: w.visSrc
+        active: w.visOn && w.hasPlayer && (w.playing || w.preview) && !w.editing
+        demo: w.preview
+        style: w.visStyle
+        gain: w.visGain
+        count: w.isSmall ? 5 : 28
+        barFill: w.isSmall ? 0.7 : 0.62
+        readonly property color base: w.visColor === "accent" ? w.visAccent
+                                       : (w.visColor === "art" && w.faceTint ? Qt.hsla(w.tintH, Math.min(0.95, w.tintS * 1.15 + 0.2), w.dark ? 0.70 : 0.42, 1)
+                                          : (w.dark ? Qt.rgba(1, 1, 1, 1) : Qt.rgba(0, 0, 0, 1)))
+        colorTop: Qt.rgba(base.r, base.g, base.b, w.isSmall ? 0.55 : (w.dark ? 0.34 : 0.28))
+        colorBottom: Qt.rgba(base.r, base.g, base.b, w.isSmall ? 0.12 : 0.03)
     }
 
     // Control Center border (all styles)

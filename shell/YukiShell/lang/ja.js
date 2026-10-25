@@ -800,5 +800,19 @@ var strings = {
     "Screenshot folder": "スクリーンショットのフォルダ",
     "Wallpaper folders": "壁紙フォルダ",
     "item": "項目",
-    "items": "項目"
+    "items": "項目",
+    "Audio Visualizer": "オーディオビジュアライザ",
+    "Show audio visualizer": "オーディオビジュアライザを表示",
+    "Bars that move with the music, behind the Now Playing widget. They only listen while something is playing and the widget is on screen. Needs cava.": "音楽に合わせて動くバーを再生中ウィジェットの後ろに表示します。再生中でウィジェットが表示されているときだけ音を拾います。cava が必要です。",
+    "Cover takes the colour of the album art": "「カバー」はアルバムアートの色を使います",
+    "Height": "高さ",
+    "Low": "低",
+    "High": "高",
+    "Also in the Control Center": "コントロールセンターにも表示",
+    "Next to the cover of the Now Playing tile": "「再生中」タイルのカバーの横に表示します",
+    "Bars": "バー",
+    "Mirror": "ミラー",
+    "Wave": "ウェーブ",
+    "Cover": "カバー",
+    "Accent": "アクセント"
 };

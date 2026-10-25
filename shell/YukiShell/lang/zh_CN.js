@@ -800,5 +800,19 @@ var strings = {
     "Screenshot folder": "截图文件夹",
     "Wallpaper folders": "墙纸文件夹",
     "item": "项",
-    "items": "项"
+    "items": "项",
+    "Audio Visualizer": "音频可视化",
+    "Show audio visualizer": "显示音频可视化",
+    "Bars that move with the music, behind the Now Playing widget. They only listen while something is playing and the widget is on screen. Needs cava.": "随音乐跳动的条形，显示在“正在播放”小组件后面。只有在播放且小组件显示时才会收听声音。需要 cava。",
+    "Cover takes the colour of the album art": "“封面”取用专辑封面的颜色",
+    "Height": "高度",
+    "Low": "低",
+    "High": "高",
+    "Also in the Control Center": "也显示在控制中心",
+    "Next to the cover of the Now Playing tile": "显示在“正在播放”磁贴的封面旁",
+    "Bars": "条形",
+    "Mirror": "镜像",
+    "Wave": "波形",
+    "Cover": "封面",
+    "Accent": "强调色"
 };

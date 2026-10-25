@@ -800,5 +800,19 @@ var strings = {
     "Screenshot folder": "스크린샷 폴더",
     "Wallpaper folders": "배경화면 폴더",
     "item": "항목",
-    "items": "항목"
+    "items": "항목",
+    "Audio Visualizer": "오디오 비주얼라이저",
+    "Show audio visualizer": "오디오 비주얼라이저 표시",
+    "Bars that move with the music, behind the Now Playing widget. They only listen while something is playing and the widget is on screen. Needs cava.": "음악에 맞춰 움직이는 막대를 지금 재생 중 위젯 뒤에 표시합니다. 재생 중이고 위젯이 화면에 있을 때만 소리를 듣습니다. cava가 필요합니다.",
+    "Cover takes the colour of the album art": "'커버'는 앨범 아트의 색을 사용합니다",
+    "Height": "높이",
+    "Low": "낮게",
+    "High": "높게",
+    "Also in the Control Center": "제어 센터에도 표시",
+    "Next to the cover of the Now Playing tile": "'지금 재생 중' 타일의 커버 옆에 표시됩니다",
+    "Bars": "막대",
+    "Mirror": "대칭",
+    "Wave": "파형",
+    "Cover": "커버",
+    "Accent": "강조색"
 };

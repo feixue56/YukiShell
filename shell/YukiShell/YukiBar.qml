@@ -342,6 +342,12 @@ Scope {
     property int spotRequest: 0
     property string spotWant: "home"          // which Spotlight panel the next request opens: home | clip | emoji | apps
     property int nightTemp: 4000
+    // audio visualizer (the Now Playing widget and the Control Center tile; Settings → Widgets)
+    property bool visOn: true
+    property string visStyle: "bars"          // bars | mirror | wave
+    property string visColor: "art"           // art (from the cover) | white | accent
+    property real visGain: 1.0                // how tall the bars get
+    property bool visInCC: true               // also inside the Control Center's Now Playing tile
     // Control Center: ids of the enabled controls, in order (edit with Control Center → Edit Controls)
     property var ccControls: ["wifi", "nowplaying", "bluetooth", "airplane", "focus", "record", "nightshift", "keepawake", "display", "sound"]
     property bool ccMigRec: false              // one-time: add the Screen Recording tile to an existing Control Center layout
@@ -362,7 +368,7 @@ Scope {
         "barStyle", "barGlass", "glassRim", "glassGrain", "glassLiquid", "glassBlur", "barBgOpacity", "glassRealtime", "liveWallGlass", "glassDebug", "wallpaperPath", "use24h", "language", "showDate",
         "showSeconds", "showBatteryPercent", "showTray", "showSearch",
         "spotlightEnabled", "reduceMotion", "ccEnabled", "notificationsEnabled", "clockAppEnabled", "ccStyle", "barLogoMode", "barCustomLogoPath", "barWidgets", "weekStartsMonday", "terminal", "launcher",
-        "filesCmd", "clipboardCmd", "appUsage", "clipHistory", "clipAutoPaste", "emojiRecent", "screenshotDir", "screenshotSave", "screenshotClipboard", "screenshotNotify", "nightTemp", "ccControls", "ccSizes", "ccTileSize", "ccSpacing", "ccOnColor", "ccMigRec", "wallpaperDir", "wallpaperDirs", "wallpaperFavs", "wallpaperCmd", "wallpaperVideo", "wpRestorePath", "uiSounds", "gamingMode", "gamingAuto", "ccMigGame", "lockArtBackground",
+        "filesCmd", "clipboardCmd", "appUsage", "clipHistory", "clipAutoPaste", "emojiRecent", "screenshotDir", "screenshotSave", "screenshotClipboard", "screenshotNotify", "nightTemp", "ccControls", "ccSizes", "ccTileSize", "ccSpacing", "ccOnColor", "ccMigRec", "visOn", "visStyle", "visColor", "visGain", "visInCC", "wallpaperDir", "wallpaperDirs", "wallpaperFavs", "wallpaperCmd", "wallpaperVideo", "wpRestorePath", "uiSounds", "gamingMode", "gamingAuto", "ccMigGame", "lockArtBackground",
         "lockClockStyle", "switcherStyle", "lockClockFont", "lockClockWeight", "lockClockMaterial", "lockClockIntensity", "lockClockTint", "lockClockDate", "autoContrast", "wallpaperAppearance", "wpPairLight", "wpPairDark",
         "notifDnd", "dnd", "nightOn", "keepAwake",
         "kbRepeatRate", "kbRepeatDelay", "mouseSens", "mouseNatural", "tpNatural", "tpTap", "tpDwt", "tpScroll"]
@@ -7947,6 +7953,19 @@ Scope {
                                     border.width: 1
                                     border.color: ccPal.dark ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.10)
                                 }
+                            }
+                            // audio visualizer next to the cover (Settings → Widgets → Audio visualizer)
+                            VisBars {
+                                x: art.x + art.width + 14; y: art.y
+                                width: parent.width - x - 14; height: art.height
+                                src: root.hub ? root.hub.vis : null
+                                active: root.visOn && root.visInCC && np.pl !== null && np.pl !== undefined && np.pl.isPlaying
+                                style: root.visStyle
+                                gain: root.visGain
+                                count: 18
+                                readonly property color base: root.visColor === "accent" ? root.accent : ccPal.fg
+                                colorTop: Qt.rgba(base.r, base.g, base.b, 0.55)
+                                colorBottom: Qt.rgba(base.r, base.g, base.b, 0.10)
                             }
                             Column {
                                 x: 12; y: 66

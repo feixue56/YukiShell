@@ -811,5 +811,19 @@ var strings = {
     "Screenshot folder": "Папка для снимков экрана",
     "Wallpaper folders": "Папки с обоями",
     "item": "элем.",
-    "items": "элем."
+    "items": "элем.",
+    "Audio Visualizer": "Визуализатор звука",
+    "Show audio visualizer": "Показывать визуализатор звука",
+    "Bars that move with the music, behind the Now Playing widget. They only listen while something is playing and the widget is on screen. Needs cava.": "Столбики, которые двигаются в такт музыке, за виджетом «Сейчас играет». Они слушают звук, только пока что-то играет и виджет на экране. Нужен cava.",
+    "Cover takes the colour of the album art": "«Обложка» берёт цвет обложки альбома",
+    "Height": "Высота",
+    "Low": "Ниже",
+    "High": "Выше",
+    "Also in the Control Center": "Также в Пункте управления",
+    "Next to the cover of the Now Playing tile": "Рядом с обложкой в плитке «Сейчас играет»",
+    "Bars": "Столбики",
+    "Mirror": "Зеркало",
+    "Wave": "Волна",
+    "Cover": "Обложка",
+    "Accent": "Акцент"
 };

@@ -147,12 +147,38 @@ Item {
         height: g.kh0 + g.gh * g.pressT
         readonly property real rad: height / 2
         readonly property real plainOp: g.glass ? Math.max(0, Math.min(1, 1 - g.pressT * 1.4)) : 1
-        Rectangle {
+        Rectangle {                                  // no glass available: a plain capsule
             anchors.fill: parent
+            visible: !g.glass
             radius: pill.rad
             color: g.pillColor
             border.width: 1; border.color: g.dark ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(0, 0, 0, 0.10)
+        }
+        // resting marker: a frosted Liquid Glass capsule (bright body, specular band, the Control Center rim). The refracting lens
+        // below fades in over it while the marker is pressed or sliding, so the chosen option always looks like glass.
+        Item {
+            anchors.fill: parent
+            visible: g.glass
             opacity: pill.plainOp
+            Rectangle {
+                anchors.fill: parent
+                radius: pill.rad
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: g.dark ? Qt.rgba(1, 1, 1, 0.30) : Qt.rgba(1, 1, 1, 0.98) }
+                    GradientStop { position: 1.0; color: g.dark ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(1, 1, 1, 0.74) }
+                }
+                border.width: 1; border.color: g.dark ? Qt.rgba(1, 1, 1, 0.20) : Qt.rgba(0, 0, 0, 0.10)
+            }
+            Rectangle {                              // specular band along the top half
+                x: 1; y: 1
+                width: parent.width - 2; height: parent.height * 0.5
+                radius: Math.max(0, pill.rad - 1)
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, g.dark ? 0.26 : 0.6) }
+                    GradientStop { position: 1.0; color: Qt.rgba(1, 1, 1, 0) }
+                }
+            }
+            CornerBorder { anchors.fill: parent; cornerR: pill.rad; dark: g.dark; tint: g.borderTint; amount: 1; lineW: 0.9 }
         }
     }
 

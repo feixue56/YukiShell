@@ -86,6 +86,10 @@ helper show up in Settings by their description, and `tools/i18n-check.py` remin
   cover the desktop that video is switched off completely, so it costs nothing when you cannot see it.
 - Hover feedback everywhere: the menu bar and Dock buttons get a frosted-glass tile with a rim light that follows the pointer,
   workspaces that have windows keep a resting glass tile, and the Dock's last button is a gear that opens Settings.
+- **Audio visualizer**: bars (or a mirrored row, or a smooth wave) that move with the music behind the Now Playing widget and next to the cover in the
+  Control Center tile. It uses `cava` and only listens while something is playing and a visualizer is on screen; **Settings → Widgets → Audio Visualizer**
+  has the style, the colour (cover / white / accent), the height and a live preview. Without `cava` it just stays off.
+- The chosen option is always a **Liquid Glass** capsule: the segmented controls in Settings, and the selected pane in the Settings sidebar (a glass tile that slides to it).
 - **A Control Center you can shape**: *Edit Controls* (or **Settings → Control Center**) lets you add, remove and drag the controls, and switch most of them between
   a small round button and a wide tile (the grey `1×1` / `2×1` badge in edit mode). Seven extra controls are available besides the usual switches: Lock Screen,
   Screenshot, Color Picker, Wallpapers, System Settings, Microphone mute and Power Mode (power-profiles-daemon). Settings also has the row height

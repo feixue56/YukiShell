@@ -800,5 +800,19 @@ var strings = {
     "Screenshot folder": "截圖資料夾",
     "Wallpaper folders": "桌面圖片資料夾",
     "item": "項",
-    "items": "項"
+    "items": "項",
+    "Audio Visualizer": "音訊視覺化",
+    "Show audio visualizer": "顯示音訊視覺化",
+    "Bars that move with the music, behind the Now Playing widget. They only listen while something is playing and the widget is on screen. Needs cava.": "隨音樂跳動的長條，顯示在「正在播放」小工具後面。只有在播放且小工具顯示時才會收聽聲音。需要 cava。",
+    "Cover takes the colour of the album art": "「封面」取用專輯封面的顏色",
+    "Height": "高度",
+    "Low": "低",
+    "High": "高",
+    "Also in the Control Center": "也顯示在控制中心",
+    "Next to the cover of the Now Playing tile": "顯示在「正在播放」圖塊的封面旁",
+    "Bars": "長條",
+    "Mirror": "鏡像",
+    "Wave": "波形",
+    "Cover": "封面",
+    "Accent": "強調色"
 };

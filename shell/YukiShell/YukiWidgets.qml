@@ -64,6 +64,13 @@ Scope {
     // Size of the Player's contents (art, text, buttons) relative to the original design. The card itself fills the
     // normal widget footprint, like every other widget. 1.0 = original size.
     property real playerScale: 0.8
+    // audio visualizer of the Player card (the settings live in the Menu Bar's settings, the spectrum comes from the shell's AudioVis)
+    readonly property var visSrc: hub ? hub.vis : null
+    readonly property bool visOn: (hub && hub.bar) ? hub.bar.visOn : false
+    readonly property string visStyle: (hub && hub.bar) ? hub.bar.visStyle : "bars"
+    readonly property string visColor: (hub && hub.bar) ? hub.bar.visColor : "art"
+    readonly property real visGain: (hub && hub.bar) ? hub.bar.visGain : 1.0
+    readonly property color visAccent: (hub && hub.bar) ? hub.bar.accent : "#0A84FF"
     readonly property int gridCell: Math.round(179 * widgetScale)
     readonly property int gridGapX: Math.round(28 * widgetScale)
     readonly property int gridGapY: Math.round(23 * widgetScale)
