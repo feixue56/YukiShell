@@ -3395,6 +3395,7 @@ Scope {
         var out=[], s=(q||"").trim().toLowerCase(); if(!s)return out;
         var ts=Hyprland.toplevels.values;
         for(var i=0;i<ts.length&&out.length<4;i++){
+            if(root.hub&&root.hub.tlGhost(ts[i]))continue;
             var t=ts[i], o=t.lastIpcObject||{}, title=String(o.title||t.title||""), cls=String(o["class"]||t.appId||""), app=root.lookup(cls), label=title||app&&app.name||cls;
             if((label+" "+cls+" "+(app?app.name:" ")).toLowerCase().indexOf(s)<0)continue;
             var addr=String(o.address||t.address||""); if(addr!=="" && addr.indexOf("0x")!==0) addr="0x"+addr;
@@ -4858,6 +4859,7 @@ Scope {
         if (!hit) {                                   // handle did not match: fall back to class (+ title)
             var cls = (a.cls || a.appId || "").toLowerCase(), ttl = a.win.title || "", loose = null;
             for (i = 0; i < ts.length; i++) {
+                if (root.hub && root.hub.tlGhost(ts[i])) continue;
                 var o = ts[i].lastIpcObject || {};
                 if (("" + (o["class"] || "")).toLowerCase() !== cls) continue;
                 if (("" + (o.title || "")) === ttl) { hit = ts[i]; break; }

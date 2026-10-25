@@ -33,6 +33,24 @@ ShellRoot {
         property var monData: []
         property var glassClients: []
         property var wallpaperMap: ({})
+        // Ghost windows. Quickshell keeps its list of Hyprland windows from `closewindow` events, and `refreshToplevels()` only ever ADDS to
+        // it. So when a window-list reply that Hyprland answered while a window was still open is read after that window's `closewindow`
+        // (the shell was busy in between, e.g. tearing down its own Settings window), the closed window comes back and stays until the shell
+        // restarts. A ghost never gets a Wayland handle (live windows get theirs within milliseconds), so a window that has had none for
+        // 2 s is treated as gone. If NO window has a handle the mapping is unavailable and nothing is hidden.
+        property var tlNoHandle: ({})                 // address → when it was first seen without a Wayland handle
+        property int tlGhosts: 0
+        function tlGhost(t) {
+            var a = t.address;
+            if (t.wayland) { if (tlNoHandle[a] !== undefined) delete tlNoHandle[a]; return false; }
+            var now = Date.now(), s = tlNoHandle[a];
+            if (s === undefined) { tlNoHandle[a] = now; return false; }
+            return now - s > 2000;
+        }
+        function tlAnyHandle(ts) {
+            for (var i = 0; i < ts.length; i++) if (ts[i].wayland) return true;
+            return false;
+        }
         readonly property string boldFontFamily: uiBoldFontLoader.status === FontLoader.Ready ? uiBoldFontLoader.name : "Open Runde Semibold"
 
         // the single settings window lives in YukiDock.qml; everything else reaches it through here
@@ -204,16 +222,24 @@ ShellRoot {
         property bool ipcOk: false
         property bool ipcBroken: false
         function ipcPoll() {
-            var ts, ms, i, o, m, cl = [], mo = [];
+            var ts, ms, i, o, m, cl = [], mo = [], raw = 0, gh = 0, mapped;
             try {
                 ts = Hyprland.toplevels.values;
                 ms = Hyprland.monitors.values;
-                for (i = 0; i < ts.length; i++) { o = ts[i].lastIpcObject; if (o && o.address !== undefined) cl.push(o); }
+                mapped = tlAnyHandle(ts);
+                for (i = 0; i < ts.length; i++) {
+                    o = ts[i].lastIpcObject;
+                    if (!(o && o.address !== undefined)) continue;
+                    raw++;
+                    if (mapped && tlGhost(ts[i])) { gh++; continue; }
+                    cl.push(o);
+                }
+                if (gh !== tlGhosts) { tlGhosts = gh; console.log("[yukishell] " + gh + " ghost window(s) in Quickshell's Hyprland list are hidden"); }
                 for (i = 0; i < ms.length; i++) { m = ms[i].lastIpcObject; if (m && m.name !== undefined) mo.push(m); }
                 Hyprland.refreshToplevels();      // the answer lands in lastIpcObject and is read on the next tick
                 Hyprland.refreshMonitors();
             } catch (err) { ipcBroken = true; ipcOk = false; return; }
-            if (mo.length === 0 || (ts.length > 0 && cl.length === 0)) { ipcOk = false; return; }
+            if (mo.length === 0 || (ts.length > 0 && raw === 0)) { ipcOk = false; return; }
             ipcOk = true;
             tlSeed();
             // fingerprint the GEOMETRY only: a window retitling itself (a terminal, a browser tab, a player) is no
