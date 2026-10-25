@@ -16,6 +16,8 @@ bind("SUPER + Z",       hl.dsp.exec_cmd(qs .. "settings toggle"), "System Settin
 bind("SUPER + V",       hl.dsp.exec_cmd(qs .. "spotlight clipboard"), "Clipboard History")
 bind("SUPER + period",  hl.dsp.exec_cmd(qs .. "spotlight emoji"), "Emoji Picker")
 bind("SUPER + Space",   hl.dsp.exec_cmd(qs .. "spotlight toggle"), "Spotlight")
+-- tapping Super on its own (pressed and let go with no other key) also toggles Spotlight; fires on release, so Super+<key> shortcuts don't
+bind("SUPER + Super_L", hl.dsp.exec_cmd(qs .. "spotlight toggle"), "Spotlight (tap Super)", { release = true })
 bind("ALT + TAB",       hl.dsp.exec_cmd(qs .. "switcher next"), "Switch Windows", { fixed = true })   -- fixed: the switcher commits when Alt is let go
 bind("CTRL + ALT + W",  hl.dsp.exec_cmd(qs .. "wallpapers toggle"), "Wallpapers")
 bind("PRINT",           hl.dsp.exec_cmd(qs .. "screenshot region"), "Screenshot a Region")

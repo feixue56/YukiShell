@@ -60,7 +60,7 @@ Before using it, check:
 | `Super+S`, `Super+Shift+S` | scratchpad, send window to it |
 | `Super+Shift+Arrows` | swap the window with its neighbour |
 | `Super+Z` | System Settings |
-| `Super+Space` / `Super+V` / `Super+.` | Spotlight / clipboard history / emoji |
+| `Super` (tap) or `Super+Space` / `Super+V` / `Super+.` | Spotlight / clipboard history / emoji |
 | `Alt+Tab` | window switcher |
 | `Print` / `Shift+Print` / `Ctrl+Print` | screenshot: region / screen / window |
 | `Super+G` | Game Mode (the shell pauses its effects) |
