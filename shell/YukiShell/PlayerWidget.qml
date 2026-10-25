@@ -107,6 +107,13 @@ Item {
     height: (isLarge ? 354 : 168) * scaleF
 
     readonly property bool glassOn: style === "liquid" && glassReady && !preview && wallUrl != ""
+    // the glass is made at once but only shown once its backdrop holds the wallpaper (an empty backdrop refracts as black):
+    // until then it sits at 1% opacity (so it still renders and fills its textures) over the plain card, then fades in
+    property bool glassShown: false
+    property bool glassFull: false          // the fade-in is over: the plain card underneath can go
+    onGlassOnChanged: if (!glassOn) { glassShown = false; glassFull = false; }
+    onGlassShownChanged: if (glassShown) fullT.restart()
+    Timer { id: fullT; interval: 250; onTriggered: w.glassFull = w.glassShown }
     readonly property bool dark: style === "dark" || (style === "liquid" && darkGlass)
     readonly property real tint: Math.min(0.92, dark ? 0.25 + glassOpacity * 0.8 : 0.45 + glassOpacity * 0.9)
 
@@ -208,7 +215,7 @@ Item {
     // Liquid fallback / gallery preview: frosted card
     Rectangle {
         anchors.fill: parent
-        visible: w.style === "liquid" && !w.glassOn
+        visible: w.style === "liquid" && !(w.glassOn && w.glassFull)
         radius: w.radiusPx
         gradient: Gradient {
             GradientStop { position: 0.0; color: w.dark ? Qt.rgba(0.22, 0.22, 0.25, 0.82) : Qt.rgba(1.0, 1.0, 1.0, 0.88) }
@@ -220,8 +227,15 @@ Item {
     Loader {
         anchors.fill: parent
         active: w.glassOn
+        opacity: w.glassShown ? 1 : 0.01
+        Behavior on opacity { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
         sourceComponent: Item {
             id: gl
+            // the backdrop has the wallpaper (or the live video slice); one more moment for the blur to render it, then show
+            readonly property bool filled: wallImg.status === Image.Ready || wallImg.status === Image.Error || wslice.ready
+            onFilledChanged: if (filled) showT.restart()
+            Component.onCompleted: if (filled) showT.restart()
+            Timer { id: showT; interval: 100; onTriggered: w.glassShown = true }
             readonly property real margin: 72
             readonly property real padPx: 10
             readonly property real ds: w.glassBlur >= 8 ? 0.5 : 1.0
