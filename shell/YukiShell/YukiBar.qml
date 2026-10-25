@@ -4723,6 +4723,8 @@ Scope {
             var n = event.name;
             if (n === "createworkspacev2" || n === "destroyworkspacev2" || n === "workspacev2" || n === "moveworkspacev2" || n === "renameworkspace")
                 Hyprland.refreshWorkspaces();
+            if (n === "openwindow" || n === "closewindow" || n === "movewindowv2" || n === "createworkspacev2" || n === "destroyworkspacev2" || n === "configreloaded")
+                wsKick.restart();
         }
     }
     readonly property var wsIds: {
@@ -4738,11 +4740,33 @@ Scope {
         ids.sort(function (a, b) { return a - b; });
         return ids;
     }
-    function wsOccupied(id) {
-        var vals = Hyprland.workspaces.values;
-        for (var i = 0; i < vals.length; i++) if (vals[i].id === id) return (vals[i].toplevels ? vals[i].toplevels.values.length : 0) > 0;
-        return false;
+    // Which workspaces have a window comes from `hyprctl clients`, not from Quickshell's own list of Hyprland windows: that list keeps a
+    // ghost of every window that closed while the shell was reloading (a workspace then looked busy but was empty when you went there).
+    property var wsCounts: ({})                // workspace id → mapped windows on it
+    property bool wsAgain: false
+    function wsOccupied(id) { return (wsCounts[id] || 0) > 0; }
+    Process {
+        id: wsProbe
+        command: ["hyprctl", "-j", "clients"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var c; try { c = JSON.parse(text); } catch (e) { return; }
+                var m = {}, n = 0, same = true, k;
+                for (var i = 0; i < c.length; i++) {
+                    if (!c[i].mapped || !c[i].workspace) continue;
+                    var id = c[i].workspace.id;
+                    if (m[id] === undefined) { m[id] = 0; n++; }
+                    m[id]++;
+                }
+                for (k in m) if (root.wsCounts[k] !== m[k]) same = false;
+                if (n !== Object.keys(root.wsCounts).length) same = false;
+                if (!same) root.wsCounts = m;
+            }
+        }
+        onExited: { if (root.wsAgain) { root.wsAgain = false; wsKick.restart(); } }
     }
+    Timer { id: wsKick; interval: 120; onTriggered: { if (wsProbe.running) root.wsAgain = true; else wsProbe.running = true; } }
+    Timer { interval: 15000; running: root.barEnabled && root.barWidgetEnabled("workspaces"); repeat: true; triggeredOnStart: true; onTriggered: wsKick.restart() }
 
     // ═════════════ WINDOW SWITCHER (ALT + TAB) ═════════════
     // Hyprland binds (put these in hyprland.conf, and remove any existing ALT+TAB bind):
