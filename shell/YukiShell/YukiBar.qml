@@ -6160,9 +6160,11 @@ Scope {
                     readonly property bool opening: ui.pop === "vol"
                     property real openT: opening ? 1 : 0
                     Behavior on openT {
+                        id: volPopOpenB
+                        // the speed follows where the animation is heading (set before it starts), never the order bindings update in
                         NumberAnimation {
-                            duration: volPop.opening ? 520 : 220
-                            easing.type: volPop.opening ? Easing.OutBack : Easing.InOutCubic
+                            duration: volPopOpenB.targetValue > 0.5 ? 520 : 220
+                            easing.type: volPopOpenB.targetValue > 0.5 ? Easing.OutBack : Easing.InOutCubic
                             easing.overshoot: 0.7
                         }
                     }
@@ -6587,10 +6589,12 @@ Scope {
                     readonly property bool opening: ui.pop === "notif"
                     property real openT: opening ? 1 : 0
                     Behavior on openT {
+                        id: notifPopOpenB
+                        // the speed follows where the animation is heading (set before it starts), never the order bindings update in
                         enabled: !notifPop.merging
                         NumberAnimation {
-                            duration: notifPop.opening ? 520 : 220
-                            easing.type: notifPop.opening ? Easing.OutBack : Easing.InOutCubic
+                            duration: notifPopOpenB.targetValue > 0.5 ? 520 : 220
+                            easing.type: notifPopOpenB.targetValue > 0.5 ? Easing.OutBack : Easing.InOutCubic
                             easing.overshoot: 0.7
                         }
                     }
@@ -7442,9 +7446,11 @@ Scope {
                     readonly property bool opening: ui.pop === "wifi"
                     property real openT: opening ? 1 : 0
                     Behavior on openT {
+                        id: wifiPopOpenB
+                        // the speed follows where the animation is heading (set before it starts), never the order bindings update in
                         NumberAnimation {
-                            duration: wifiPop.opening ? 520 : 220
-                            easing.type: wifiPop.opening ? Easing.OutBack : Easing.InOutCubic
+                            duration: wifiPopOpenB.targetValue > 0.5 ? 520 : 220
+                            easing.type: wifiPopOpenB.targetValue > 0.5 ? Easing.OutBack : Easing.InOutCubic
                             easing.overshoot: 0.7
                         }
                     }
@@ -7743,9 +7749,11 @@ Scope {
                     readonly property bool opening: ui.pop === "bt"
                     property real openT: opening ? 1 : 0
                     Behavior on openT {
+                        id: btPopOpenB
+                        // the speed follows where the animation is heading (set before it starts), never the order bindings update in
                         NumberAnimation {
-                            duration: btPop.opening ? 520 : 220
-                            easing.type: btPop.opening ? Easing.OutBack : Easing.InOutCubic
+                            duration: btPopOpenB.targetValue > 0.5 ? 520 : 220
+                            easing.type: btPopOpenB.targetValue > 0.5 ? Easing.OutBack : Easing.InOutCubic
                             easing.overshoot: 0.7
                         }
                     }
@@ -7933,9 +7941,11 @@ Scope {
                     property int openSeq: 0
                     property real openT: opening ? 1 : 0
                     Behavior on openT {
+                        id: ccOpenB
+                        // the speed follows where the animation is heading (set before it starts), never the order bindings update in
                         NumberAnimation {
-                            duration: cc.opening ? 520 : 150
-                            easing.type: cc.opening ? Easing.OutBack : Easing.OutCubic
+                            duration: ccOpenB.targetValue > 0.5 ? 520 : 150
+                            easing.type: ccOpenB.targetValue > 0.5 ? Easing.OutBack : Easing.OutCubic
                             easing.overshoot: 1.5
                         }
                     }
