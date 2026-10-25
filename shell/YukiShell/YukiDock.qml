@@ -4737,20 +4737,21 @@ Scope {
                             { img: "assets/credits/vsoultann.png", name: "vSuol", gh: "vsoultann",
                               role: "Contributor to MacShell: the Settings app" }
                         ]
+                        // same layout as the "Made by" card above: avatar, name, @handle, then what they did, and a View Profile button
                         delegate: Item {
                             id: cr
                             required property var modelData
-                            width: parent.width; height: 72
-                            Rectangle { visible: cr.y > 0.5; x: 14; width: parent.width - 14; height: 1; color: pal.sep }
+                            width: parent.width; height: Math.max(88, crCol.height + 28)
+                            Rectangle { visible: cr.y > 0.5; x: 16; width: parent.width - 16; height: 1; color: pal.sep }
                             Item {
                                 id: crPic
-                                x: 14; anchors.verticalCenter: parent.verticalCenter
-                                width: 44; height: 44
+                                x: 16; anchors.verticalCenter: parent.verticalCenter
+                                width: 56; height: 56
                                 Item { id: crMask; anchors.fill: parent; visible: false; layer.enabled: true; Rectangle { anchors.fill: parent; radius: width / 2; color: "black" } }
                                 Image {
                                     anchors.fill: parent
                                     source: Qt.resolvedUrl(cr.modelData.img)
-                                    sourceSize: Qt.size(96, 96)
+                                    sourceSize: Qt.size(112, 112)
                                     fillMode: Image.PreserveAspectCrop; smooth: true; mipmap: true
                                     layer.enabled: true
                                     layer.effect: MultiEffect { maskEnabled: true; maskSource: crMask; maskThresholdMin: 0.5; maskSpreadAtMin: 1.0 }
@@ -4758,18 +4759,20 @@ Scope {
                                 Rectangle { anchors.fill: parent; radius: width / 2; color: "transparent"; border.width: 1; border.color: pal.cardBorder }
                             }
                             Column {
-                                x: 70; anchors.verticalCenter: parent.verticalCenter
-                                width: parent.width - 70 - 90
+                                id: crCol
+                                x: 86; anchors.verticalCenter: parent.verticalCenter
+                                width: crBtn.x - 14 - x
                                 spacing: 2
-                                Text { text: cr.modelData.name; color: pal.text; font.family: root.fontForWeight(Font.DemiBold, pal.fam); font.pixelSize: 13; font.weight: Font.DemiBold }
+                                Text { text: cr.modelData.name; color: pal.text; font.family: root.fontForWeight(Font.DemiBold, pal.fam); font.pixelSize: 16; font.weight: Font.DemiBold }
+                                Text { text: "@" + cr.modelData.gh; color: pal.accent; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12 }
                                 Text { width: parent.width; text: I18n.tr(cr.modelData.role); wrapMode: Text.WordWrap; color: pal.text2; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 11 }
                             }
-                            Text {
+                            SButton {
+                                id: crBtn
+                                t: pal
                                 anchors.right: parent.right; anchors.rightMargin: 14; anchors.verticalCenter: parent.verticalCenter
-                                text: "@" + cr.modelData.gh
-                                color: pal.accent; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12
-                                font.underline: crMa.containsMouse
-                                MouseArea { id: crMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: Quickshell.execDetached(["xdg-open", "https://github.com/" + cr.modelData.gh]) }
+                                text: I18n.tr("View Profile")
+                                onClicked: Quickshell.execDetached(["xdg-open", "https://github.com/" + cr.modelData.gh])
                             }
                         }
                     }
