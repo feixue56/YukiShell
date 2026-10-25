@@ -82,8 +82,10 @@ helper show up in Settings by their description, and `tools/i18n-check.py` remin
 
 ## What it does
 
-- **Liquid Glass** menus, Dock, widgets and Settings, optionally with the *animated wallpaper playing inside the glass*. While windows
-  cover the desktop that video is switched off completely, so it costs nothing when you cannot see it.
+- **Liquid Glass** menus, Dock, widgets and Settings, optionally with the *animated wallpaper playing inside the glass*.
+- **Animated wallpaper** (mpvpaper): it keeps playing behind your windows and workspaces. The **menu bar button** (a picture frame, shown only while
+  the wallpaper is a video) pauses and resumes it by hand, also for the copy inside the glass, and the choice survives a restart. Game Mode stops it on its
+  own. **Settings → Wallpaper → Pause behind windows** (off by default) stops it while windows hide the desktop, to save power on a laptop.
 - Hover feedback everywhere: the menu bar and Dock buttons get a frosted-glass tile with a rim light that follows the pointer,
   workspaces that have windows keep a resting glass tile, and the Dock's last button is a gear that opens Settings.
 - **Audio visualizer**: bars (or a mirrored row, or a smooth wave) that move with the music behind the Now Playing widget and next to the cover in the

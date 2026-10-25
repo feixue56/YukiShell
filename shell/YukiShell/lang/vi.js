@@ -367,7 +367,6 @@ var strings = {
     "Play the animated wallpaper inside the Liquid Glass in real time. Off by default: the glass refracts a still frame and uses no video memory.": "Phát hình nền động bên trong Liquid Glass theo thời gian thực. Mặc định tắt: kính khúc xạ một khung hình tĩnh và không dùng bộ nhớ video.",
     "Play user interface sound effects": "Phát hiệu ứng âm thanh giao diện người dùng",
     "Player": "Trình phát",
-    "Plays on every display and pauses behind fullscreen windows. The Liquid Glass and the lock screen use it too.": "Phát trên mọi màn hình và tạm dừng phía sau các cửa sổ toàn màn hình. Liquid Glass và màn hình khóa cũng dùng nó.",
     "Power profile used by the system": "Chế độ nguồn mà hệ thống sử dụng",
     "Preferences…": "Tùy chọn…",
     "Preparing the Liquid Glass shader…": "Đang chuẩn bị shader Liquid Glass…",
@@ -774,5 +773,10 @@ var strings = {
     "Accent": "Màu nhấn",
     "Choose which controls appear in Control Center and how big each one is. In Control Center → Edit Controls you can also drag a control onto any free cell and pull its corner handle to resize it.": "Chọn các điều khiển hiển thị trong Trung tâm điều khiển và kích thước của từng mục. Trong Trung tâm điều khiển → Chỉnh sửa điều khiển, bạn cũng có thể kéo một điều khiển vào bất kỳ ô trống nào và kéo núm ở góc để đổi kích thước.",
     "Tidy Up": "Sắp xếp lại",
-    "You placed some controls by hand. Pack them together again, in order": "Bạn đã tự đặt một số điều khiển. Xếp chúng lại gọn gàng theo thứ tự"
+    "You placed some controls by hand. Pack them together again, in order": "Bạn đã tự đặt một số điều khiển. Xếp chúng lại gọn gàng theo thứ tự",
+    "Pause behind windows": "Tạm dừng khi bị cửa sổ che",
+    "Stop the animated wallpaper while windows cover the desktop. Off by default: it keeps playing behind translucent windows. The menu bar button pauses it by hand.": "Dừng hình nền động khi cửa sổ che kín màn hình nền. Mặc định tắt: hình nền vẫn chạy phía sau các cửa sổ trong mờ. Nút trên thanh menu cho phép tạm dừng thủ công.",
+    "Live wallpaper button": "Nút hình nền động",
+    "Pause and resume the animated wallpaper. Shown only while the wallpaper is a video.": "Tạm dừng và tiếp tục hình nền động. Chỉ hiện khi hình nền là video.",
+    "Plays on every display. The menu bar button pauses and resumes it. The Liquid Glass and the lock screen use it too.": "Phát trên mọi màn hình. Nút trên thanh menu tạm dừng và tiếp tục hình nền. Liquid Glass và màn hình khóa cũng dùng nó."
 };

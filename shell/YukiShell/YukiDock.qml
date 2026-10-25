@@ -1109,7 +1109,7 @@ Scope {
                                 width: prefsGlassGeo.mw; height: prefsGlassGeo.mh
                                 video: root.bar ? root.bar.glassVideo : ""
                                 live: root.glassLive && prefsWindow.visible
-                                paused: !!root.bar && root.bar.gaming
+                                paused: !!root.bar && (root.bar.gaming || root.bar.wallUserPaused)
                             }
                         }
                         ShaderEffectSource {
@@ -2102,6 +2102,11 @@ Scope {
                     SRow {
                         t: pal; title: I18n.tr("Notifications")
                         SSwitch { t: pal; checked: root.bar ? root.bar.barWidgetEnabled("notifications") : true; onToggled: v => { if (root.bar) root.bar.setBarWidget("notifications", v); } }
+                    }
+                    SRow {
+                        t: pal; title: I18n.tr("Live wallpaper button")
+                        subtitle: I18n.tr("Pause and resume the animated wallpaper. Shown only while the wallpaper is a video.")
+                        SSwitch { t: pal; checked: root.bar ? root.bar.showWallButton : true; onToggled: v => { if (root.bar) root.bar.showWallButton = v; } }
                     }
                     SRow {
                         t: pal; title: I18n.tr("Wi-Fi and network")
@@ -4112,7 +4117,7 @@ Scope {
                             Text {
                                 width: parent.width; wrapMode: Text.WordWrap
                                 visible: wpPane.curVideo !== ""
-                                text: I18n.tr("Plays on every display and pauses behind fullscreen windows. The Liquid Glass and the lock screen use it too.")
+                                text: I18n.tr("Plays on every display. The menu bar button pauses and resumes it. The Liquid Glass and the lock screen use it too.")
                                 color: pal.text3; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 11
                             }
                         }
@@ -4155,6 +4160,17 @@ Scope {
                 SCard {
                     t: pal
                     visible: wpPane.curVideo !== "" || (root.bar && root.bar.liveWallGlass)
+                    SRow {
+                        t: pal
+                        visible: wpPane.curVideo !== ""
+                        title: I18n.tr("Pause behind windows")
+                        subtitle: I18n.tr("Stop the animated wallpaper while windows cover the desktop. Off by default: it keeps playing behind translucent windows. The menu bar button pauses it by hand.")
+                        SSwitch {
+                            t: pal
+                            checked: root.bar ? root.bar.wallPauseCovered : false
+                            onToggled: v => { if (root.bar) root.bar.wallPauseCovered = v; }
+                        }
+                    }
                     SRow {
                         t: pal
                         title: I18n.tr("Animated wallpaper in glass")
@@ -5537,7 +5553,7 @@ Scope {
                             anchors.fill: parent
                             video: root.bar ? root.bar.glassVideo : ""
                             live: root.glassLive
-                            paused: !!root.bar && (root.bar.gaming || root.bar.screenCovered[win.modelData.name] === true)
+                            paused: !!root.bar && root.bar.wallIdle(win.modelData.name)
                         }
 
                         ListModel { id: wm }

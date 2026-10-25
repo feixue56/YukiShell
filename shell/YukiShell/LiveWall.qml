@@ -3,9 +3,9 @@
 // picture, so the glass shows the wallpaper moving in real time.
 // `video` is what the shell hands in as bar.glassVideo: "" while "Animated wallpaper in glass" is off (the default), otherwise a small
 // 720 px / 30 fps copy of the wallpaper. With `video` empty, `live` false, or the wallpaper a still picture again, the Loader is inactive
-// and no decoder exists at all. While `paused` (desktop covered by windows, Game Mode) the decoder is torn down as well, a while later: a paused
-// QMediaPlayer still costs about as much as a playing one (measured: ~7% of a core and ~400 MB of GPU memory per shell), a missing one
-// costs nothing, and the still picture underneath is what shows until the video is back.
+// and no decoder exists at all. While `paused` (Game Mode, the menu bar button, "Pause behind windows") the video freezes on its last frame
+// at once (a paused decoder costs ~1% of a core, a playing one ~3%), and the decoder is torn down a good while later: a missing one costs
+// nothing and frees its GPU memory (~100 MB each), and the still picture underneath is what shows until the video is back.
 import QtQuick
 import QtMultimedia
 
@@ -16,13 +16,13 @@ Item {
     property bool paused: false      // e.g. the desktop is completely covered by windows
     readonly property bool available: live && video !== ""
     readonly property bool wanted: available && !paused
-    // Creating or destroying a decoder runs on the main thread and costs ~120 ms with a hardware (NVDEC) one, and the shell has a dozen of
-    // them (bar, Dock, every desktop widget). Doing that in the same instant froze the whole shell for 1-2 s each time a window covered the
-    // desktop or uncovered it again, so everything it animates (the Dock sliding away, the bar) started late while you moved between workspaces.
-    //   * a decoder is only torn down once the desktop has STAYED covered for a while (6-20 s, a different moment for each), so flipping
-    //     between workspaces never touches them, and uncovering within that time cancels the teardown;
-    //   * a decoder that is gone is started again at a random moment within ~5 s of the uncover (a dozen of them at ~120 ms each would keep
-    //     the main thread busy for good if they all started together), the still picture shows until then.
+    // Creating or destroying a decoder runs on the main thread and costs ~120 ms with a hardware (NVDEC) one, and the shell has several of
+    // them (bar, Dock, the desktop widgets). Doing that in the same instant froze the whole shell for up to 2 s, so everything it animates
+    // (the Dock sliding away, the bar) started late.
+    //   * pausing and resuming a decoder that exists is instant, so a short pause never touches the decoders;
+    //   * a decoder is only torn down once the pause has LASTED (30-60 s, a different moment for each), and resuming earlier cancels the teardown;
+    //   * a decoder that is gone is started again at a random moment within ~5 s of the resume (they would keep the main thread busy
+    //     for good if they all started together), the still picture shows until then.
     property bool active: wanted
     onWantedChanged: {
         if (wanted) {
@@ -32,7 +32,7 @@ Item {
             startT.stop();
             // switched off for good (no video, real-time glass off): gone at once. Only a covered desktop waits.
             if (!available) active = false;
-            else { stopT.interval = 6000 + Math.random() * 14000; stopT.restart(); }
+            else { stopT.interval = 30000 + Math.random() * 30000; stopT.restart(); }
         }
     }
     Timer { id: stopT; onTriggered: lw.active = false }
@@ -43,6 +43,9 @@ Item {
         active: lw.active
         sourceComponent: Item {
             id: box
+            // frozen on its last frame while paused, going again the moment it is resumed
+            readonly property bool hold: lw.paused
+            onHoldChanged: { if (hold) mp.pause(); else mp.play(); }
             MediaPlayer {
                 id: mp
                 source: "file://" + lw.video

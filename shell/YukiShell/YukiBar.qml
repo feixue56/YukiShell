@@ -316,6 +316,11 @@ Scope {
     // glass refracts a still frame of the wallpaper (the wallpaper itself still plays through mpvpaper). On = the glass plays a small
     // low-resolution copy (see glassVideo) so it stays cheap.
     property bool liveWallGlass: false
+    // The animated wallpaper keeps playing behind windows. "Pause behind windows" (off by default) stops it while tiled windows hide the desktop;
+    // wallUserPaused is the menu bar button: paused by hand until it is pressed again (also after a restart).
+    property bool wallPauseCovered: false
+    property bool wallUserPaused: false
+    property bool showWallButton: true
     property bool glassDebug: false
     property string wallpaperPath: ""
     property bool use24h: true
@@ -365,7 +370,7 @@ Scope {
     property var fileHits: []
 
     readonly property var settingKeys: ["barEnabled", "darkMode", "appearanceMode", "accent", "fontFamily", "barHeight", "uiScaleAuto", "uiScaleManual", "glassOpacity",
-        "barStyle", "barGlass", "glassRim", "glassGrain", "glassLiquid", "glassBlur", "barBgOpacity", "glassRealtime", "liveWallGlass", "glassDebug", "wallpaperPath", "use24h", "language", "showDate",
+        "barStyle", "barGlass", "glassRim", "glassGrain", "glassLiquid", "glassBlur", "barBgOpacity", "glassRealtime", "liveWallGlass", "wallPauseCovered", "wallUserPaused", "showWallButton", "glassDebug", "wallpaperPath", "use24h", "language", "showDate",
         "showSeconds", "showBatteryPercent", "showTray", "showSearch",
         "spotlightEnabled", "reduceMotion", "ccEnabled", "notificationsEnabled", "clockAppEnabled", "ccStyle", "barLogoMode", "barCustomLogoPath", "barWidgets", "weekStartsMonday", "terminal", "launcher",
         "filesCmd", "clipboardCmd", "appUsage", "clipHistory", "clipAutoPaste", "emojiRecent", "screenshotDir", "screenshotSave", "screenshotClipboard", "screenshotNotify", "nightTemp", "ccControls", "ccSizes", "ccPos", "ccRowH", "ccGapPx", "ccOnColor", "ccMigRec", "visOn", "visStyle", "visColor", "visGain", "visInCC", "wallpaperDir", "wallpaperDirs", "wallpaperFavs", "wallpaperCmd", "wallpaperVideo", "wpRestorePath", "uiSounds", "gamingMode", "gamingAuto", "ccMigGame", "lockArtBackground",
@@ -972,6 +977,11 @@ Scope {
             } else if (k === "pause") {
                 rrect(4.2, 3.4, 3.4, 11.2, 0.7); ctx.fill();
                 rrect(10.4, 3.4, 3.4, 11.2, 0.7); ctx.fill();
+            } else if (k === "livewall") {
+                // a picture frame with the state in it: bars while the animated wallpaper plays, a triangle while it is paused
+                rrect(1.8, 3.2, 14.4, 11.6, 2.6); ctx.stroke();
+                if (flag) rpoly([7.3, 6.3, 12, 9, 7.3, 11.7], 0.5);
+                else { rrect(6.5, 6.4, 1.9, 5.2, 0.5); ctx.fill(); rrect(9.6, 6.4, 1.9, 5.2, 0.5); ctx.fill(); }
             } else if (k === "next") {
                 rpoly([1.8, 4, 8.6, 9, 1.8, 14], 0.6);
                 rpoly([9.4, 4, 16.2, 9, 9.4, 14], 0.6);
@@ -3771,19 +3781,42 @@ Scope {
         }
     }
 
-    // ═════════════ ANIMATED WALLPAPER: decode only what can be seen ═════════════
-    // When windows cover a monitor's desktop (or one is fullscreen) its video pauses; it resumes as soon as the desktop
-    // shows again. One check per window event (open / close / move / workspace / fullscreen), nothing in between.
+    // ═════════════ ANIMATED WALLPAPER: plays unless it was told to stop ═════════════
+    // The wallpaper keeps playing behind windows (they are translucent, a frozen picture shows through). It stops only
+    //   * by hand: the menu bar button (wallUserPaused), and
+    //   * with "Pause behind windows" on: while tiled windows hide a monitor's desktop or one is fullscreen there.
+    // Game Mode stops it on its own (SIGSTOP in yukishell-gaming.sh). One check per window event (open / close / move /
+    // workspace / fullscreen), nothing in between.
     readonly property bool videoWall: wallpaperVideo !== ""
-    property var wallPaused: ({})          // output → paused (video wallpaper)
-    property string wallCovList: "?"       // the covered outputs last written to $XDG_RUNTIME_DIR/yukishell-wallpaused
+    property var wallPaused: ({})          // output → mpvpaper paused (video wallpaper)
+    property string wallCovList: "?"       // the held outputs last written to $XDG_RUNTIME_DIR/yukishell-wallpaused
     // output → its desktop is completely hidden behind windows (or one is fullscreen). Always tracked: the desktop
-    // widgets stop drawing on covered screens (culling), and a video wallpaper pauses there.
+    // widgets stop drawing on covered screens (culling).
     property var screenCovered: ({})
     // output → a window is FULLSCREEN there: only then do the desktop widgets stop drawing (a focused or tiled
     // window that merely covers the desktop keeps them alive)
     property var screenFullscreen: ({})
+    // the wallpaper of this output is held (mpvpaper paused) / the glass videos of it are paused (plus Game Mode)
+    function wallHold(name) { return wallUserPaused || (wallPauseCovered && screenCovered[name] === true); }
+    function wallIdle(name) { return gaming || wallHold(name); }
     readonly property string wallPauseScript: Quickshell.env("HOME") + "/.config/hypr-yukishell/scripts/yukishell-wallpause.sh"
+    function wallApply() {
+        if (!videoWall) return;
+        var next = {}, names = Object.keys(screenCovered);
+        if (names.length === 0) return;                     // not probed yet
+        for (var i = 0; i < names.length; i++) next[names[i]] = wallHold(names[i]);
+        for (var k in next) if (next[k] !== (wallPaused[k] === true))
+            Quickshell.execDetached([wallPauseScript, k, next[k] ? "pause" : "resume"]);
+        // which outputs are held, for a video player that (re)starts later: yukishell-setwall.sh pauses it straight away
+        var cov = []; for (var n in next) if (next[n]) cov.push(n);
+        if (cov.join(",") !== wallCovList) {
+            wallCovList = cov.join(",");
+            Quickshell.execDetached(["sh", "-c", "printf '%s\\n' \"$@\" > \"${XDG_RUNTIME_DIR:-/tmp}/yukishell-wallpaused\"", "sh"].concat(cov));
+        }
+        wallPaused = next;
+    }
+    onWallUserPausedChanged: wallApply()
+    onWallPauseCoveredChanged: wallApply()
     Process {
         id: coverProbe
         command: ["sh", "-c", "printf '{\"m\":'; hyprctl -j monitors; printf ',\"c\":'; hyprctl -j clients; printf '}'"]
@@ -3809,22 +3842,13 @@ Scope {
                 var same = true;
                 for (var q in next) if (next[q] !== (root.screenCovered[q] === true)) same = false;
                 if (!same) root.screenCovered = next;
-                if (!root.videoWall) return;
-                for (var k in next) if (next[k] !== (root.wallPaused[k] === true))
-                    Quickshell.execDetached([root.wallPauseScript, k, next[k] ? "pause" : "resume"]);
-                // which outputs are covered, for a video player that (re)starts later: yukishell-setwall.sh pauses it straight away
-                var cov = []; for (var n in next) if (next[n]) cov.push(n);
-                if (cov.join(",") !== root.wallCovList) {
-                    root.wallCovList = cov.join(",");
-                    Quickshell.execDetached(["sh", "-c", "printf '%s\\n' \"$@\" > \"${XDG_RUNTIME_DIR:-/tmp}/yukishell-wallpaused\"", "sh"].concat(cov));
-                }
-                root.wallPaused = next;
+                root.wallApply();
             }
         }
     }
     Timer { id: coverDelay; interval: 300; onTriggered: if (!coverProbe.running) coverProbe.running = true }
     Timer { interval: 1500; running: true; onTriggered: coverDelay.restart() }      // first check after start-up
-    onVideoWallChanged: { wallPaused = ({}); if (videoWall) coverDelay.restart(); }
+    onVideoWallChanged: { wallPaused = ({}); if (videoWall) coverDelay.restart(); else wallUserPaused = false; }
     Connections {
         target: Hyprland
         function onRawEvent(event) {
@@ -5239,7 +5263,7 @@ Scope {
                             anchors.fill: parent
                             video: root.glassVideo
                             live: true
-                            paused: root.gaming || root.screenCovered[win.modelData.name] === true
+                            paused: root.wallIdle(win.modelData.name)
                         }
 
                         // the desktop widgets (they sit on the desktop layer, below every window), drawn from the same
@@ -5686,6 +5710,17 @@ Scope {
                             }
                         }
 
+                        // animated wallpaper: pause / resume by hand (only while the wallpaper is a video)
+                        Item {
+                            id: wallBtn
+                            readonly property bool shown: root.showWallButton && root.videoWall
+                            readonly property bool idle: root.wallIdle(win.modelData.name)
+                            visible: shown
+                            width: shown ? 28 : 0; height: 28
+                            BarHover { id: wallHl; dark: bpal.dark; area: wallMa; hot: wallMa.containsMouse; pressed: wallMa.pressed }
+                            Glyph { anchors.centerIn: parent; scale: wallHl.lift; width: 16; height: 16; kind: "livewall"; flag: wallBtn.idle; color: wallBtn.idle ? bpal.fg2 : bpal.fg }
+                            MouseArea { id: wallMa; anchors.fill: parent; hoverEnabled: true; onClicked: root.wallUserPaused = !root.wallUserPaused }
+                        }
                         // Bluetooth has its own optional widget; it remains visible when the radio is off.
                         Item {
                             id: btBtn

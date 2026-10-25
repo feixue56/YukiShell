@@ -349,7 +349,6 @@ var strings = {
     "Animated wallpaper": "Живые обои",
     "▶  Animated": "▶  Живые",
     "Animated": "Живые",
-    "Plays on every display and pauses behind fullscreen windows. The Liquid Glass and the lock screen use it too.": "Играют на всех дисплеях и встают на паузу за полноэкранными окнами. Их используют и Liquid Glass, и экран блокировки.",
     "Tip: Ctrl+Alt+W opens the quick wallpaper picker, which shows animated wallpapers too.": "Подсказка: Ctrl+Alt+W открывает быстрый выбор обоев, в нём есть и живые.",
     "Dynamic": "Динамические",
 
@@ -827,5 +826,10 @@ var strings = {
     "Accent": "Акцент",
     "Choose which controls appear in Control Center and how big each one is. In Control Center → Edit Controls you can also drag a control onto any free cell and pull its corner handle to resize it.": "Выберите, какие элементы показывать в Пункте управления и какого они размера. В режиме «Изменить элементы» элемент можно перетащить в любую свободную ячейку, а размер изменить, потянув за угловой маркер.",
     "Tidy Up": "Упорядочить",
-    "You placed some controls by hand. Pack them together again, in order": "Часть элементов вы расставили вручную. Снова сдвинуть их вплотную, по порядку"
+    "You placed some controls by hand. Pack them together again, in order": "Часть элементов вы расставили вручную. Снова сдвинуть их вплотную, по порядку",
+    "Pause behind windows": "Пауза за окнами",
+    "Stop the animated wallpaper while windows cover the desktop. Off by default: it keeps playing behind translucent windows. The menu bar button pauses it by hand.": "Останавливать анимированные обои, пока окна закрывают рабочий стол. По умолчанию выключено: обои продолжают играть за полупрозрачными окнами. Кнопка в строке меню ставит их на паузу вручную.",
+    "Live wallpaper button": "Кнопка живых обоев",
+    "Pause and resume the animated wallpaper. Shown only while the wallpaper is a video.": "Пауза и возобновление анимированных обоев. Показывается, только если обои — видео.",
+    "Plays on every display. The menu bar button pauses and resumes it. The Liquid Glass and the lock screen use it too.": "Играет на всех дисплеях. Кнопка в строке меню ставит обои на паузу и возобновляет их. Liquid Glass и экран блокировки тоже используют их."
 };

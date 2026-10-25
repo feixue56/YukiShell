@@ -367,7 +367,6 @@ var strings = {
     "Play the animated wallpaper inside the Liquid Glass in real time. Off by default: the glass refracts a still frame and uses no video memory.": "在液态玻璃内实时播放动态墙纸。默认关闭：玻璃折射静态画面，不占用显存。",
     "Play user interface sound effects": "播放用户界面音效",
     "Player": "播放器",
-    "Plays on every display and pauses behind fullscreen windows. The Liquid Glass and the lock screen use it too.": "在每个显示器上播放，并在全屏窗口后面暂停。液态玻璃和锁定屏幕也会使用它。",
     "Power profile used by the system": "系统使用的电源模式",
     "Preferences…": "偏好设置…",
     "Preparing the Liquid Glass shader…": "正在准备液态玻璃着色器…",
@@ -816,5 +815,10 @@ var strings = {
     "Accent": "强调色",
     "Choose which controls appear in Control Center and how big each one is. In Control Center → Edit Controls you can also drag a control onto any free cell and pull its corner handle to resize it.": "选择控制中心中显示哪些控制项以及各自的大小。在“控制中心 → 编辑控制项”中，还可以把控制项拖到任意空格，或拖动角上的手柄调整大小。",
     "Tidy Up": "整理",
-    "You placed some controls by hand. Pack them together again, in order": "你手动摆放了部分控制项。按顺序重新紧凑排列"
+    "You placed some controls by hand. Pack them together again, in order": "你手动摆放了部分控制项。按顺序重新紧凑排列",
+    "Pause behind windows": "窗口遮挡时暂停",
+    "Stop the animated wallpaper while windows cover the desktop. Off by default: it keeps playing behind translucent windows. The menu bar button pauses it by hand.": "窗口遮住桌面时暂停动态壁纸。默认关闭：壁纸会在半透明窗口后继续播放。也可以用菜单栏按钮手动暂停。",
+    "Live wallpaper button": "动态壁纸按钮",
+    "Pause and resume the animated wallpaper. Shown only while the wallpaper is a video.": "暂停或继续播放动态壁纸。仅在壁纸为视频时显示。",
+    "Plays on every display. The menu bar button pauses and resumes it. The Liquid Glass and the lock screen use it too.": "在所有显示器上播放。菜单栏按钮可暂停和继续。Liquid Glass 和锁屏也会使用它。"
 };

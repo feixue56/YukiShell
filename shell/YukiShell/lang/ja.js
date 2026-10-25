@@ -367,7 +367,6 @@ var strings = {
     "Play the animated wallpaper inside the Liquid Glass in real time. Off by default: the glass refracts a still frame and uses no video memory.": "動く壁紙をリキッドグラスの中でリアルタイムに再生します。初期設定ではオフです：ガラスは静止画を屈折させ、ビデオメモリを使いません。",
     "Play user interface sound effects": "ユーザインターフェイスのサウンドエフェクトを再生",
     "Player": "プレーヤー",
-    "Plays on every display and pauses behind fullscreen windows. The Liquid Glass and the lock screen use it too.": "すべてのディスプレイで再生し、全画面ウインドウの背後では一時停止します。リキッドグラスとロック画面も使用します。",
     "Power profile used by the system": "システムが使用する電源プロファイル",
     "Preferences…": "環境設定…",
     "Preparing the Liquid Glass shader…": "リキッドグラスのシェーダを準備中…",
@@ -816,5 +815,10 @@ var strings = {
     "Accent": "アクセント",
     "Choose which controls appear in Control Center and how big each one is. In Control Center → Edit Controls you can also drag a control onto any free cell and pull its corner handle to resize it.": "コントロールセンターに表示するコントロールと、それぞれの大きさを選びます。コントロールセンター →「コントロールを編集」では、コントロールを空いているマスへドラッグしたり、角のハンドルを引いてサイズを変えたりすることもできます。",
     "Tidy Up": "整頓",
-    "You placed some controls by hand. Pack them together again, in order": "一部のコントロールを手動で配置しています。順番どおりに詰めて並べ直します"
+    "You placed some controls by hand. Pack them together again, in order": "一部のコントロールを手動で配置しています。順番どおりに詰めて並べ直します",
+    "Pause behind windows": "ウインドウの背後で一時停止",
+    "Stop the animated wallpaper while windows cover the desktop. Off by default: it keeps playing behind translucent windows. The menu bar button pauses it by hand.": "ウインドウがデスクトップを覆っている間、アニメーション壁紙を停止します。既定はオフで、半透明のウインドウの背後でも再生し続けます。メニューバーのボタンで手動停止もできます。",
+    "Live wallpaper button": "ライブ壁紙ボタン",
+    "Pause and resume the animated wallpaper. Shown only while the wallpaper is a video.": "アニメーション壁紙を一時停止・再開します。壁紙が動画のときだけ表示されます。",
+    "Plays on every display. The menu bar button pauses and resumes it. The Liquid Glass and the lock screen use it too.": "すべてのディスプレイで再生されます。メニューバーのボタンで一時停止・再開できます。Liquid Glass とロック画面でも使われます。"
 };

@@ -367,7 +367,6 @@ var strings = {
     "Play the animated wallpaper inside the Liquid Glass in real time. Off by default: the glass refracts a still frame and uses no video memory.": "동적 배경화면을 리퀴드 글래스 안에서 실시간으로 재생합니다. 기본적으로 꺼져 있음: 유리는 정지 화면을 굴절시키며 비디오 메모리를 사용하지 않습니다.",
     "Play user interface sound effects": "사용자 인터페이스 효과음 재생",
     "Player": "플레이어",
-    "Plays on every display and pauses behind fullscreen windows. The Liquid Glass and the lock screen use it too.": "모든 디스플레이에서 재생되며 전체 화면 윈도우 뒤에서는 일시 정지됩니다. 리퀴드 글래스와 잠금 화면도 이것을 사용합니다.",
     "Power profile used by the system": "시스템에서 사용하는 전원 프로필",
     "Preferences…": "환경설정…",
     "Preparing the Liquid Glass shader…": "리퀴드 글래스 셰이더를 준비하는 중…",
@@ -816,5 +815,10 @@ var strings = {
     "Accent": "강조색",
     "Choose which controls appear in Control Center and how big each one is. In Control Center → Edit Controls you can also drag a control onto any free cell and pull its corner handle to resize it.": "제어 센터에 표시할 제어 항목과 각각의 크기를 선택합니다. 제어 센터 → ‘제어 항목 편집’에서 제어 항목을 빈 칸으로 끌어 놓거나 모서리 핸들을 당겨 크기를 바꿀 수도 있습니다.",
     "Tidy Up": "정리",
-    "You placed some controls by hand. Pack them together again, in order": "일부 제어 항목을 직접 배치했습니다. 순서대로 다시 모아 정렬합니다"
+    "You placed some controls by hand. Pack them together again, in order": "일부 제어 항목을 직접 배치했습니다. 순서대로 다시 모아 정렬합니다",
+    "Pause behind windows": "창 뒤에서 일시 정지",
+    "Stop the animated wallpaper while windows cover the desktop. Off by default: it keeps playing behind translucent windows. The menu bar button pauses it by hand.": "창이 바탕화면을 덮고 있는 동안 움직이는 배경화면을 멈춥니다. 기본값은 꺼짐이며, 반투명 창 뒤에서도 계속 재생됩니다. 메뉴 막대 버튼으로 직접 멈출 수도 있습니다.",
+    "Live wallpaper button": "라이브 배경화면 버튼",
+    "Pause and resume the animated wallpaper. Shown only while the wallpaper is a video.": "움직이는 배경화면을 일시 정지하거나 다시 재생합니다. 배경화면이 동영상일 때만 표시됩니다.",
+    "Plays on every display. The menu bar button pauses and resumes it. The Liquid Glass and the lock screen use it too.": "모든 디스플레이에서 재생됩니다. 메뉴 막대의 버튼으로 일시 정지하거나 다시 재생할 수 있습니다. Liquid Glass와 잠금 화면에서도 사용됩니다."
 };

@@ -367,7 +367,6 @@ var strings = {
     "Play the animated wallpaper inside the Liquid Glass in real time. Off by default: the glass refracts a still frame and uses no video memory.": "在液態玻璃內即時播放動態桌面圖片。預設關閉：玻璃折射靜態畫面，不佔用顯示記憶體。",
     "Play user interface sound effects": "播放使用者介面音效",
     "Player": "播放器",
-    "Plays on every display and pauses behind fullscreen windows. The Liquid Glass and the lock screen use it too.": "在每個顯示器上播放，並在全螢幕視窗後面暫停。液態玻璃和鎖定畫面也會使用它。",
     "Power profile used by the system": "系統使用的電源模式",
     "Preferences…": "偏好設定…",
     "Preparing the Liquid Glass shader…": "正在準備液態玻璃著色器…",
@@ -816,5 +815,10 @@ var strings = {
     "Accent": "強調色",
     "Choose which controls appear in Control Center and how big each one is. In Control Center → Edit Controls you can also drag a control onto any free cell and pull its corner handle to resize it.": "選擇控制中心中顯示哪些控制項目及各自的大小。在「控制中心 → 編輯控制項目」中，也可以把控制項目拖到任何空格，或拖移角落的把手調整大小。",
     "Tidy Up": "整理",
-    "You placed some controls by hand. Pack them together again, in order": "你手動擺放了部分控制項目。按順序重新緊湊排列"
+    "You placed some controls by hand. Pack them together again, in order": "你手動擺放了部分控制項目。按順序重新緊湊排列",
+    "Pause behind windows": "視窗遮住時暫停",
+    "Stop the animated wallpaper while windows cover the desktop. Off by default: it keeps playing behind translucent windows. The menu bar button pauses it by hand.": "視窗遮住桌面時暫停動態桌布。預設關閉：桌布會在半透明視窗後繼續播放。也可以用選單列按鈕手動暫停。",
+    "Live wallpaper button": "動態桌布按鈕",
+    "Pause and resume the animated wallpaper. Shown only while the wallpaper is a video.": "暫停或繼續播放動態桌布。僅在桌布為影片時顯示。",
+    "Plays on every display. The menu bar button pauses and resumes it. The Liquid Glass and the lock screen use it too.": "在所有顯示器上播放。選單列按鈕可暫停與繼續。Liquid Glass 和鎖定畫面也會使用它。"
 };
