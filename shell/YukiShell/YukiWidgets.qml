@@ -236,24 +236,24 @@ Scope {
     property string pickError: ""
     function pickImage(id, size) {
         if (imgPick.running) return;
+        var fp = root.hub && root.hub.dock ? root.hub.dock.filePicker : null;
         pickTargetId = id || "";
         pickTargetSize = size || "small";
         pickError = "";
-        imgPick.running = true;
+        if (!fp) { pickError = "The picture chooser is not ready yet."; return; }
+        fp.pick({ mode: "image", title: I18n.tr("Choose a picture") }, function (f) {
+            if (f === "") return;
+            imgPick.command = ["sh", "-c",
+                "f=\"$2\"; [ -f \"$f\" ] || exit 0; "
+                + "d=\"$1/images\"; mkdir -p \"$d\" || { echo 'ERR:cannot create the images folder'; exit 0; }; "
+                + "n=\"$(date +%s)-$(printf '%s' \"$(basename \"$f\")\" | tr -c 'A-Za-z0-9._-' '_')\"; "
+                + "cp -f \"$f\" \"$d/$n\" && echo \"OK:$d/$n\" || echo 'ERR:could not copy the picture'",
+                "sh", root.configDir, f];
+            imgPick.running = true;
+        });
     }
     Process {
         id: imgPick
-        command: ["sh", "-c",
-            "f=''; "
-            + "if command -v zenity >/dev/null 2>&1; then f=$(zenity --file-selection --title='Choose a picture' --file-filter='Images | *.png *.jpg *.jpeg *.webp *.gif *.bmp *.svg' 2>/dev/null); "
-            + "elif command -v kdialog >/dev/null 2>&1; then f=$(kdialog --getopenfilename \"$HOME/Pictures\" 'image/png image/jpeg image/webp image/gif image/bmp image/svg+xml' 2>/dev/null); "
-            + "elif command -v yad >/dev/null 2>&1; then f=$(yad --file --title='Choose a picture' 2>/dev/null); "
-            + "else echo 'ERR:no file chooser (install zenity, kdialog or yad)'; exit 0; fi; "
-            + "[ -n \"$f\" ] && [ -f \"$f\" ] || exit 0; "
-            + "d=\"$1/images\"; mkdir -p \"$d\" || { echo 'ERR:cannot create the images folder'; exit 0; }; "
-            + "n=\"$(date +%s)-$(printf '%s' \"$(basename \"$f\")\" | tr -c 'A-Za-z0-9._-' '_')\"; "
-            + "cp -f \"$f\" \"$d/$n\" && echo \"OK:$d/$n\" || echo 'ERR:could not copy the picture'",
-            "sh", root.configDir]
         stdout: StdioCollector {
             onStreamFinished: {
                 var t = text.trim();

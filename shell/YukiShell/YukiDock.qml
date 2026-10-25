@@ -152,6 +152,7 @@ Scope {
     property bool showIndicators: true   // dots under running apps
     property bool bounceOnLaunch: true
     property bool showThumbs: true       // open windows get a live preview cell next to the Settings button
+    property int pickerThumb: 220        // size of the thumbnails in the picture chooser (FilePicker.qml), a slider in the chooser itself
     property bool windowCapture: true    // live window capture for those previews (off: the cells show the app icon, nothing is captured). Liquid Glass is not affected
     property int hideDelay: 450          // ms before the dock hides after the pointer leaves
     readonly property var accentChoices: [
@@ -579,6 +580,20 @@ Scope {
                 }
             }
         }
+    }
+
+    // ─────────────────────────── FILE CHOOSER ───────────────────────────
+    // Big-thumbnail picture / folder chooser used by Settings, the desktop widgets and the wallpaper picker (replaces zenity / kdialog).
+    //   root.filePicker.pick({ mode: "image" | "folder", title: "...", startDir: "/path" }, function (path) { /* "" = cancelled */ })
+    readonly property var filePicker: filePickerWin
+    FilePicker {
+        id: filePickerWin
+        dark: root.darkMode
+        fam: root.fontFamily
+        accent: root.accent
+        thumbSize: root.pickerThumb
+        onThumbSizeEdited: size => root.pickerThumb = size
+        extraPlaces: root.bar ? root.bar.wpDirsEff.map(function (d) { return { label: d.replace(Quickshell.env("HOME"), "~"), path: d }; }) : []
     }
 
     // ─────────────────────────── THE WINDOW ───────────────────────────
@@ -2155,7 +2170,7 @@ Scope {
                                     font.pixelSize: 12
                                 }
                             }
-                            SButton { t: pal; text: I18n.tr("Choose\u2026"); onClicked: shotPick.running = true }
+                            SButton { t: pal; text: I18n.tr("Choose\u2026"); onClicked: root.filePicker.pick({ mode: "folder", title: I18n.tr("Screenshot folder"), startDir: root.bar ? root.bar.screenshotDir : "" }, function (d) { if (d !== "" && root.bar) root.bar.screenshotDir = d; }) }
                         }
                     }
                     SRow {
@@ -2194,20 +2209,7 @@ Scope {
                 }
                 SLabel {
                     t: pal
-                    text: I18n.tr("Bind the Print key:  bind = , Print, exec, qs -c YukiShell ipc call screenshot region.  Choose\u2026 needs zenity, kdialog or yad; otherwise type the path. Screenshots need grim.")
-                }
-                Process {
-                    id: shotPick
-                    command: ["sh", "-c",
-                        "if command -v zenity >/dev/null 2>&1; then zenity --file-selection --directory --title='Screenshot folder' 2>/dev/null; "
-                        + "elif command -v kdialog >/dev/null 2>&1; then kdialog --getexistingdirectory \"$HOME\" 2>/dev/null; "
-                        + "elif command -v yad >/dev/null 2>&1; then yad --file --directory --title='Screenshot folder' 2>/dev/null; fi"]
-                    stdout: StdioCollector {
-                        onStreamFinished: {
-                            var d = text.trim();
-                            if (d !== "" && root.bar) root.bar.screenshotDir = d;
-                        }
-                    }
+                    text: I18n.tr("Bind the Print key:  bind = , Print, exec, qs -c YukiShell ipc call screenshot region.  Screenshots need grim.")
                 }
                 SLabel {
                     t: pal
@@ -3277,7 +3279,7 @@ Scope {
                 }
                 SLabel {
                     t: pal
-                    text: I18n.tr("Image widgets open a file picker (needs zenity, kdialog or yad). To change a picture later, use Edit on Desktop and press Choose Image on the widget.")
+                    text: I18n.tr("Image widgets open a picture chooser. To change a picture later, use Edit on Desktop and press Choose Image on the widget.")
                 }
 
                 // ── On the desktop now ──
@@ -3748,14 +3750,9 @@ Scope {
                         subtitle: I18n.tr("Used on the lock screen and here")
                         SButton {
                             t: pal; text: I18n.tr("Change…")
-                            onClicked: picProc.running = true
+                            onClicked: root.filePicker.pick({ mode: "image", title: I18n.tr("Choose a picture") }, function (f) { if (f !== "") cropSheet.begin(f); })
                         }
                     }
-                }
-                Process {
-                    id: picProc
-                    command: ["sh", "-c", "f=$(zenity --file-selection --title='Choose a picture' --file-filter='Images | *.png *.jpg *.jpeg *.webp *.gif *.bmp' 2>/dev/null || kdialog --getopenfilename \"$HOME/Pictures\" 'image/png image/jpeg image/webp image/gif image/bmp' 2>/dev/null); [ -n \"$f\" ] && printf '%s' \"$f\""]
-                    stdout: StdioCollector { onStreamFinished: { var f = text.replace(/\n+$/, ""); if (f !== "") cropSheet.begin(f); } }
                 }
             }
         }
@@ -3950,7 +3947,8 @@ Scope {
                 readonly property string curPath: curVideo !== "" ? curVideo : curStill
                 readonly property string curPreview: (root.bar && curVideo !== "") ? (root.bar.wpPreviews[curVideo] || "") : ""
                 function nameOf(p) { var n = p.substring(p.lastIndexOf("/") + 1); var k = n.lastIndexOf("."); return k > 0 ? n.substring(0, k) : n; }
-                Component.onCompleted: if (root.bar) root.bar.wpRefresh()
+                Component.onCompleted: { if (root.bar) { root.bar.wpPaneOpen = true; root.bar.wpRefresh(); } }
+                Component.onDestruction: { if (root.bar) root.bar.wpPaneOpen = false; }
 
                 // current wallpaper, big, playing if it's animated
                 SCard {
@@ -4013,13 +4011,40 @@ Scope {
                                 text: I18n.tr("Plays on every display and pauses behind fullscreen windows. The Liquid Glass and the lock screen use it too.")
                                 color: pal.text3; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 11
                             }
+                        }
+                    }
+                }
+
+                // where the pictures come from: any number of folders; what is dropped in or deleted shows up by itself
+                SLabel { t: pal; header: true; text: I18n.tr("Wallpaper folders") }
+                SCard {
+                    t: pal
+                    Repeater {
+                        model: root.bar ? root.bar.wpDirsEff : []
+                        SRow {
+                            id: fRow
+                            required property string modelData
+                            readonly property int n: root.bar && root.bar.wpDirCount[modelData] !== undefined ? root.bar.wpDirCount[modelData] : 0
+                            readonly property bool exists: root.bar ? root.bar.wpFolders.indexOf(modelData) >= 0 : false
+                            t: pal
+                            title: modelData.replace(Quickshell.env("HOME"), "~")
+                            subtitle: !exists ? I18n.tr("Folder not found") : n + (n === 1 ? I18n.tr(" image") : I18n.tr(" images"))
                             Row {
                                 spacing: 8
-                                topPadding: 4
-                                SButton { t: pal; text: I18n.tr("Open Folder"); onClicked: Quickshell.execDetached(["xdg-open", root.bar ? root.bar.wpDirEff : ""]) }
-                                SButton { t: pal; text: I18n.tr("Refresh"); onClicked: if (root.bar) root.bar.wpRefresh() }
+                                SButton { t: pal; text: I18n.tr("Open"); onClicked: Quickshell.execDetached(["xdg-open", fRow.modelData]) }
+                                SButton {
+                                    visible: root.bar && root.bar.wpDirsEff.length > 1
+                                    t: pal; text: I18n.tr("Remove")
+                                    onClicked: if (root.bar) root.bar.wpRemoveDir(fRow.modelData)
+                                }
                             }
                         }
+                    }
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Add a folder")
+                        subtitle: I18n.tr("Pictures and videos in it (and in the folders inside it) join the list. New files show up by themselves.")
+                        SButton { t: pal; text: I18n.tr("Add Folder\u2026"); onClicked: if (root.bar) root.bar.wpPickFolder() }
                     }
                 }
 
@@ -4505,7 +4530,7 @@ Scope {
     // ── settings persistence (~/.config/yukidock/settings.json) ──
     readonly property string settingsSig: [dockEnabled, settingsEnabled, iconSize, magnification, magnificationEnabled, spacing, margin,
         cornerRadius, darkMode, appearanceMode, glassOpacity, glassBlur, glassLiquid, dockStyle, wallpaperPath, String(accent), fontFamily, hideMode, hideDelay, monitor,
-        showSettings, showLabels, showIndicators, bounceOnLaunch, showThumbs, windowCapture, glassLive, iconTint, iconTintColor, iconTintStrength].join("|")
+        showSettings, showLabels, showIndicators, bounceOnLaunch, showThumbs, windowCapture, glassLive, iconTint, iconTintColor, iconTintStrength, pickerThumb].join("|")
     property bool settingsReady: false
     onSettingsSigChanged: if (settingsReady) saveTimer.restart()
     onShowSettingsChanged: rebuild()
@@ -4523,7 +4548,7 @@ Scope {
             hideMode: hideMode, hideDelay: hideDelay, monitor: monitor,
             showSettings: showSettings, showLabels: showLabels, showIndicators: showIndicators,
             bounceOnLaunch: bounceOnLaunch, showThumbs: showThumbs, windowCapture: windowCapture, glassLive: glassLive,
-            iconTint: iconTint, iconTintColor: iconTintColor, iconTintStrength: iconTintStrength
+            iconTint: iconTint, iconTintColor: iconTintColor, iconTintStrength: iconTintStrength, pickerThumb: pickerThumb
         };
         settingsStore.setText(JSON.stringify(o, null, 2));
     }
@@ -4532,7 +4557,7 @@ Scope {
         if (!o || typeof o !== "object") return;
         var keys = ["dockEnabled", "settingsEnabled", "iconSize", "magnification", "magnificationEnabled", "spacing", "margin", "cornerRadius",
                     "darkMode", "appearanceMode", "glassOpacity", "dockStyle", "wallpaperPath", "glassDebug", "glassRim", "glassGrain", "glassLiquid", "glassBlur", "accent", "fontFamily", "hideMode", "hideDelay", "monitor",
-                    "showSettings", "showLabels", "showIndicators", "bounceOnLaunch", "showThumbs", "windowCapture", "glassLive", "iconTint", "iconTintColor", "iconTintStrength"];
+                    "showSettings", "showLabels", "showIndicators", "bounceOnLaunch", "showThumbs", "windowCapture", "glassLive", "iconTint", "iconTintColor", "iconTintStrength", "pickerThumb"];
         for (var i = 0; i < keys.length; i++) {
             if (o[keys[i]] === undefined) continue;
             try { root[keys[i]] = o[keys[i]]; } catch (err) { }

@@ -31,6 +31,15 @@ hl.window_rule({
 })
 
 
+-- YukiShell's own picture / folder chooser (shell/YukiShell/FilePicker.qml): floats, centred, big enough for the thumbnails.
+hl.window_rule({
+    name  = "yukishell-picker",
+    match = { class = "^org\\.quickshell$", title = "^YukiShell Picker$" },
+    float = true,
+    center = true,
+    size = "1120 740",
+})
+
 -- Liquid-glass kitty: heavy blur behind a translucent window, frosted white rim instead of the accent border.
 hl.window_rule({
     name  = "glass-kitty",

@@ -41,7 +41,7 @@
 // Wallpapers: Ctrl+Alt+W opens the wallpaper picker (Liquid Glass). Bind it with:
 //   hl.bind("CTRL + ALT + W", hl.dsp.exec_cmd("qs -c YukiShell ipc call wallpapers toggle"))
 //   (hyprlang:  bind = CTRL ALT, W, exec, qs -c YukiShell ipc call wallpapers toggle)
-// Folder: ~/Pictures/Wallpapers by default (change it inside the picker, or "wallpaperDir" in settings.json).
+// Folders: ~/Pictures/Wallpapers by default (add more in Settings → Wallpaper, or "wallpaperDirs" in settings.json).
 // Star a wallpaper to pin it to the top. Applied through Noctalia / awww / swww / hyprpaper, or your own "wallpaperCmd" ({} = image path).
 // Clipboard history + Emoji live inside Spotlight (the clipboard and smiley buttons next to the search field):
 //   needs wl-clipboard + cliphist (this shell starts the `wl-paste --watch cliphist store` watchers itself, unless you already run them).
@@ -362,7 +362,7 @@ Scope {
         "barStyle", "barGlass", "glassRim", "glassGrain", "glassLiquid", "glassBlur", "barBgOpacity", "glassRealtime", "liveWallGlass", "glassDebug", "wallpaperPath", "use24h", "language", "showDate",
         "showSeconds", "showBatteryPercent", "showTray", "showSearch",
         "spotlightEnabled", "reduceMotion", "ccEnabled", "notificationsEnabled", "clockAppEnabled", "ccStyle", "barLogoMode", "barCustomLogoPath", "barWidgets", "weekStartsMonday", "terminal", "launcher",
-        "filesCmd", "clipboardCmd", "appUsage", "clipHistory", "clipAutoPaste", "emojiRecent", "screenshotDir", "screenshotSave", "screenshotClipboard", "screenshotNotify", "nightTemp", "ccControls", "ccSizes", "ccTileSize", "ccSpacing", "ccOnColor", "ccMigRec", "wallpaperDir", "wallpaperFavs", "wallpaperCmd", "wallpaperVideo", "wpRestorePath", "uiSounds", "gamingMode", "gamingAuto", "ccMigGame", "lockArtBackground",
+        "filesCmd", "clipboardCmd", "appUsage", "clipHistory", "clipAutoPaste", "emojiRecent", "screenshotDir", "screenshotSave", "screenshotClipboard", "screenshotNotify", "nightTemp", "ccControls", "ccSizes", "ccTileSize", "ccSpacing", "ccOnColor", "ccMigRec", "wallpaperDir", "wallpaperDirs", "wallpaperFavs", "wallpaperCmd", "wallpaperVideo", "wpRestorePath", "uiSounds", "gamingMode", "gamingAuto", "ccMigGame", "lockArtBackground",
         "lockClockStyle", "switcherStyle", "lockClockFont", "lockClockWeight", "lockClockMaterial", "lockClockIntensity", "lockClockTint", "lockClockDate", "autoContrast", "wallpaperAppearance", "wpPairLight", "wpPairDark",
         "notifDnd", "dnd", "nightOn", "keepAwake",
         "kbRepeatRate", "kbRepeatDelay", "mouseSens", "mouseNatural", "tpNatural", "tpTap", "tpDwt", "tpScroll"]
@@ -3858,6 +3858,8 @@ Scope {
         printErrors: false
         onLoaded: {
             try { root.applySettings(JSON.parse(text()), root.settingKeys); } catch (err) { }
+            if ((root.wallpaperDirs || []).length === 0 && (root.wallpaperDir || "").trim() !== "") root.wallpaperDirs = [root.wallpaperDir.trim()];
+            root.wallpaperDir = "";                                     // the old single-folder setting now lives in wallpaperDirs
             if (!root.ccMigGame) {
                 root.ccMigGame = true;
                 var cg = root.ccControls.slice();
@@ -4173,7 +4175,8 @@ Scope {
 
     // ═════════════ WALLPAPER PICKER (CTRL + ALT + W) ═════════════
     //   hl.bind("CTRL + ALT + W", hl.dsp.exec_cmd("qs -c YukiShell ipc call wallpapers toggle"))
-    property string wallpaperDir: ""          // "" = ~/Pictures/Wallpapers
+    property string wallpaperDir: ""          // the old single-folder setting: folded into wallpaperDirs when the settings load
+    property var wallpaperDirs: []            // folders the wallpapers are picked from; [] = ~/Pictures/Wallpapers
     property var wallpaperFavs: []            // favourite image paths, shown first
     property string wallpaperVideo: ""        // animated wallpaper (video) playing right now, "" = a still picture
     property string wpRestorePath: ""         // the picture the picker set last: put back at every start (awww does not keep it after a reboot)
@@ -4183,7 +4186,9 @@ Scope {
     property real wpBlur: 40                  // blur of the picker glass
     property bool wpOpen: false
     property string wpStatus: ""
-    property var wpDirList: []                // images found in the folder
+    property var wpDirList: []                // images found in the folders
+    property var wpFolders: []                // the folders that exist right now (what is watched)
+    property var wpDirCount: ({})             // folder → number of images in it
     property var wpFavOk: ({})                // favourites that still exist on disk
     property var wpFiles: []                  // favourites first, then the rest { path, name, fav }
     property string wpQuery: ""               // search filter
@@ -4194,14 +4199,25 @@ Scope {
         for (var i = 0; i < f.length; i++) if (f[i].name.toLowerCase().indexOf(q) >= 0) out.push(f[i]);
         return out;
     }
-    function wpResolveDir() {
-        var d = (root.wallpaperDir || "").trim();
+    function wpResolveOne(dir) {
+        var d = (dir || "").trim();
         if (d === "") d = "~/Pictures/Wallpapers";
         if (d.indexOf("~") === 0) d = Quickshell.env("HOME") + d.substring(1);
         while (d.length > 1 && d.charAt(d.length - 1) === "/") d = d.substring(0, d.length - 1);
         return d;
     }
-    readonly property string wpDirEff: { root.wallpaperDir; return root.wpResolveDir(); }
+    function wpResolveDirs() {
+        var src = root.wallpaperDirs || [], out = [], seen = {};
+        for (var i = 0; i < src.length; i++) {
+            var p = root.wpResolveOne(src[i]);
+            if (p !== "" && !seen[p]) { seen[p] = true; out.push(p); }
+        }
+        if (out.length === 0) out.push(root.wpResolveOne(""));
+        return out;
+    }
+    readonly property var wpDirsEff: { root.wallpaperDirs; return root.wpResolveDirs(); }
+    readonly property string wpDirEff: wpDirsEff[0]
+    readonly property bool wpDefaultDirs: (root.wallpaperDirs || []).length === 0      // nothing chosen yet: the default folder is created when it is missing
     function wpName(path) {
         var n = path.substring(path.lastIndexOf("/") + 1);
         var k = n.lastIndexOf(".");
@@ -4220,21 +4236,36 @@ Scope {
             if (seen[f]) continue;
             out.push({ path: f, name: root.wpName(f), fav: false, video: root.wpIsVideo(f), thumb: root.wpThumbs[f] || "", preview: root.wpPreviews[f] || "" });
         }
-        root.wpFiles = out;
+        if (JSON.stringify(out) !== JSON.stringify(root.wpFiles)) root.wpFiles = out;       // unchanged: keep the grids where they are
     }
     function wpParse(text) {
-        var lines = text.split("\n"), dir = [], ok = {}, th = {}, pv = {};
+        var lines = text.split("\n"), dir = [], seenDir = {}, ok = {}, th = {}, pv = {}, folders = [];
         for (var i = 0; i < lines.length; i++) {
             var l = lines[i];
-            if (l.indexOf("A:") === 0) dir.push(l.substring(2));
+            if (l.indexOf("A:") === 0) { var a = l.substring(2); if (!seenDir[a]) { seenDir[a] = true; dir.push(a); } }
             else if (l.indexOf("T:") === 0) { var k = l.indexOf("\t"); if (k > 2) th[l.substring(2, k)] = l.substring(k + 1); }
             else if (l.indexOf("P:") === 0) { var k2 = l.indexOf("\t"); if (k2 > 2) pv[l.substring(2, k2)] = l.substring(k2 + 1); }
+            else if (l.indexOf("D:") === 0) folders.push(l.substring(2));
+            else if (l === "W:0") root.wpWatchBroken = true;
             else if (l.indexOf("F:") === 0) ok[l.substring(2)] = true;
         }
+        // images per folder (a file counts for the folder it sits under, the deepest one when folders are nested)
+        var counts = {}, fl = root.wpDirsEff;
+        for (var c = 0; c < fl.length; c++) counts[fl[c]] = 0;
+        for (var n = 0; n < dir.length; n++) {
+            var best = "";
+            for (var m = 0; m < fl.length; m++) if (dir[n].indexOf(fl[m] + "/") === 0 && fl[m].length > best.length) best = fl[m];
+            if (best !== "") counts[best]++;
+        }
+        if (JSON.stringify(counts) !== JSON.stringify(root.wpDirCount)) root.wpDirCount = counts;
+        if (folders.join("\n") !== root.wpFolders.join("\n")) root.wpFolders = folders;
+        var sameList = dir.join("\n") === root.wpDirList.join("\n") && JSON.stringify(ok) === JSON.stringify(root.wpFavOk);
         root.wpThumbs = th;
         root.wpPreviews = pv;
-        root.wpDirList = dir;
-        root.wpFavOk = ok;
+        if (!sameList) {                                  // nothing new on disk: leave the grids alone (they would jump back to the top)
+            root.wpDirList = dir;
+            root.wpFavOk = ok;
+        }
         root.wpRebuild();
 
         // Return the file list immediately; build missing video thumbnails in a separate process.
@@ -4265,21 +4296,49 @@ Scope {
         root.wpRebuild();
     }
     function wpRefresh() {
-        if (wpScan.running) return;
+        if (wpScan.running) { wpRescan = true; return; }
+        wpRescan = false;
         var script = [
-            'd="$1"; mk="$2"; shift 2',
-            '[ "$mk" = "1" ] && [ ! -d "$d" ] && mkdir -p "$d" 2>/dev/null',
-            'if [ -d "$d" ]; then find -L "$d" -maxdepth 3 -type f 2>/dev/null | grep -iE "[.](jpe?g|png|webp|bmp|gif|mp4|webm|mkv|mov|m4v)$" | sort -V | sed "s/^/A:/"; fi',
+            'mk="$1"; n="$2"; shift 2',
+            'i=0; while [ "$i" -lt "$n" ]; do',
+            '  d="$1"; shift; i=$((i+1))',
+            '  [ "$mk" = "1" ] && [ ! -d "$d" ] && mkdir -p "$d" 2>/dev/null',
+            '  [ -d "$d" ] || continue',
+            '  echo "D:$d"',
+            '  find -L "$d" -maxdepth 3 -type f 2>/dev/null | grep -iE "[.](jpe?g|png|webp|bmp|gif|mp4|webm|mkv|mov|m4v)$" | sort -V | sed "s/^/A:/"',
+            'done',
             'for f in "$@"; do [ -f "$f" ] && echo "F:$f"; done',
+            'command -v inotifywait >/dev/null 2>&1 && echo "W:1" || echo "W:0"',
             'exit 0'
         ].join("\n");
-        wpScan.command = ["sh", "-c", script, "sh", root.wpDirEff, (root.wallpaperDir || "").trim() === "" ? "1" : "0"].concat(root.wallpaperFavs || []);
+        var dirs = root.wpDirsEff;
+        wpScan.command = ["sh", "-c", script, "sh", root.wpDefaultDirs ? "1" : "0", String(dirs.length)].concat(dirs, root.wallpaperFavs || []);
         wpScan.running = true;
     }
-    function wpSetDir(d) {
-        root.wallpaperDir = (d || "").trim();
+    property bool wpRescan: false                 // a change came in while a scan was running: scan once more when it ends
+    function wpSetDirs(list) {
+        var out = [], seen = {};
+        for (var i = 0; i < list.length; i++) {
+            var d = String(list[i] || "").trim();
+            if (d.indexOf("~") === 0) d = Quickshell.env("HOME") + d.substring(1);
+            while (d.length > 1 && d.charAt(d.length - 1) === "/") d = d.substring(0, d.length - 1);
+            if (d !== "" && !seen[d]) { seen[d] = true; out.push(d); }
+        }
+        // just the default folder is the same as nothing chosen: keep the setting empty so the default stays the default
+        if (out.length === 1 && out[0] === root.wpResolveOne("")) out = [];
+        root.wallpaperDirs = out;
         root.wpStatus = "";
         root.wpRefresh();
+    }
+    function wpAddDir(d) {
+        var cur = root.wpDefaultDirs ? [] : root.wpDirsEff.slice();
+        // the first folder added next to the default one keeps the default: it is what the user had until now
+        if (root.wpDefaultDirs) cur = [root.wpResolveOne("")];
+        cur.push(d);
+        root.wpSetDirs(cur);
+    }
+    function wpRemoveDir(d) {
+        root.wpSetDirs(root.wpDirsEff.filter(function (x) { return x !== d; }));
     }
     function wpToggleFav(path) {
         var f = (root.wallpaperFavs || []).slice(), i = f.indexOf(path);
@@ -4435,32 +4494,57 @@ Scope {
         if (root.wpOpen) root.wpRefresh();
     }
     function wpPickFolder() {
-        var script = [
-            'd="$1"; [ -d "$d" ] || d="$HOME"',
-            'if command -v zenity >/dev/null 2>&1; then zenity --file-selection --directory --filename="$d/" --title="Wallpaper folder" 2>/dev/null',
-            'elif command -v kdialog >/dev/null 2>&1; then kdialog --getexistingdirectory "$d" 2>/dev/null',
-            'elif command -v yad >/dev/null 2>&1; then yad --file --directory --filename="$d/" 2>/dev/null',
-            'else echo "!nopicker"; fi',
-            'exit 0'
-        ].join("\n");
-        wpPick.command = ["sh", "-c", script, "sh", root.wpDirEff];
-        root.wpOpen = false;                       // the overlay would sit on top of the dialog, so hide it meanwhile
-        wpPick.running = true;
+        var fp = root.hub && root.hub.dock ? root.hub.dock.filePicker : null;
+        if (!fp) { root.wpStatus = "The folder chooser is not ready yet."; return; }
+        var wasOpen = root.wpOpen;
+        root.wpOpen = false;                       // the overlay would sit on top of the picker window, so hide it meanwhile
+        fp.pick({ mode: "folder", title: I18n.tr("Add a wallpaper folder"), startDir: root.wpDirEff }, function (path) {
+            if (path !== "") root.wpAddDir(path);
+            if (wasOpen) root.wpOpen = true;
+            root.wpRefresh();
+        });
     }
-    Process { id: wpScan; stdout: StdioCollector { onStreamFinished: root.wpParse(text) } }
-    Process { id: wpThumbBuild; stdout: StdioCollector { onStreamFinished: root.wpMergeThumbs(text) } }
     Process {
-        id: wpPick
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var r = text.trim();
-                if (r === "!nopicker") root.wpStatus = "No folder dialog found (install zenity or kdialog) - type the path instead.";
-                else if (r !== "") root.wpSetDir(r);
-                root.wpOpen = true;
-                root.wpRefresh();
-            }
+        id: wpScan
+        stdout: StdioCollector { onStreamFinished: root.wpParse(text) }
+        onExited: if (root.wpRescan) root.wpRefresh()
+    }
+    Process { id: wpThumbBuild; stdout: StdioCollector { onStreamFinished: root.wpMergeThumbs(text) } }
+
+    // ── the folders are watched: a picture dropped in (or deleted) shows up in the pickers by itself ──
+    // inotifywait reports changes under every folder; a burst of them (copying a whole directory) becomes one rescan.
+    // Without inotify-tools the lists are re-read now and then while a picker is open instead.
+    property bool wpWatchBroken: false
+    property int wpWatchFails: 0
+    property bool wpWatchPause: false                          // set while the folder list changes so the watcher restarts with the new one
+    onWpFoldersChanged: { wpWatchPause = true; wpWatchResume.restart(); }
+    Timer { id: wpWatchResume; interval: 300; onTriggered: root.wpWatchPause = false }
+    function wpWatchHit(line) {
+        wpWatchFails = 0;
+        wpWatchDebounce.interval = line.indexOf("CREATE") >= 0 && line.indexOf("CLOSE_WRITE") < 0 ? 2500 : 900;   // a file still being written: wait for it
+        wpWatchDebounce.restart();
+    }
+    Timer { id: wpWatchDebounce; onTriggered: root.wpRefresh() }
+    Process {
+        id: wpWatch
+        running: root.wpWatchOn
+        command: ["inotifywait", "-m", "-r", "-q", "--format", "%e|%w%f", "-e", "close_write", "-e", "moved_to", "-e", "moved_from", "-e", "delete", "-e", "create"].concat(root.wpFolders)
+        stdout: SplitParser { onRead: line => root.wpWatchHit(line) }
+        onExited: {
+            if (!root.wpWatchOn) return;                       // stopped on purpose (the folders changed)
+            // it ended by itself (a folder vanished, no inotify watches left): try again in a while, and give up after a few tries
+            if (++root.wpWatchFails >= 3) root.wpWatchBroken = true;
+            wpWatchRetry.restart();
         }
     }
+    readonly property bool wpWatchOn: root.wpFolders.length > 0 && !root.wpWatchBroken && !root.wpWatchPause && !wpWatchRetry.running
+    Timer { id: wpWatchRetry; interval: 15000 }
+    Timer {                                                    // fallback without inotify-tools
+        interval: 20000; repeat: true
+        running: root.wpWatchBroken && (root.wpOpen || root.wpPaneOpen)
+        onTriggered: root.wpRefresh()
+    }
+    property bool wpPaneOpen: false                            // the Settings wallpaper pane is showing (set by the pane)
     onWallpaperFavsChanged: if (wpOpen) wpRebuild()
     IpcHandler {
         target: "wallpapers"
@@ -8584,7 +8668,7 @@ Scope {
                         tint: root.menuBorderColor
                     }
 
-                    // ── header: title, folder path, Choose… ──
+                    // ── header: title, the folders, Add Folder… ──
                     Item {
                         id: wpHead
                         x: 22; y: 14
@@ -8600,32 +8684,49 @@ Scope {
                             id: wpChoose
                             anchors.right: parent.right
                             anchors.verticalCenter: parent.verticalCenter
-                            width: 84; height: 30; radius: 10
+                            width: 112; height: 30; radius: 10
                             color: wpChooseMa.containsMouse ? pal.btnHover : pal.btnOff
-                            Text { anchors.centerIn: parent; text: I18n.tr("Choose\u2026"); color: pal.fg; font.family: root.fontForWeight(Font.Medium, pal.fam); font.pixelSize: 12; font.weight: Font.Medium }
+                            Text { anchors.centerIn: parent; text: I18n.tr("Add Folder\u2026"); color: pal.fg; font.family: root.fontForWeight(Font.Medium, pal.fam); font.pixelSize: 12; font.weight: Font.Medium }
                             MouseArea { id: wpChooseMa; anchors.fill: parent; hoverEnabled: true; onClicked: root.wpPickFolder() }
                         }
-                        Rectangle {
+                        // the folders the pictures come from: a chip each (click to open it, x to take it out), more can be added with Add Folder
+                        ListView {
+                            id: wpChips
                             anchors.left: wpTitle.right; anchors.leftMargin: 18
                             anchors.right: wpChoose.left; anchors.rightMargin: 10
                             anchors.verticalCenter: parent.verticalCenter
-                            height: 30; radius: 10
-                            color: pal.tile
-                            border.width: 1
-                            border.color: dirInput.activeFocus ? pal.accent : pal.tileBorder
-                            TextInput {
-                                id: dirInput
-                                anchors.fill: parent
-                                anchors.leftMargin: 10; anchors.rightMargin: 10
-                                verticalAlignment: TextInput.AlignVCenter
-                                clip: true
-                                selectByMouse: true
-                                color: pal.fg
-                                selectionColor: pal.accent
-                                font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12
-                                text: root.wpDirEff
-                                onAccepted: { root.wpSetDir(text); wpGrid.forceActiveFocus(); }
-                                Connections { target: root; function onWpDirEffChanged() { dirInput.text = root.wpDirEff; } }
+                            height: 30
+                            orientation: ListView.Horizontal
+                            spacing: 6
+                            clip: true
+                            boundsBehavior: Flickable.StopAtBounds
+                            model: root.wpDirsEff
+                            delegate: Rectangle {
+                                id: chip
+                                required property string modelData
+                                readonly property bool removable: root.wpDirsEff.length > 1
+                                height: 30; radius: 10
+                                width: Math.min(220, chipTxt.implicitWidth + 24 + (removable ? 22 : 0))
+                                color: chipMa.containsMouse ? pal.btnHover : pal.tile
+                                border.width: 1; border.color: pal.tileBorder
+                                Text {
+                                    id: chipTxt
+                                    x: 12; anchors.verticalCenter: parent.verticalCenter
+                                    width: Math.min(implicitWidth, chip.width - 24 - (chip.removable ? 22 : 0))
+                                    elide: Text.ElideMiddle
+                                    text: chip.modelData.replace(Quickshell.env("HOME"), "~")
+                                    color: pal.fg
+                                    font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12
+                                }
+                                MouseArea { id: chipMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: Quickshell.execDetached(["xdg-open", chip.modelData]) }
+                                Rectangle {
+                                    visible: chip.removable
+                                    anchors.right: parent.right; anchors.rightMargin: 5; anchors.verticalCenter: parent.verticalCenter
+                                    width: 18; height: 18; radius: 9
+                                    color: chipX.containsMouse ? pal.btnHover : "transparent"
+                                    Text { anchors.centerIn: parent; text: "\u00d7"; color: pal.fg2; font.family: Fonts.forWeight(Font.Normal, pal.fam); font.pixelSize: 14 }
+                                    MouseArea { id: chipX; anchors.fill: parent; hoverEnabled: true; onClicked: root.wpRemoveDir(chip.modelData) }
+                                }
                             }
                         }
                     }
@@ -8886,7 +8987,7 @@ Scope {
                         horizontalAlignment: Text.AlignHCenter
                         wrapMode: Text.WordWrap
                         text: root.wpQuery !== "" ? I18n.tr("No wallpapers match \u201c") + root.wpQuery + "\u201d"
-                              : I18n.tr("No images in ") + root.wpDirEff + I18n.tr("\nDrop some in, or pick another folder with Choose\u2026")
+                              : I18n.tr("No images in your wallpaper folders.\nDrop some in, or add a folder with Add Folder\u2026")
                         color: pal.fg2
                         font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 13
                     }

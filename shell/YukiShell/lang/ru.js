@@ -299,7 +299,6 @@ var strings = {
     "Remove": "Убрать",
     "Add": "Добавить",
     "Medium": "Средний",
-    "Image widgets open a file picker (needs zenity, kdialog or yad). To change a picture later, use Edit on Desktop and press Choose Image on the widget.": "Виджеты с изображением открывают выбор файла (нужен zenity, kdialog или yad). Чтобы сменить картинку позже, нажмите «Править на рабочем столе» и «Выбрать изображение» на виджете.",
 
     // Settings: Displays
     "Brightness": "Яркость",
@@ -524,7 +523,6 @@ var strings = {
     "Save location": "Куда сохранять",
     "Leave empty for ~/Pictures/Screenshots": "Пусто = ~/Pictures/Screenshots",
     "Choose…": "Выбрать…",
-    "Bind the Print key:  bind = , Print, exec, qs -c YukiShell ipc call screenshot region.  Choose… needs zenity, kdialog or yad; otherwise type the path. Screenshots need grim.": "Назначьте клавишу Print:  bind = , Print, exec, qs -c YukiShell ipc call screenshot region.  Для «Выбрать…» нужен zenity, kdialog или yad; иначе введите путь. Для снимков нужен grim.",
     "Drag to select an area   •   Return: whole screen   •   Esc: cancel": "Выделите область   •   Return: весь экран   •   Esc: отмена",
     "Quick folders": "Быстрые папки",
 
@@ -628,8 +626,6 @@ var strings = {
     "Cable unplugged": "Кабель не подключён",
     " Mb/s": " Мбит/с",
     "Copied ": "Скопировано ",
-    "No images in ": "Нет изображений в ",
-    "\nDrop some in, or pick another folder with Choose…": "\nДобавьте их туда или выберите другую папку через «Выбрать…»",
     "Nothing here yet.": "Здесь пока пусто.",
     "System Settings": "Системные настройки",
 
@@ -791,5 +787,29 @@ var strings = {
     "Press the new shortcut. Esc cancels, Backspace removes it.": "Нажмите новое сочетание. Esc — отмена, Backspace — удалить.",
     "Reset All Shortcuts": "Сбросить все сочетания",
     "That key can't be used": "Эту клавишу нельзя использовать",
-    "Type the new shortcut…": "Введите новое сочетание…"
+    "Type the new shortcut…": "Введите новое сочетание…",
+    "Add Folder…": "Добавить папку…",
+    "Add a folder": "Добавить папку",
+    "Add a wallpaper folder": "Добавить папку с обоями",
+    "Bind the Print key:  bind = , Print, exec, qs -c YukiShell ipc call screenshot region.  Screenshots need grim.": "Назначьте клавишу Print:  bind = , Print, exec, qs -c YukiShell ipc call screenshot region.  Для снимков нужен grim.",
+    "Can't show this picture": "Не удаётся показать картинку",
+    "Choose": "Выбрать",
+    "Choose This Folder": "Выбрать эту папку",
+    "Choose a folder": "Выберите папку",
+    "Choose a picture": "Выберите картинку",
+    "Double-click to open the folder": "Дважды щёлкните, чтобы открыть папку",
+    "Folder not found": "Папка не найдена",
+    "Home": "Домашняя папка",
+    "Image widgets open a picture chooser. To change a picture later, use Edit on Desktop and press Choose Image on the widget.": "Виджеты с картинкой открывают окно выбора картинки. Чтобы сменить картинку позже, нажмите «Изменить» на рабочем столе и затем «Выбрать изображение» на виджете.",
+    "No folders in here.": "Здесь нет папок.",
+    "No images in your wallpaper folders.\nDrop some in, or add a folder with Add Folder…": "В папках с обоями нет картинок.\nПоложите их туда или добавьте папку кнопкой «Добавить папку…».",
+    "No pictures in this folder.": "В этой папке нет картинок.",
+    "Nothing matches your search.": "По вашему запросу ничего не найдено.",
+    "Pictures and videos in it (and in the folders inside it) join the list. New files show up by themselves.": "Картинки и видео из неё (и из вложенных папок) попадут в список. Новые файлы появляются сами.",
+    "Places": "Места",
+    "Point at a picture to see it big": "Наведите на картинку, чтобы увидеть её крупно",
+    "Screenshot folder": "Папка для снимков экрана",
+    "Wallpaper folders": "Папки с обоями",
+    "item": "элем.",
+    "items": "элем."
 };

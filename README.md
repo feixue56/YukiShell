@@ -93,7 +93,10 @@ helper show up in Settings by their description, and `tools/i18n-check.py` remin
 - **Settings → Users & Groups → Picture** lets you crop your profile picture (drag, scroll to zoom) before it is saved.
 - **Hardware that is not there is not offered**: Airplane Mode follows the real radio switches (rfkill), and on a PC with no Wi-Fi or Bluetooth adapter
   those Control Center tiles are greyed out (N/A), the Bluetooth icon leaves the menu bar and the two Settings panes disappear. Plug an adapter in and they come back.
-- File pickers ("Choose a picture", Open/Save dialogs) float, centred, instead of tiling.
+- **Wallpapers from as many folders as you like** (Settings → Wallpaper → Wallpaper folders, or *Add Folder…* in the Ctrl+Alt+W picker). Pictures and videos you drop into
+  any of them, or delete, show up in the pickers by themselves (inotify, no refresh button).
+- **A picture chooser made for pictures**: the profile picture, image widgets and wallpaper folders open YukiShell's own chooser: big thumbnails (size slider),
+  a large preview of whatever you point at, places in a sidebar, a path bar and search. No zenity or kdialog needed. Other apps' dialogs ("Open", "Save") still float, centred, instead of tiling.
 
 ## Multi-language typing
 
