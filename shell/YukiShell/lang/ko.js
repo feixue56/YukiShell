@@ -286,6 +286,8 @@ var strings = {
     "Windows": "윈도우",
     "High Power": "고성능",
     "Highlights in the Dock menu and this window": "Dock 메뉴 및 이 윈도우의 하이라이트",
+    "Tint the interface": "인터페이스에 색 입히기",
+    "The glass, panels and cards take a shade of the accent color; text stays white": "유리, 패널, 카드가 강조 색상의 색조를 띱니다. 글자는 흰색으로 유지됩니다",
     "Home folder": "홈 폴더",
     "How strongly the glass blurs what's behind it": "유리가 뒤에 있는 것을 얼마나 흐리게 하는지",
     "Hyprland Keybinds": "Hyprland 단축키",

@@ -86,6 +86,7 @@ Item {
     property real glassLiquid: 1.0
     property real glassRim: 0.45
     property color borderTint: "#8A9AB5"      // Control Center border colour
+    property vector4d accentTint: Qt.vector4d(0, 0, 0, 0)   // "Tint the interface" (rgb = accent, a = on) for the glass shader
     property real glassGrain: 0.03
     property bool darkGlass: true
 
@@ -293,6 +294,7 @@ Item {
                 property real grain: w.glassGrain * 0.15
                 property real blurPx: 1.0
                 property real tintMix: w.tint
+                property vector4d accentTint: w.accentTint
                 property real saturation: 1.25
                 property real dark: w.dark ? 1 : 0
                 property real debug: 0

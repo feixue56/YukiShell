@@ -34,6 +34,7 @@ Item {
         Component {
             id: weatherVisual
             WeatherWidget {
+                accentTint: host.accentTintVec
                 scaleF: host.widgetScale
                 style: wstyle
                 size: wsize
@@ -72,6 +73,7 @@ Item {
         Component {
             id: calendarVisual
             CalendarWidget {
+                accentTint: host.accentTintVec
                 scaleF: host.widgetScale
                 style: wstyle
                 size: wsize
@@ -101,6 +103,7 @@ Item {
         Component {
             id: clockVisual
             ClockWidget {
+                accentTint: host.accentTintVec
                 scaleF: host.widgetScale
                 style: wstyle
                 size: wsize
@@ -130,6 +133,7 @@ Item {
         Component {
             id: playerVisual
             PlayerWidget {
+                accentTint: host.accentTintVec
                 scaleF: host.widgetScale
                 style: wstyle
                 size: wsize

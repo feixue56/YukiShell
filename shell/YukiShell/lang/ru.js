@@ -202,6 +202,8 @@ var strings = {
     "Light, Dark, or Auto for the Dock, Menu Bar and Settings. Spotlight and top bar menus use General → Spotlight & top bar menus.": "Светлое, тёмное или авто для Dock, строки меню и настроек. Для Spotlight и меню верхней панели — Основные → Spotlight и меню верхней панели.",
     "Accent color": "Цвет акцента",
     "Highlights in the Dock menu and this window": "Выделение в меню Dock и в этом окне",
+    "Tint the interface": "Окрашивать интерфейс",
+    "The glass, panels and cards take a shade of the accent color; text stays white": "Стекло, панели и карточки получают оттенок акцентного цвета; текст остаётся белым",
     "Blue": "Синий",
     "Purple": "Фиолетовый",
     "Pink": "Розовый",

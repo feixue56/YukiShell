@@ -286,6 +286,8 @@ var strings = {
     "Windows": "窗口",
     "High Power": "高性能",
     "Highlights in the Dock menu and this window": "程序坞菜单和此窗口中的高亮",
+    "Tint the interface": "为界面着色",
+    "The glass, panels and cards take a shade of the accent color; text stays white": "玻璃、面板和卡片采用强调色的色调；文字保持白色",
     "Home folder": "主文件夹",
     "How strongly the glass blurs what's behind it": "玻璃对其背后内容的模糊强度",
     "Hyprland Keybinds": "Hyprland 快捷键",

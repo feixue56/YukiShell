@@ -32,6 +32,7 @@ Item {
     property real glassLiquid: 1.0      // Liquid strength
     property real glassRim: 0.45
     property color borderTint: "#8A9AB5"      // Control Center border colour
+    property vector4d accentTint: Qt.vector4d(0, 0, 0, 0)   // "Tint the interface" (rgb = accent, a = on) for the glass shader
     property real glassGrain: 0.03
     property bool darkGlass: true       // the shell's Dark / Light setting (used by mode "auto")
     property bool preview: false        // inside the Settings gallery: no wallpaper, simplified glass
@@ -215,6 +216,7 @@ Item {
                 property real grain: w.glassGrain * 0.15   // much finer / quieter than the Dock's noise
                 property real blurPx: 1.0            // tiny residual smoothing; the real blur is the MultiEffect pre-pass
                 property real tintMix: w.tint
+                property vector4d accentTint: w.accentTint
                 property real saturation: 1.25
                 property real dark: w.dark ? 1 : 0   // this widget's own light / dark mode, not the shell's
                 property real debug: 0

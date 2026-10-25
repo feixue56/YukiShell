@@ -286,6 +286,8 @@ var strings = {
     "Windows": "ウインドウ",
     "High Power": "高パワー",
     "Highlights in the Dock menu and this window": "Dock のメニューとこのウインドウのハイライト",
+    "Tint the interface": "インターフェイスに色を付ける",
+    "The glass, panels and cards take a shade of the accent color; text stays white": "ガラス、パネル、カードがアクセントカラーの色合いになります。文字は白のままです",
     "Home folder": "ホームフォルダ",
     "How strongly the glass blurs what's behind it": "ガラスが背後をどれだけぼかすか",
     "Hyprland Keybinds": "Hyprland のキーバインド",

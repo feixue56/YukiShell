@@ -170,7 +170,7 @@ Scope {
     // "always" = always auto-hide, "never" = always visible and reserves space
     property string hideMode: "smart"
     property int faceVer: 0               // bumped when ~/.face changes so every picture reloads
-    property bool showSettings: true      // the gear button at the end of the Dock that opens the Settings window
+    property bool showSettings: true      // the YukiShell button at the end of the Dock that opens the Settings window
     property string fontFamily: "Open Runde"  // bundled in assets/fonts (shell.qml loads it); falls back to the system font if missing
     readonly property string boldFontFamily: hub && hub.boldFontFamily ? hub.boldFontFamily : "Open Runde Semibold"
     // Open Runde: bold text uses its Semibold face; another selected font keeps its own family (and real bold weight)
@@ -191,6 +191,15 @@ Scope {
         { name: "Green",    c: "#30d158" }, { name: "Graphite", c: "#8e8e93" }
     ]
     property color accent: "#0A84FF"     // menu highlight (macOS blue)
+    property bool accentUi: false        // the whole interface (glass, panels, cards) takes a shade of the accent; text stays white / black
+    readonly property vector4d accentTintVec: Qt.vector4d(accent.r, accent.g, accent.b, accentUi ? 1 : 0)     // handed to the glass shaders (accentTint)
+    // "Tint the interface": lean a surface colour toward the accent shade the glass shaders use (deep in dark mode, pale in light
+    // mode), keeping its transparency. k = how far (0..1). Off: the colour as it is.
+    function accentWash(c, k, dark) {
+        if (!accentUi) return c;
+        var a = accent, t = dark ? Qt.rgba(a.r * 0.40, a.g * 0.40, a.b * 0.40, 1) : Qt.rgba(a.r + (1 - a.r) * 0.70, a.g + (1 - a.g) * 0.70, a.b + (1 - a.b) * 0.70, 1);
+        return Qt.rgba(c.r + (t.r - c.r) * k, c.g + (t.g - c.g) * k, c.b + (t.b - c.b) * k, c.a);
+    }
     // Dock icon tint: every icon is re-coloured with one colour (works with any icon pack)
     property bool iconTint: false
     property string iconTintColor: "#0a84ff"
@@ -995,13 +1004,13 @@ Scope {
             readonly property string fam: root.fontFamily
             readonly property color accent: root.accent
             readonly property bool glass: root.liquidActive
-            readonly property color content: glass ? (dark ? Qt.rgba(0.09, 0.09, 0.10, 0.58) : Qt.rgba(0.97, 0.97, 0.98, 0.62))
-                                                   : (dark ? "#1E1E1E" : "#F5F5F7")
-            readonly property color sidebar: dark ? "#292929" : "#E9E9EC"
+            readonly property color content: root.accentWash(glass ? (dark ? Qt.rgba(0.09, 0.09, 0.10, 0.58) : Qt.rgba(0.97, 0.97, 0.98, 0.62))
+                                                   : Qt.color(dark ? "#1E1E1E" : "#F5F5F7"), 0.30, dark)
+            readonly property color sidebar: root.accentWash(dark ? Qt.color("#292929") : Qt.color("#E9E9EC"), 0.30, dark)
             // the pages are opaque (only the sidebar is translucent), so the cards are solid too
-            readonly property color contentSolid: dark ? "#1E1E1E" : "#F5F5F7"
-            readonly property color sidebarGlass: dark ? Qt.rgba(0.17, 0.17, 0.18, 0.55) : Qt.rgba(0.94, 0.94, 0.96, 0.60)
-            readonly property color card: dark ? "#2B2B2D" : "#FFFFFF"
+            readonly property color contentSolid: root.accentWash(dark ? Qt.color("#1E1E1E") : Qt.color("#F5F5F7"), 0.30, dark)
+            readonly property color sidebarGlass: root.accentWash(dark ? Qt.rgba(0.17, 0.17, 0.18, 0.55) : Qt.rgba(0.94, 0.94, 0.96, 0.60), 0.35, dark)
+            readonly property color card: root.accentWash(dark ? Qt.color("#2B2B2D") : Qt.color("#FFFFFF"), 0.30, dark)
             readonly property color cardBorder: dark ? Qt.rgba(1, 1, 1, 0.06) : Qt.rgba(0, 0, 0, 0.12)
             readonly property color windowBorder: dark ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(0, 0, 0, 0.22)
             // two-tone macOS window edge: a thin dark line outside, a soft highlight just inside it
@@ -1180,6 +1189,7 @@ Scope {
                             property real grain: root.glassGrain * 0.2
                             property real blurPx: 1.5
                             property real tintMix: root.glassOpacity * 0.5
+                            property vector4d accentTint: root.accentTintVec
                             property real saturation: 1.25
                             property real dark: root.dockDark ? 1 : 0
                             property real debug: 0
@@ -2788,6 +2798,12 @@ Scope {
                             current: String(root.accent)
                             onPicked: hex => root.setLook("accent", hex)
                         }
+                    }
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Tint the interface")
+                        subtitle: I18n.tr("The glass, panels and cards take a shade of the accent color; text stays white")
+                        SSwitch { t: pal; checked: root.accentUi; onToggled: v => root.setLook("accentUi", v) }
                     }
                 }
 
@@ -5549,7 +5565,7 @@ Scope {
 
     // --- settings persistence (~/.config/yukidock/settings.json) ---
     readonly property string settingsSig: [dockEnabled, settingsEnabled, iconSize, magnification, magnificationEnabled, spacing, margin,
-        cornerRadius, darkMode, appearanceMode, glassOpacity, glassBlur, glassLiquid, dockStyle, wallpaperPath, String(accent), fontFamily, hideMode, hideDelay, monitor,
+        cornerRadius, darkMode, appearanceMode, glassOpacity, glassBlur, glassLiquid, dockStyle, wallpaperPath, String(accent), accentUi, fontFamily, hideMode, hideDelay, monitor,
         showSettings, showLabels, showIndicators, bounceOnLaunch, showThumbs, windowCapture, glassLive, iconTint, iconTintColor, iconTintStrength, pickerThumb].join("|")
     property bool settingsReady: false
     onSettingsSigChanged: if (settingsReady) saveTimer.restart()
@@ -5564,7 +5580,7 @@ Scope {
             spacing: spacing, margin: margin, cornerRadius: cornerRadius,
             darkMode: darkMode, appearanceMode: appearanceMode, glassOpacity: glassOpacity, dockStyle: dockStyle, wallpaperPath: wallpaperPath, glassDebug: glassDebug,
             glassRim: glassRim, glassGrain: glassGrain, glassLiquid: glassLiquid, glassBlur: glassBlur,
-            accent: String(accent), fontFamily: fontFamily,
+            accent: String(accent), accentUi: accentUi, fontFamily: fontFamily,
             hideMode: hideMode, hideDelay: hideDelay, monitor: monitor,
             showSettings: showSettings, showLabels: showLabels, showIndicators: showIndicators,
             bounceOnLaunch: bounceOnLaunch, showThumbs: showThumbs, windowCapture: windowCapture, glassLive: glassLive,
@@ -5576,7 +5592,7 @@ Scope {
     function applySettings(o) {
         if (!o || typeof o !== "object") return;
         var keys = ["dockEnabled", "settingsEnabled", "iconSize", "magnification", "magnificationEnabled", "spacing", "margin", "cornerRadius",
-                    "darkMode", "appearanceMode", "glassOpacity", "dockStyle", "wallpaperPath", "glassDebug", "glassRim", "glassGrain", "glassLiquid", "glassBlur", "accent", "fontFamily", "hideMode", "hideDelay", "monitor",
+                    "darkMode", "appearanceMode", "glassOpacity", "dockStyle", "wallpaperPath", "glassDebug", "glassRim", "glassGrain", "glassLiquid", "glassBlur", "accent", "accentUi", "fontFamily", "hideMode", "hideDelay", "monitor",
                     "showSettings", "showLabels", "showIndicators", "bounceOnLaunch", "showThumbs", "windowCapture", "glassLive", "iconTint", "iconTintColor", "iconTintStrength", "pickerThumb"];
         for (var i = 0; i < keys.length; i++) {
             if (o[keys[i]] === undefined) continue;
@@ -5599,7 +5615,6 @@ Scope {
 
     // YukiShell's own windows (About This Linux, Settings, Finder, Photos ...) all have the app id "org.quickshell":
     // they show the YukiShell logo and name instead of a generic icon
-    readonly property string settingsIcon: decodeURIComponent(String(Qt.resolvedUrl("assets/yukishell-settings.svg")).replace(/^file:\/\//, ""))
     readonly property string logoPath: decodeURIComponent(String(Qt.resolvedUrl("assets/yukishell-logo.png")).replace(/^file:\/\//, ""))
     function isShellApp(appId) { return appId === "org.quickshell"; }
 
@@ -5845,7 +5860,8 @@ Scope {
         }
         if (showSettings && winItems.length > 0) list.push({ kind: "sep", key: "sep:settings" });
         if (showSettings && settingsEnabled) {
-            list.push({ kind: "app", key: "__settings", name: "Settings", icon: settingsIcon,
+            // the Settings button is YukiShell's own button: its logo and name
+            list.push({ kind: "app", key: "__settings", name: "YukiShell", icon: logoPath,
                         entry: null, running: false, pinned: true, special: "settings" });
         }
 
@@ -6711,6 +6727,7 @@ Scope {
                                 property real grain: root.glassGrain * 0.3     // quieter noise on the Dock glass
                                 property real blurPx: 1.5            // tiny residual smoothing; the real blur is the MultiEffect pre-pass
                                 property real tintMix: root.glassOpacity * 0.55
+                                property vector4d accentTint: root.accentTintVec
                                 property real saturation: 1.25
                                 property real dark: root.dockDark ? 1 : 0
                                 property real debug: root.glassDebug ? 1 : 0

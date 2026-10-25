@@ -42,6 +42,7 @@ layout(std140, binding = 0) uniform buf {
     float magnify;      // vertical lens magnification of the whole slab
     float shadowAmt;    // drop-shadow strength (1 = default, 0 = none)
     vec4 edgeTint;      // rgb = wallpaper's dominant colour (leans the edge light toward it), a = how strongly
+    vec4 accentTint;    // rgb = the accent colour, a = 1 while "Tint the interface" is on. Appended last, unset = no tint
 };
 
 layout(binding = 1) uniform sampler2D src;
@@ -155,7 +156,12 @@ void main()
     float lw    = smoothstep(0.30, 0.80, l);
     float adapt = mix(0.78, 1.28, mix(1.0 - lw, lw, dark));       // more tint where the backdrop would fight the icons
     vec3 tintC  = mix(vec3(1.0), vec3(0.09, 0.09, 0.10), dark);
+    // accent-tinted interface (accentTint.a = 1): the tint leans to a deep shade of the accent in dark mode (white text stays
+    // readable on it) or a pale one in light mode, and a light wash of that shade covers the glass even when it is very clear
+    vec3 accTint = mix(mix(accentTint.rgb, vec3(1.0), 0.70), accentTint.rgb * 0.40, dark);
+    tintC = mix(tintC, accTint, accentTint.a);
     col = mix(col, tintC, clamp(tintMix * adapt, 0.0, 1.0));
+    col = mix(col, accTint, accentTint.a * 0.28);
     col += mix(0.055, 0.020, dark);
 
     // --- depth: soft light from above, faint absorption toward the edge (clear glass, not smoked) ---

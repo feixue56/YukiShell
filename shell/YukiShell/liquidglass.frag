@@ -38,6 +38,7 @@ layout(std140, binding = 0) uniform buf {
     float rimTint;      // 0 = white rim (Dock / Menu Bar), 1 = rim + border take a brighter shade of the glass's own colour (widgets)
     float ringW;        // width in px of a thin border line along the very edge (0 = none)
     float flatInner;    // 1 = no inner edge shading (the darker inner rim); 0 = original. Appended last, unset = 0
+    vec4 accentTint;    // rgb = the accent colour, a = 1 while "Tint the interface" is on. Appended last, unset = no tint
 };
 
 layout(binding = 1) uniform sampler2D src;
@@ -156,7 +157,12 @@ void main()
     float l = dot(col, vec3(0.2126, 0.7152, 0.0722));
     col = mix(vec3(l), col, saturation);
     vec3 tintC = mix(vec3(1.0), vec3(0.09, 0.09, 0.10), dark);
+    // accent-tinted interface (accentTint.a = 1): the tint leans to a deep shade of the accent in dark mode (white text stays
+    // readable on it) or a pale one in light mode, and a light wash of that shade covers the glass even when it is very clear
+    vec3 accTint = mix(mix(accentTint.rgb, vec3(1.0), 0.70), accentTint.rgb * 0.40, dark);
+    tintC = mix(tintC, accTint, accentTint.a);
     col = mix(col, tintC, tintMix);
+    col = mix(col, accTint, accentTint.a * 0.28);
     col += mix(0.055, 0.020, dark);
 
     // --- depth: soft top sheen, darker lower inner edge ---

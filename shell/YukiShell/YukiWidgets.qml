@@ -71,6 +71,7 @@ Scope {
     readonly property string visColor: (hub && hub.bar) ? hub.bar.visColor : "art"
     readonly property real visGain: (hub && hub.bar) ? hub.bar.visGain : 1.0
     readonly property color visAccent: (hub && hub.bar) ? hub.bar.accent : "#0A84FF"
+    readonly property vector4d accentTintVec: (hub && hub.bar) ? hub.bar.accentTintVec : Qt.vector4d(0, 0, 0, 0)
     readonly property int gridCell: Math.round(179 * widgetScale)
     readonly property int gridGapX: Math.round(28 * widgetScale)
     readonly property int gridGapY: Math.round(23 * widgetScale)

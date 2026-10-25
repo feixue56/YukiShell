@@ -107,8 +107,18 @@ Scope {
     // Readability only ever changes the TEXT: panelDarkMode (glass tint, cards, borders) always follows the Light / Dark setting,
     // while panelTextWhite (text + glyph colour) follows the measured backdrop.
     readonly property bool panelDarkMode: darkMode
-    readonly property bool panelTextWhite: (autoContrast && panelTone !== 0) ? (panelTone === -1) : darkMode
+    // with "Tint the interface" on, the panels sit on a deep accent shade in dark mode, so the text stays white there
+    readonly property bool panelTextWhite: (autoContrast && panelTone !== 0 && !accentUi) ? (panelTone === -1) : darkMode
     property color accent: "#0A84FF"
+    property bool accentUi: false            // Appearance -> "Tint the interface": glass, panels and cards take a shade of the accent
+    readonly property vector4d accentTintVec: Qt.vector4d(accent.r, accent.g, accent.b, accentUi ? 1 : 0)     // handed to the glass shaders (accentTint)
+    // "Tint the interface": lean a surface colour toward the accent shade the glass shaders use (deep in dark mode, pale in light
+    // mode), keeping its transparency. k = how far (0..1). Off: the colour as it is.
+    function accentWash(c, k, dark) {
+        if (!accentUi) return c;
+        var a = accent, t = dark ? Qt.rgba(a.r * 0.40, a.g * 0.40, a.b * 0.40, 1) : Qt.rgba(a.r + (1 - a.r) * 0.70, a.g + (1 - a.g) * 0.70, a.b + (1 - a.b) * 0.70, 1);
+        return Qt.rgba(c.r + (t.r - c.r) * k, c.g + (t.g - c.g) * k, c.b + (t.b - c.b) * k, c.a);
+    }
     // The UI font is Open Runde (bundled in assets/fonts, loaded by shell.qml). Settings that still say Inter move over to it.
     property string fontFamily: "Open Runde"
     readonly property string boldFontFamily: hub && hub.boldFontFamily ? hub.boldFontFamily : "Open Runde Semibold"
@@ -376,7 +386,7 @@ Scope {
     property bool fileSearchPending: false
     property var fileHits: []
 
-    readonly property var settingKeys: ["barEnabled", "darkMode", "appearanceMode", "accent", "fontFamily", "barHeight", "uiScaleAuto", "uiScaleManual", "glassOpacity",
+    readonly property var settingKeys: ["barEnabled", "darkMode", "appearanceMode", "accent", "accentUi", "fontFamily", "barHeight", "uiScaleAuto", "uiScaleManual", "glassOpacity",
         "barStyle", "barGlass", "glassRim", "glassGrain", "glassLiquid", "glassBlur", "barBgOpacity", "glassRealtime", "liveWallGlass", "wallPauseCovered", "wallUserPaused", "showWallButton", "glassDebug", "wallpaperPath", "use24h", "language", "showDate",
         "showSeconds", "showBatteryPercent", "showTray", "showSearch",
         "spotlightEnabled", "reduceMotion", "ccEnabled", "notificationsEnabled", "clockAppEnabled", "ccStyle", "barLogoMode", "barCustomLogoPath", "barWidgets", "weekStartsMonday", "terminal", "launcher",
@@ -747,7 +757,7 @@ Scope {
         readonly property color sep: dark ? Qt.rgba(1, 1, 1, 0.14) : Qt.rgba(0, 0, 0, 0.12)
         readonly property color track: dark ? Qt.rgba(1, 1, 1, 0.20) : Qt.rgba(0, 0, 0, 0.12)
         readonly property color content: dark ? "#1E1E1E" : "#F5F5F7"
-        readonly property color card: dark ? "#2B2B2D" : "#FFFFFF"
+        readonly property color card: root.accentWash(dark ? Qt.color("#2B2B2D") : Qt.color("#FFFFFF"), 0.30, dark)
         readonly property color cardBorder: dark ? Qt.rgba(1, 1, 1, 0.07) : Qt.rgba(0, 0, 0, 0.08)
         readonly property color switchOff: dark ? Qt.rgba(1, 1, 1, 0.22) : Qt.rgba(0, 0, 0, 0.16)
     }
@@ -767,7 +777,7 @@ Scope {
         readonly property color sep: dark ? Qt.rgba(1, 1, 1, 0.14) : Qt.rgba(0, 0, 0, 0.12)
         readonly property color track: dark ? Qt.rgba(1, 1, 1, 0.20) : Qt.rgba(0, 0, 0, 0.12)
         readonly property color content: dark ? "#1E1E1E" : "#F5F5F7"
-        readonly property color card: dark ? "#2B2B2D" : "#FFFFFF"
+        readonly property color card: root.accentWash(dark ? Qt.color("#2B2B2D") : Qt.color("#FFFFFF"), 0.30, dark)
         readonly property color cardBorder: dark ? Qt.rgba(1, 1, 1, 0.07) : Qt.rgba(0, 0, 0, 0.08)
         readonly property color switchOff: dark ? Qt.rgba(1, 1, 1, 0.22) : Qt.rgba(0, 0, 0, 0.16)
     }
@@ -787,7 +797,7 @@ Scope {
         readonly property color sep: root.mixc(Qt.rgba(0, 0, 0, 0.12), Qt.rgba(1, 1, 1, 0.14))
         readonly property color track: root.mixc(Qt.rgba(0, 0, 0, 0.12), Qt.rgba(1, 1, 1, 0.20))
         readonly property color content: dark ? "#1E1E1E" : "#F5F5F7"
-        readonly property color card: dark ? "#2B2B2D" : "#FFFFFF"
+        readonly property color card: root.accentWash(dark ? Qt.color("#2B2B2D") : Qt.color("#FFFFFF"), 0.30, dark)
         readonly property color cardBorder: root.mixc(Qt.rgba(0, 0, 0, 0.08), Qt.rgba(1, 1, 1, 0.07))
         readonly property color switchOff: root.mixc(Qt.rgba(0, 0, 0, 0.16), Qt.rgba(1, 1, 1, 0.22))
     }
@@ -808,7 +818,7 @@ Scope {
         readonly property color sep: root.ccMix(Qt.rgba(0, 0, 0, 0.12), Qt.rgba(1, 1, 1, 0.14))
         readonly property color track: root.ccMix(Qt.rgba(0, 0, 0, 0.12), Qt.rgba(1, 1, 1, 0.20))
         readonly property color content: dark ? "#1E1E1E" : "#F5F5F7"
-        readonly property color card: dark ? "#2B2B2D" : "#FFFFFF"
+        readonly property color card: root.accentWash(dark ? Qt.color("#2B2B2D") : Qt.color("#FFFFFF"), 0.30, dark)
         readonly property color cardBorder: root.ccMix(Qt.rgba(0, 0, 0, 0.08), Qt.rgba(1, 1, 1, 0.07))
         readonly property color switchOff: root.ccMix(Qt.rgba(0, 0, 0, 0.16), Qt.rgba(1, 1, 1, 0.22))
     }
@@ -1268,6 +1278,7 @@ Scope {
                     property real grain: g.grain * 0.2
                     property real blurPx: 1.5
                     property real tintMix: g.tint * 0.55
+                    property vector4d accentTint: root.accentTintVec
                     property real saturation: 1.25
                     property real dark: g.dark ? 1 : 0
                     property real debug: g.debug ? 1 : 0
@@ -1431,6 +1442,7 @@ Scope {
                     property real grain: gg.gx.grain * 0.2
                     property real blurPx: 1.5
                     property real tintMix: gg.gx.tint * 0.55 * gg.tintMul
+                    property vector4d accentTint: root.accentTintVec
                     property real saturation: 1.25
                     property real dark: gg.gx.dark ? 1 : 0
                     property real debug: gg.gx.debug ? 1 : 0
@@ -4067,7 +4079,7 @@ Scope {
         onLoaded: {
             try {
                 var o = JSON.parse(text());
-                root.applySettings(o, ["darkMode", "appearanceMode", "accent", "fontFamily", "glassOpacity", "glassRim", "glassGrain", "glassLiquid", "glassBlur", "wallpaperPath"]);
+                root.applySettings(o, ["darkMode", "appearanceMode", "accent", "accentUi", "fontFamily", "glassOpacity", "glassRim", "glassGrain", "glassLiquid", "glassBlur", "wallpaperPath"]);
                 if (o.dockStyle !== undefined) root.barStyle = (o.dockStyle === "liquid") ? "liquid" : "blur";
             } catch (err) { }
             store.path = root.configDir + "/settings.json";

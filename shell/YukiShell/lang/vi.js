@@ -286,6 +286,8 @@ var strings = {
     "Windows": "Cửa sổ",
     "High Power": "Hiệu năng cao",
     "Highlights in the Dock menu and this window": "Phần được tô sáng trong menu Dock và cửa sổ này",
+    "Tint the interface": "Tô màu giao diện",
+    "The glass, panels and cards take a shade of the accent color; text stays white": "Kính, bảng và thẻ mang một sắc của màu nhấn; chữ vẫn màu trắng",
     "Home folder": "Thư mục nhà",
     "How strongly the glass blurs what's behind it": "Mức độ kính làm mờ những gì ở phía sau",
     "Hyprland Keybinds": "Phím tắt Hyprland",
