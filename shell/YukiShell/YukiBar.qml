@@ -9197,7 +9197,7 @@ Scope {
                                 readonly property bool removable: root.wpDirsEff.length > 1
                                 height: 30; radius: 10
                                 width: Math.min(220, chipTxt.implicitWidth + 24 + (removable ? 22 : 0))
-                                color: pal.tile
+                                color: chipMa.containsMouse ? pal.btnHover : pal.tile
                                 border.width: 1; border.color: pal.tileBorder
                                 Text {
                                     id: chipTxt
@@ -9208,8 +9208,12 @@ Scope {
                                     color: pal.fg
                                     font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12
                                 }
-                                // only a label: clicking it used to open the folder (xdg-open, which can be a terminal), and closing that terminal again
-                                // took the whole shell down
+                                // opens the folder like Settings -> Wallpaper -> Open does, but closes this panel first: opening it (xdg-open, which can be
+                                // a terminal) with the panel still up, then closing that terminal, took the whole shell down; from Settings it never did
+                                MouseArea {
+                                    id: chipMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                                    onClicked: { root.wpOpen = false; Quickshell.execDetached(["xdg-open", dirChip.modelData]); }
+                                }
                                 Rectangle {
                                     visible: dirChip.removable
                                     anchors.right: parent.right; anchors.rightMargin: 5; anchors.verticalCenter: parent.verticalCenter
