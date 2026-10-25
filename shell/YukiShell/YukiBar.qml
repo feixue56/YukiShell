@@ -3800,6 +3800,48 @@ Scope {
     // the wallpaper of this output is held (mpvpaper paused) / the glass videos of it are paused (plus Game Mode)
     function wallHold(name) { return wallUserPaused || (wallPauseCovered && screenCovered[name] === true); }
     function wallIdle(name) { return gaming || wallHold(name); }
+
+    // ── one clock for every copy of the animated wallpaper ──
+    // The desktop video is mpvpaper; the glass (bar, Dock, desktop widgets, Settings) plays a small copy of the same clip. Each copy used
+    // to start from 0 at its own moment, so the glass showed the wallpaper ahead of or behind the desktop. mpv is the clock: its position
+    // is read over its IPC socket once a second, and every LiveWall lines itself up with it (LiveWall.qml).
+    // mpv runs one player per monitor; the first monitor's is the clock (they start together and play at the same rate).
+    readonly property QtObject wallClock: QtObject {
+        property bool ok: false        // a fresh reading from a playing mpv
+        property real pos: 0           // mpv's time-pos, seconds
+        property real at: 0            // Date.now() when it was read
+    }
+    readonly property bool wallClockWanted: glassVideo !== "" && Quickshell.screens.length > 0 && !wallIdle(Quickshell.screens[0].name)
+    onWallClockWantedChanged: { if (!wallClockWanted) { wallClock.ok = false; mpvSock.connected = false; } }
+    property real wallClockAsked: 0
+    Socket {
+        id: mpvSock
+        path: Quickshell.screens.length > 0 ? Quickshell.env("XDG_RUNTIME_DIR") + "/yukishell-mpv-" + Quickshell.screens[0].name + ".sock" : ""
+        parser: SplitParser {
+            onRead: line => {
+                var o; try { o = JSON.parse(line); } catch (e) { return; }
+                if (o.request_id !== 71) return;
+                if (typeof o.data !== "number") { root.wallClock.ok = false; return; }
+                // the answer left mpv about half way between asking and reading it
+                var now = Date.now();
+                root.wallClock.pos = o.data;
+                root.wallClock.at = now - Math.min(20, (now - root.wallClockAsked) / 2);
+                root.wallClock.ok = true;
+            }
+        }
+        onConnectedChanged: { if (!connected) root.wallClock.ok = false; }
+    }
+    Timer {
+        interval: 1000; repeat: true; triggeredOnStart: true
+        running: root.wallClockWanted
+        onTriggered: {
+            // mpvpaper is restarted with every new wallpaper (and by its supervisor after a crash): reconnect when the socket went away
+            if (!mpvSock.connected) { mpvSock.connected = true; return; }
+            root.wallClockAsked = Date.now();
+            mpvSock.write('{"command":["get_property","time-pos"],"request_id":71}\n');
+            mpvSock.flush();
+        }
+    }
     readonly property string wallPauseScript: Quickshell.env("HOME") + "/.config/hypr-yukishell/scripts/yukishell-wallpause.sh"
     function wallApply() {
         if (!videoWall) return;
@@ -3861,14 +3903,15 @@ Scope {
 
     // ═════════════ ANIMATED WALLPAPER IN THE GLASS: one small copy, never the full video ═════════════
     // Every glass (bar, Dock, Settings, each desktop widget) runs its own decoder. Decoding the original (often 4K) video that many times is
-    // what used to take gigabytes. The glass is blurred and refracted anyway, so it plays a 720 px / 30 fps copy instead (cached in
+    // what used to take gigabytes. The glass is blurred and refracted anyway, so it plays a 720 px copy instead, at the clip's own frame
+    // rate up to 60 fps like the desktop copy (it was 30 fps, visibly choppier than the wallpaper next to it) (cached in
     // ~/.cache/yukishell/glass, built once with ffmpeg at low priority). Until that copy exists the glass shows the still picture.
     // Without ffmpeg (or if the build fails) the original video is used, so the switch still works.
     property var glassProxy: ({})              // video path → small copy, ready
     property var glassProxyFailed: ({})        // video path → true when no copy could be made
     property string glassProxyFor: ""          // the video the build process is working on right now
     readonly property int glassProxyWidth: 720
-    readonly property int glassProxyFps: 30
+    readonly property int glassProxyFps: 60       // a cap (-fpsmax): 24/30 fps clips keep their own rate
     readonly property string glassVideo: {
         if (!liveWallGlass || wallpaperVideo === "") return "";
         var p = glassProxy[wallpaperVideo];
@@ -3888,7 +3931,7 @@ Scope {
             'o="$d/$k.mp4"',
             'if [ ! -s "$o" ]; then',
             '  t="$d/$k.part.mp4"',
-            '  nice -n 15 ffmpeg -loglevel error -y -i "$v" -an -sn -dn -vf "fps=$f,scale=\'min($w,iw)\':-2" -c:v libx264 -preset veryfast -crf 30 -pix_fmt yuv420p -g 60 -movflags +faststart -f mp4 "$t" </dev/null >/dev/null 2>&1 \\',
+            '  nice -n 15 ffmpeg -loglevel error -y -i "$v" -an -sn -dn -vf "scale=\'min($w,iw)\':-2" -fpsmax "$f" -c:v libx264 -preset veryfast -crf 30 -pix_fmt yuv420p -g 60 -movflags +faststart -f mp4 "$t" </dev/null >/dev/null 2>&1 \\',
             '    && mv -f "$t" "$o" || { rm -f "$t"; exit 1; }',
             'fi',
             'printf "P:%s\\n" "$o"'
@@ -5257,6 +5300,7 @@ Scope {
                         // opacity). Without this, window captures (e.g. Spotify's player) showed through the panel mid-animation.
                         opacity: 0
                         property bool hostShown: true      // false while the window hosting this backdrop is hidden (set by its Loader)
+                        property bool onDemand: false      // a window that is only shown now and then (Spotlight, switcher, wallpapers)
                         property rect region: Qt.rect(0, 0, 0, 0)      // the glass that is on screen right now (set by its Loader); windows behind it stay live while recording
                         x: 0; y: 0
                         width: win.modelData.width
@@ -5285,11 +5329,16 @@ Scope {
                         // animated wallpaper: plays behind the glass (menus, bar, Spotlight, switcher) only while "Animated wallpaper in glass" is on
                         // (root.glassVideo is "" otherwise, and then no decoder exists at all)
                         LiveWall {
+                            id: barWall
                             z: -2
                             anchors.fill: parent
                             video: root.glassVideo
                             live: true
-                            paused: root.wallIdle(win.modelData.name)
+                            // this backdrop is loaded in four windows (bar, Spotlight, switcher, wallpaper picker). A hidden one's player
+                            // pauses, and is gone for good a minute later; the window's next opening starts a new one right away
+                            paused: root.wallIdle(win.modelData.name) || !bd.hostShown
+                            startDelay: bd.onDemand ? 250 : -1
+                            clock: root.wallClock
                         }
 
                         // the desktop widgets (they sit on the desktop layer, below every window), drawn from the same
@@ -5299,6 +5348,10 @@ Scope {
                                    ? root.hub.widgets.model : null
                             delegate: Item {
                                 id: mw
+                                // only while glass that can show them is open (a popover / Spotlight / the switcher / ...). The bar strip never
+                                // reaches the widgets, and each copy's own glass re-rendered the whole full-screen backdrop on every vsync
+                                // (100 times a second here, measured) even with nothing open. Hiding is instant: no copy is rebuilt.
+                                visible: ui.anyVisible || levelOsd.visible || spotWin.openish || swWin.visible || wpWin.visible
                                 required property string wid
                                 required property string wtype
                                 required property string wsrc
@@ -5314,6 +5367,7 @@ Scope {
                                 WidgetVisual {
                                     anchors.fill: parent
                                     host: root.hub.widgets
+                                    wallItem: barWall               // the backdrop's own player, not one more per widget
                                     wtype: mw.wtype; wstyle: mw.wstyle; wsize: mw.wsize; wmode: mw.wmode; wsrc: mw.wsrc
                                     sx: mw.x; sy: mw.y
                                     sname: win.modelData.name; sw: win.modelData.width; sh: win.modelData.height
@@ -8777,7 +8831,7 @@ Scope {
                     id: swBackdrop
                     active: root.liquidActive          // stays loaded (warm) so the window opens on ready-made frames
                     sourceComponent: backdropComp
-                    onLoaded: { item.hostShown = Qt.binding(function () { return swWin.visible; });
+                    onLoaded: { item.onDemand = true; item.hostShown = Qt.binding(function () { return swWin.visible; });
                                 item.region = Qt.binding(function () { return Qt.rect(swPanel.x - 96, swPanel.y - 96, swPanel.width + 192, swPanel.height + 192); }); }
                 }
                 MouseArea { anchors.fill: parent; onPressed: root.swCancel() }      // click outside cancels
@@ -8950,7 +9004,7 @@ Scope {
                     id: wpBackdrop
                     active: root.liquidActive          // stays loaded (warm) so the window opens on ready-made frames
                     sourceComponent: backdropComp
-                    onLoaded: { item.hostShown = Qt.binding(function () { return wpWin.visible; });
+                    onLoaded: { item.onDemand = true; item.hostShown = Qt.binding(function () { return wpWin.visible; });
                                 item.region = Qt.binding(function () { return Qt.rect(wpPanel.x - 96, wpPanel.y - 96, wpPanel.width + 192, wpPanel.height + 192); }); }
                 }
                 MouseArea { anchors.fill: parent; onPressed: root.wpOpen = false }      // click outside closes
@@ -9030,7 +9084,7 @@ Scope {
                             boundsBehavior: Flickable.StopAtBounds
                             model: root.wpDirsEff
                             delegate: Rectangle {
-                                id: chip
+                                id: dirChip
                                 required property string modelData
                                 readonly property bool removable: root.wpDirsEff.length > 1
                                 height: 30; radius: 10
@@ -9040,20 +9094,20 @@ Scope {
                                 Text {
                                     id: chipTxt
                                     x: 12; anchors.verticalCenter: parent.verticalCenter
-                                    width: Math.min(implicitWidth, chip.width - 24 - (chip.removable ? 22 : 0))
+                                    width: Math.min(implicitWidth, dirChip.width - 24 - (dirChip.removable ? 22 : 0))
                                     elide: Text.ElideMiddle
-                                    text: chip.modelData.replace(Quickshell.env("HOME"), "~")
+                                    text: dirChip.modelData.replace(Quickshell.env("HOME"), "~")
                                     color: pal.fg
                                     font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12
                                 }
-                                MouseArea { id: chipMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: Quickshell.execDetached(["xdg-open", chip.modelData]) }
+                                MouseArea { id: chipMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: Quickshell.execDetached(["xdg-open", dirChip.modelData]) }
                                 Rectangle {
-                                    visible: chip.removable
+                                    visible: dirChip.removable
                                     anchors.right: parent.right; anchors.rightMargin: 5; anchors.verticalCenter: parent.verticalCenter
                                     width: 18; height: 18; radius: 9
                                     color: chipX.containsMouse ? pal.btnHover : "transparent"
                                     Text { anchors.centerIn: parent; text: "\u00d7"; color: pal.fg2; font.family: Fonts.forWeight(Font.Normal, pal.fam); font.pixelSize: 14 }
-                                    MouseArea { id: chipX; anchors.fill: parent; hoverEnabled: true; onClicked: root.wpRemoveDir(chip.modelData) }
+                                    MouseArea { id: chipX; anchors.fill: parent; hoverEnabled: true; onClicked: root.wpRemoveDir(dirChip.modelData) }
                                 }
                             }
                         }
@@ -9369,7 +9423,7 @@ Scope {
                     id: spotBackdrop
                     active: root.liquidActive          // stays loaded (warm) so the window opens on ready-made frames
                     sourceComponent: backdropComp
-                    onLoaded: { item.hostShown = Qt.binding(function () { return !root.gaming; });
+                    onLoaded: { item.onDemand = true; item.hostShown = Qt.binding(function () { return !root.gaming && spotWin.openish; });
                                 item.region = Qt.binding(function () { return Qt.rect(spot.x - 128, spot.y - 128, spot.width + 256, spot.height + 256); }); }
                 }
 

@@ -6,9 +6,10 @@
 # Prints the still image the Liquid Glass should refract (the picture itself, or a frame grabbed from the video).
 # The current animated wallpaper is remembered in ~/.config/yukishell/wallpaper-video (YukiLock reads it too).
 #
-# Performance: videos are never played as-is. A 4K/60 fps clip decoded twice (one per monitor) cost ~45% CPU and
-# could wake the NVIDIA GPU. Each video gets a cached copy sized to the largest monitor at 30 fps (H.264, decoded
-# on the Intel iGPU via VA-API): ~5% CPU. The copy is built once in the background; the still frame shows meanwhile.
+# Performance: videos are never played as-is. A 4K clip decoded once per monitor cost ~45% CPU. Each video gets a cached
+# copy sized to the largest monitor, at the clip's own frame rate up to 60 fps (H.264, hardware-decoded through VA-API: the
+# Intel iGPU when there is one, NVDEC through nvidia-vaapi-driver otherwise). It used to be cut to 30 fps, which made a
+# 60 fps wallpaper visibly choppy. The copy is built once in the background; the still frame shows meanwhile.
 state="$HOME/.config/yukishell/wallpaper-video"
 cache="$HOME/.cache/yukishell"
 mkdir -p "$HOME/.config/yukishell" "$cache/frames" "$cache/anim"
@@ -19,7 +20,10 @@ for n in /dev/dri/renderD*; do
     [ "$(basename "$(readlink -f "/sys/class/drm/$(basename "$n")/device/driver")")" = i915 ] && { igpu="$n"; break; }
     [ "$(basename "$(readlink -f "/sys/class/drm/$(basename "$n")/device/driver")")" = xe ] && { igpu="$n"; break; }
 done
-MPV_OPTS="no-audio loop-file=inf profile=fast panscan=1.0 hwdec=vaapi${igpu:+ vaapi-device=$igpu} vd-lavc-threads=2 framedrop=vo"
+# video-sync=display-resample + interpolation: a 60 fps clip on a 100 / 144 Hz monitor is blended to the monitor's own rate instead of
+# holding each frame for 1 or 2 refreshes (a visible judder). Measured: +2 % of a core, no extra GPU load. The monitor's rate is
+# handed to each player as display-fps-override (below), since mpvpaper's render loop does not report it to mpv by itself.
+MPV_OPTS="no-audio loop-file=inf profile=fast panscan=1.0 hwdec=vaapi${igpu:+ vaapi-device=$igpu} vd-lavc-threads=2 framedrop=vo video-sync=display-resample interpolation=yes tscale=oversample"
 
 is_video() { case "$(printf %s "$1" | tr 'A-Z' 'a-z')" in *.mp4|*.webm|*.mkv|*.mov|*.m4v) return 0 ;; esac; return 1; }
 key_of() { printf '%s:%s' "$1" "$(stat -c %Y "$1" 2>/dev/null)" | md5sum | cut -c1-16; }
@@ -79,19 +83,20 @@ target_width() {
     printf '%s' "$w"
 }
 
-# optimized copy: largest-monitor width, 30 fps, H.264, keyframe every 2 s
+# optimized copy: largest-monitor width, the source's frame rate capped at 60 (-fpsmax keeps 24/25/30/50/60 fps clips as they
+# are), H.264, a keyframe every second at 60 fps
 build_anim() {  # build_anim <video> <out.mp4> <width>: re-checks under the lock, so a waiting second caller finds the finished copy
     valid_video "$2" && return 0
     rm -f "$2"
     tmp="$2.$$.part.mp4"       # one temp file per run: concurrent runs can no longer write into each other's output
     nice -n 15 ionice -c3 ffmpeg -loglevel error -y -i "$1" -an \
-        -vf "scale='min($3,iw)':-2:flags=lanczos,fps=30" \
+        -vf "scale='min($3,iw)':-2:flags=lanczos" -fpsmax 60 \
         -c:v libx264 -preset faster -crf 21 -pix_fmt yuv420p -g 60 -movflags +faststart "$tmp" </dev/null \
         && valid_video "$tmp" && mv -f "$tmp" "$2" || rm -f "$tmp"
 }
 anim_for() {
     tw=$(target_width)
-    out="$cache/anim/$(key_of "$1")-$tw.mp4"
+    out="$cache/anim/$(key_of "$1")-$tw-f60.mp4"     # "-f60": built at up to 60 fps (the old 30 fps copies have no suffix)
     valid_video "$out" || with_lock "$out.lock" build_anim "$1" "$out" "$tw"
     # could not build a usable copy: play the original (heavier, but never a blank wallpaper)
     valid_video "$out" || { printf '%s' "$1"; return; }
@@ -147,7 +152,9 @@ start_video() {
                         n=0; while [ ! -S "$run/yukishell-mpv-$out.sock" ] && [ "$n" -lt 40 ]; do n=$((n + 1)); sleep 0.25; done
                         grep -qx "$out" "$run/yukishell-wallpaused" 2>/dev/null && "$pausebin" "$out" pause
                     ) >/dev/null 2>&1 </dev/null &
-                    mpvpaper -o "$opts input-ipc-server=$run/yukishell-mpv-$out.sock" "$out" "$play" >/dev/null 2>&1 </dev/null
+                    hz=$(hyprctl -j monitors 2>/dev/null | jq -r --arg o "$out" ".[] | select(.name == \$o) | .refreshRate" 2>/dev/null | head -n1)
+                    case "$hz" in [0-9]*) hzopt=" display-fps-override=$hz" ;; *) hzopt="" ;; esac
+                    mpvpaper -o "$opts$hzopt input-ipc-server=$run/yukishell-mpv-$out.sock" "$out" "$play" >/dev/null 2>&1 </dev/null
                     [ "$(cat "$state" 2>/dev/null)" = "$src" ] || exit 0
                     [ $(( $(date +%s) - t )) -lt 10 ] && fails=$((fails + 1)) || fails=0
                     sleep 1

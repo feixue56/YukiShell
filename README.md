@@ -83,7 +83,10 @@ helper show up in Settings by their description, and `tools/i18n-check.py` remin
 ## What it does
 
 - **Liquid Glass** menus, Dock, widgets and Settings, optionally with the *animated wallpaper playing inside the glass*.
-- **Animated wallpaper** (mpvpaper): it keeps playing behind your windows and workspaces. The **menu bar button** (a picture frame, shown only while
+- **Animated wallpaper** (mpvpaper): it plays at the clip's own frame rate (up to 60 fps, hardware-decoded) and is blended up to your monitor's
+  refresh rate (`video-sync=display-resample` + interpolation), so a 60 fps clip on a 100 / 144 Hz screen doesn't judder. The copy inside the glass
+  plays at the same frame rate and follows mpv's clock, so the glass shows the same frame as the desktop. One player per window (bar, Dock,
+  widgets) serves all of that window's glass. It keeps playing behind your windows and workspaces. The **menu bar button** (a picture frame, shown only while
   the wallpaper is a video) pauses and resumes it by hand, also for the copy inside the glass, and the choice survives a restart. Game Mode stops it on its
   own. **Settings → Wallpaper → Pause behind windows** (off by default) stops it while windows hide the desktop, to save power on a laptop.
 - Hover feedback everywhere: the menu bar and Dock buttons get a frosted-glass tile with a rim light that follows the pointer,

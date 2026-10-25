@@ -665,6 +665,19 @@ Scope {
                 Item { id: hit2; x: root.pr(2, 0); y: root.pr(2, 1); width: root.pr(2, 2); height: root.pr(2, 3) }
                 Item { id: hit3; x: root.pr(3, 0); y: root.pr(3, 1); width: root.pr(3, 2); height: root.pr(3, 3) }
 
+                // ONE video player for every widget's glass: each widget shows its part of it through a WallSlice (it used to be one
+                // player per widget). It is never drawn itself, only through the slices.
+                LiveWall {
+                    id: sharedWall
+                    opacity: 0          // never drawn itself (a ShaderEffectSource ignores its source's own opacity)
+                    x: 0; y: 0
+                    width: win.modelData.width; height: win.modelData.height
+                    video: root.liveWallVideo
+                    live: root.liveWallVideo !== ""
+                    paused: root.liveWallPaused
+                    clock: root.hub && root.hub.bar ? root.hub.bar.wallClock : null
+                }
+
                 Rectangle {   // slight dim while editing
                     anchors.fill: parent
                     color: "black"
@@ -716,6 +729,7 @@ Scope {
                             id: visual
                             anchors.fill: parent
                             host: root
+                            wallItem: sharedWall
                             wtype: ww.wtype; wstyle: ww.wstyle; wsize: ww.wsize; wmode: ww.wmode; wsrc: ww.wsrc
                             sx: ww.x; sy: ww.y
                             sname: win.modelData.name; sw: win.modelData.width; sh: win.modelData.height

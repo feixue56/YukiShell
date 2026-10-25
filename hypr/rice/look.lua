@@ -88,7 +88,7 @@ hl.animation({ leaf = "fade",          enabled = true, speed = 3,   bezier = "sm
 hl.animation({ leaf = "layers",        enabled = true, speed = 4,   bezier = "snap" })
 hl.animation({ leaf = "layersIn",      enabled = true, speed = 4,   bezier = "snap",   style = "fade" })
 hl.animation({ leaf = "layersOut",     enabled = true, speed = 2,   bezier = "linear", style = "fade" })
-hl.curve("wsSpring", { type = "spring", mass = 1, stiffness = 110, dampening = 19 }) -- softer + slightly underdamped: floats, settles with a tiny drift
+hl.curve("wsSpring", { type = "spring", mass = 1, stiffness = 110, dampening = 21 }) -- critically damped (2·√110 ≈ 21): slides in and stops. Underdamped (19) overshot and crept back after every slide, so floating windows seemed to move by themselves
 hl.animation({ leaf = "workspaces",    enabled = true, speed = 5,   spring = "wsSpring", style = "slide" })
 hl.animation({ leaf = "workspacesIn",  enabled = true, speed = 5,   spring = "wsSpring", style = "slide" })
 hl.animation({ leaf = "workspacesOut", enabled = true, speed = 5,   spring = "wsSpring", style = "slide" })

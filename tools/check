@@ -20,9 +20,10 @@ section "js     "; if have node; then out=$(for f in $(git ls-files '*.js'); do
     # QML JS libraries start with ".pragma library" and may use ".import"; those two lines are not plain JS
     sed -e 's/^\.pragma.*//' -e 's/^\.import.*//' "$f" | node -e 'let t="";process.stdin.on("data",d=>t+=d).on("end",()=>{try{new Function(t)}catch(e){console.log(e.message);process.exit(1)}})' 2>&1 | head -2 | sed "s|^|$f: |"; done); [ -z "$out" ] && ok || bad "$out"; else skip node; fi
 section "qml    "
-qlint=$(command -v qmllint || ls /usr/lib/qt6/bin/qmllint 2>/dev/null)
+# Qt 6's qmllint first: a "qmllint" on PATH can be Qt 5's, which prints nothing at all for Qt 6 files (a broken file passed as "ok")
+qlint=$(ls /usr/lib/qt6/bin/qmllint 2>/dev/null || command -v qmllint6 || command -v qmllint)
 if [ -n "$qlint" ]; then
-    out=$(for f in $(git ls-files '*.qml'); do "$qlint" "$f" 2>&1 | grep -E "Syntax|syntax\.|duplicate-ids|Error:" | grep -v "onShaderError" | head -3; done)
+    out=$(for f in $(git ls-files '*.qml'); do "$qlint" "$f" 2>&1 | grep -E "\[syntax\]|Syntax|syntax\.|duplicate-ids|Error:" | grep -v "onShaderError" | head -3; done)
     [ -z "$out" ] && ok || bad "$out"
 else skip qmllint; fi
 section "i18n   "; if have python3; then out=$(python3 tools/i18n-check.py 2>&1); if [ $? -eq 0 ]; then ok; else bad "$(printf '%s\n' "$out" | head -12)"; fi; else skip python3; fi

@@ -1110,6 +1110,7 @@ Scope {
                                 video: root.bar ? root.bar.glassVideo : ""
                                 live: root.glassLive && prefsWindow.visible
                                 paused: !!root.bar && (root.bar.gaming || root.bar.wallUserPaused)
+                                clock: root.bar ? root.bar.wallClock : null
                             }
                         }
                         ShaderEffectSource {
@@ -5778,6 +5779,7 @@ Scope {
                             video: root.bar ? root.bar.glassVideo : ""
                             live: root.glassLive
                             paused: !!root.bar && root.bar.wallIdle(win.modelData.name)
+                            clock: root.bar ? root.bar.wallClock : null
                         }
 
                         ListModel { id: wm }

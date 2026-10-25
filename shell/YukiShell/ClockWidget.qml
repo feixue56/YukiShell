@@ -30,6 +30,7 @@ Item {
     property url wallUrl: ""
     property string wallVideo: ""        // animated wallpaper to play behind the glass ("" = none / real-time glass off)
     property bool wallPaused: false      // desktop covered / Game Mode: keep the decoder idle
+    property Item wallItem: null         // a LiveWall shared by the whole window: show a slice of it instead of a decoder of our own
     property real screenW: 1920
     property real screenH: 1080
     property real glassOpacity: 0.42
@@ -212,18 +213,29 @@ Item {
 
                     video: w.wallVideo
 
-                    live: w.wallVideo !== ""
+                    live: w.wallVideo !== "" && !w.wallItem
 
                     paused: w.wallPaused
 
                 }
             }
 
+            // the window's shared video (WallSlice), straight into the blur while it plays: the backdrop (gradient + still picture) is
+            // not captured at all then, since the full-screen video covers it anyway
+            WallSlice {
+                id: wslice
+                wall: w.wallItem
+                sx: w.screenX - gl.padPx - gl.margin
+                sy: w.screenY - gl.padPx - gl.margin
+                width: backdrop.width
+                height: backdrop.height
+                textureSize: Qt.size(Math.max(1, Math.round(backdrop.width * gl.ds)), Math.max(1, Math.round(backdrop.height * gl.ds)))
+            }
             ShaderEffectSource {
                 id: bsrc
                 sourceItem: backdrop
                 hideSource: true
-                live: true
+                live: !wslice.ready
                 visible: false
 
                 textureSize: Qt.size(
@@ -234,7 +246,7 @@ Item {
 
             MultiEffect {
                 id: blurFx
-                source: bsrc
+                source: wslice.ready ? wslice : bsrc
                 width: backdrop.width * gl.ds
                 height: backdrop.height * gl.ds
                 blurEnabled: true

@@ -30,6 +30,7 @@ Item {
     property string sname: ""            // screen name
     property real sw: 1920
     property real sh: 1080
+    property Item wallItem: null         // the window's shared LiveWall (LiveWall.qml / WallSlice.qml), if it has one
         Component {
             id: weatherVisual
             WeatherWidget {
@@ -53,6 +54,7 @@ Item {
                 shaderUrl: "file://" + host.glassShaderOut
                 wallUrl: host.fileUrl(host.wallpaperFor(v.sname))
                 wallVideo: host.liveWallVideo
+                wallItem: v.wallItem
                 wallPaused: host.liveWallPaused
                 screenW: v.sw
                 screenH: v.sh
@@ -81,6 +83,7 @@ Item {
                 shaderUrl: "file://" + host.glassShaderOut
                 wallUrl: host.fileUrl(host.wallpaperFor(v.sname))
                 wallVideo: host.liveWallVideo
+                wallItem: v.wallItem
                 wallPaused: host.liveWallPaused
                 screenW: v.sw
                 screenH: v.sh
@@ -108,6 +111,7 @@ Item {
                 shaderUrl: "file://" + host.glassShaderOut
                 wallUrl: host.fileUrl(host.wallpaperFor(v.sname))
                 wallVideo: host.liveWallVideo
+                wallItem: v.wallItem
                 wallPaused: host.liveWallPaused
                 screenW: v.sw
                 screenH: v.sh
@@ -162,6 +166,7 @@ Item {
                 shaderUrl: "file://" + host.glassShaderOut
                 wallUrl: host.fileUrl(host.wallpaperFor(v.sname))
                 wallVideo: host.liveWallVideo
+                wallItem: v.wallItem
                 wallPaused: host.liveWallPaused
                 screenW: v.sw
                 screenH: v.sh
