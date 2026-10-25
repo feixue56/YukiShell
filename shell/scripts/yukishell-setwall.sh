@@ -3,6 +3,8 @@
 #   yukishell-setwall.sh <file>        apply it
 #   yukishell-setwall.sh --restore     re-apply the saved animated wallpaper at login (no-op if none)
 #   yukishell-setwall.sh --prepare <video>   only build the cached files (thumbnail frame + optimized copy)
+#   yukishell-setwall.sh --prepare-all <video>...   the same for every video in the pickers, one after another, plus the glass copy:
+#                                            picking one of them later starts at once (only one such run at a time)
 # Prints the still image the Liquid Glass should refract (the picture itself, or a frame grabbed from the video).
 # The current animated wallpaper is remembered in ~/.config/yukishell/wallpaper-video (YukiLock reads it too).
 #
@@ -75,6 +77,17 @@ glass_for() {
     printf '%s' "$g"
 }
 
+# the 720 px copy the shell's Liquid Glass plays (YukiBar.qml, glassProxyEnsure): same file name and settings, so the shell finds it
+# ready instead of making it after the switch (6-8 s for a 4K clip, while the desktop already moved on)
+proxy_for() {
+    d="$cache/glass"; mkdir -p "$d"
+    k=$(printf '%s:%s:%s:%s' "$1" "$(stat -c %Y "$1" 2>/dev/null)" 720 60 | md5sum | cut -c1-16)
+    o="$d/$k.mp4"; [ -s "$o" ] && return 0
+    t="$d/$k.$$.part.mp4"
+    nice -n 15 ionice -c3 ffmpeg -loglevel error -y -i "$1" -an -sn -dn -vf "scale='min(720,iw)':-2" -fpsmax 60 -c:v libx264 -preset veryfast \
+        -crf 30 -pix_fmt yuv420p -g 60 -movflags +faststart -f mp4 "$t" </dev/null && mv -f "$t" "$o" || rm -f "$t"
+}
+
 # width of the widest monitor (logical px), at least 1280
 target_width() {
     w=$(hyprctl -j monitors 2>/dev/null | jq '[.[] | (.width / .scale)] | max | floor' 2>/dev/null)
@@ -94,9 +107,10 @@ build_anim() {  # build_anim <video> <out.mp4> <width>: re-checks under the lock
         -c:v libx264 -preset faster -crf 21 -pix_fmt yuv420p -g 60 -movflags +faststart "$tmp" </dev/null \
         && valid_video "$tmp" && mv -f "$tmp" "$2" || rm -f "$tmp"
 }
+anim_path() { printf '%s' "$cache/anim/$(key_of "$1")-$(target_width)-f60.mp4"; }    # "-f60": built at up to 60 fps (the old 30 fps copies have no suffix)
 anim_for() {
     tw=$(target_width)
-    out="$cache/anim/$(key_of "$1")-$tw-f60.mp4"     # "-f60": built at up to 60 fps (the old 30 fps copies have no suffix)
+    out=$(anim_path "$1")
     valid_video "$out" || with_lock "$out.lock" build_anim "$1" "$out" "$tw"
     # could not build a usable copy: play the original (heavier, but never a blank wallpaper)
     valid_video "$out" || { printf '%s' "$1"; return; }
@@ -150,6 +164,7 @@ start_video() {
     setsid sh -c '
         echo $$ >> "$5"
         src="$1"; play="$2"; state="$3"; opts="$4"; run="$6"; pausebin="$7"; shift 7
+        playfile="$HOME/.config/yukishell/wallpaper-video-play"
         for out in "$@"; do
             (
                 fails=0
@@ -164,7 +179,9 @@ start_video() {
                     ) >/dev/null 2>&1 </dev/null &
                     hz=$(hyprctl -j monitors 2>/dev/null | jq -r --arg o "$out" ".[] | select(.name == \$o) | .refreshRate" 2>/dev/null | head -n1)
                     case "$hz" in [0-9]*) hzopt=" display-fps-override=$hz" ;; *) hzopt="" ;; esac
-                    mpvpaper -o "$opts$hzopt input-ipc-server=$run/yukishell-mpv-$out.sock" "$out" "$play" >/dev/null 2>&1 </dev/null
+                    # a restart plays the file the wallpaper switched to last (the optimized copy, once swap_video moved to it)
+                    p=$(cat "$playfile" 2>/dev/null); [ -s "$p" ] || p="$play"
+                    mpvpaper -o "$opts$hzopt input-ipc-server=$run/yukishell-mpv-$out.sock" "$out" "$p" >/dev/null 2>&1 </dev/null
                     [ "$(cat "$state" 2>/dev/null)" = "$src" ] || exit 0
                     [ $(( $(date +%s) - t )) -lt 10 ] && fails=$((fails + 1)) || fails=0
                     sleep 1
@@ -174,11 +191,57 @@ start_video() {
         wait
     ' wallsup "$src" "$play" "$state" "$MPV_OPTS" "$supfile" "$run" "$(dirname "$(readlink -f "$0")")/yukishell-wallpause.sh" $outs >/dev/null 2>&1 </dev/null 8>&- &
 }
+# the running players move over to another file of the same clip (the optimized copy, once it is built) at the frame they are
+# showing, through their IPC sockets: no restart, so the desktop does not blink or start the clip over
+swap_video() {  # swap_video <file>
+    printf '%s\n' "$1" > "$HOME/.config/yukishell/wallpaper-video-play"
+    command -v python3 >/dev/null 2>&1 || return 0     # without it the copy is used from the next start on
+    for sock in "${XDG_RUNTIME_DIR:-/tmp}"/yukishell-mpv-*.sock; do
+        [ -S "$sock" ] || continue
+        python3 -I - "$sock" "$1" <<'PY' >/dev/null 2>&1
+import json, socket, sys
+s = socket.socket(socket.AF_UNIX)
+s.settimeout(1)
+buf = b""
+def ask(cmd, rid):
+    global buf
+    s.sendall((json.dumps({"command": cmd, "request_id": rid}) + "\n").encode())
+    while True:                                  # mpv also writes events on the socket: wait for our own answer
+        while b"\n" not in buf:
+            buf += s.recv(4096)
+        line, buf = buf.split(b"\n", 1)
+        try:
+            o = json.loads(line)
+        except ValueError:
+            continue
+        if o.get("request_id") == rid:
+            return o.get("data")
+try:
+    s.connect(sys.argv[1])
+    pos = ask(["get_property", "time-pos"], 1) or 0
+    paused = ask(["get_property", "pause"], 2) is True
+    ask(["loadfile", sys.argv[2], "replace", -1, "start=%.3f,pause=%s" % (pos, "yes" if paused else "no")], 3)
+except (OSError, ValueError):
+    pass
+PY
+    done
+}
+
 # stopping the old player and starting the new one is one step: two callers at once (the login restore and the shell re-applying the
 # wallpaper) each stopped "the" player, then each started their own, and the desktop ended up decoding the video twice
 change_video() { with_lock "$cache/wallpaper-start.lock" "$@"; }
 
 case "$1" in
+    --prepare-all)
+        shift
+        exec 7>"$cache/prepare.lock"
+        command -v flock >/dev/null 2>&1 && { flock -n 7 || exit 0; }      # one run builds them all; a second one has nothing to add
+        for v do [ -f "$v" ] && is_video "$v" && preview_for "$v"; done       # the pickers' previews first: they are quick and on screen
+        for v do
+            [ -f "$v" ] && is_video "$v" || continue
+            frame_for "$v" >/dev/null; anim_for "$v" >/dev/null; proxy_for "$v"
+        done
+        exit 0 ;;
     --prepare) [ -f "$2" ] && is_video "$2" && { preview_for "$2"; frame_for "$2" >/dev/null; a=$(anim_for "$2"); glass_for "$a" >/dev/null; }; exit 0 ;;
     --restore)
         [ -f "$state" ] || exit 0
@@ -202,11 +265,19 @@ if is_video "$f"; then
     }
     if [ "$1" = --restore ]; then put_still --restore >/dev/null 2>&1 </dev/null & else put_still; fi
     printf '%s\n' "$still"
-    # build the optimized copy in the background (only the first time), then play it
+    # Play at once: the optimized copy if it was built before, otherwise the original right away. Building the copy of a 4K clip takes
+    # 10-15 s, and waiting for it left the OLD video playing on the desktop (on top of the new still) while the glass, whose own small
+    # copy is quicker to make, already showed the new one. The copy is built meanwhile and the players move over to it when it is done.
     (
-        play=$(anim_for "$f")
+        copy=$(anim_path "$f")
+        if valid_video "$copy"; then play="$copy"; else play="$f"; fi
         [ "$(cat "$state" 2>/dev/null)" = "$f" ] || exit 0      # another wallpaper was picked meanwhile
         change_video start_video "$f" "$play"
+        if [ "$play" = "$f" ]; then
+            play=$(anim_for "$f")
+            [ "$(cat "$state" 2>/dev/null)" = "$f" ] || exit 0
+            [ "$play" != "$f" ] && change_video swap_video "$play"
+        fi
         g=$(glass_for "$play")
         [ "$(cat "$state" 2>/dev/null)" = "$f" ] && [ -s "$g" ] && printf '%s\n' "$g" > "$HOME/.config/yukishell/wallpaper-video-glass"
     ) >/dev/null 2>&1 </dev/null &

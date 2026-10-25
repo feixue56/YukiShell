@@ -4540,8 +4540,12 @@ Scope {
                 '  t="$tc/$(printf "%s:%s" "$v" "$(stat -c %Y "$v" 2>/dev/null)" | md5sum | cut -c1-16).jpg"',
                 '  if [ ! -s "$t" ]; then ffmpeg -loglevel error -y -ss 1 -i "$v" -frames:v 1 -vf "scale=360:-2" "$t" </dev/null >/dev/null 2>&1; fi',
                 '  [ -s "$t" ] && printf "T:%s\\t%s\\n" "$v" "$t"',
-                '  w="${t%.jpg}.webp"; if [ ! -s "$w" ] && [ -x "$HOME/.config/hypr-yukishell/scripts/yukishell-setwall.sh" ]; then setsid nice -n 15 "$HOME/.config/hypr-yukishell/scripts/yukishell-setwall.sh" --prepare "$v" >/dev/null 2>&1 </dev/null & fi',
-                'done'
+                'done',
+                // everything a switch to one of these needs (preview, desktop copy, glass copy), built one video after another at low
+                // priority. It used to start a build per video at once, and only for videos without a preview yet: most never got their
+                // copies, so picking one waited 10-15 s for them while the old video kept playing
+                's="$HOME/.config/hypr-yukishell/scripts/yukishell-setwall.sh"',
+                '[ -x "$s" ] && setsid nice -n 15 "$s" --prepare-all "$@" >/dev/null 2>&1 </dev/null &'
             ].join("\n");
             wpThumbBuild.command = ["sh", "-c", script, "sh"].concat(videos);
             wpThumbBuild.running = true;
