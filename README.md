@@ -51,7 +51,8 @@ Before using it, check:
 | `Super+Shift+Tab` | terminal and Dolphin opacity: solid → liquid glass → completely transparent (a terminal fades only its background, Dolphin fades the whole window) |
 | `Super+Alt+D` | dashboard (fastfetch, clock, cava) |
 | `Super+1..0` | go to workspace 1-10 |
-| `Super+Shift+1..0` or `Super+Alt+1..0` | move window to workspace |
+| `Super+Shift+1..0` | move window to workspace (and go there) |
+| `Super+Alt+1..0` | send window to workspace (stay here) |
 | `Super+Scroll` | next / previous workspace |
 | `Super+Arrows` (or `H K N`) | move focus |
 | `Super+Ctrl+Arrows` | resize the window from the keyboard |
