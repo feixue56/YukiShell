@@ -5801,13 +5801,6 @@ Scope {
                                 property bool released: false
                                 onGoneChanged: { if (gone) relTimer.restart(); else { relTimer.stop(); released = false; } }
                                 Timer { id: relTimer; interval: 300; onTriggered: gw.released = true }
-                                // the window moved / resized a moment ago: its glass streams at full rate for half a second
-                                property bool burst: false
-                                onXChanged: { burst = true; burstT.restart(); }
-                                onYChanged: { burst = true; burstT.restart(); }
-                                onWidthChanged: { burst = true; burstT.restart(); }
-                                onHeightChanged: { burst = true; burstT.restart(); }
-                                Timer { id: burstT; interval: 500; onTriggered: gw.burst = false }
                                 // the closing window's own capture stops the moment Hyprland announces the close
                                 readonly property bool closing: !!root.hub && root.hub.closingWins[String(addr).replace(/^0x/, "")] === true
                                 readonly property var tl: { if (!root.hub || released || closing) return null; var t = root.hub.tlTick; return root.hub.tlFor(addr); }
@@ -5847,15 +5840,15 @@ Scope {
                                         readonly property bool canRun: root.glassRT
                                             ? !(root.hub && root.hub.captureQuiet) && !(root.bar && root.bar.gaming) && !gw.gone && !gw.closing
                                             : (!root.glassHold && !ui.tucked)
-                                        // ON DEMAND, never live (see the same note in YukiBar.qml): a window that reaches the visible Dock streams at 30 fps while
-                                        // it moves / resizes or the pointer is on the Dock, and refreshes 4 times a second otherwise (the blurred glass hardly shows
-                                        // the difference). Any other window, or every window while the Dock is tucked away, is left alone (nothing shows it) and
+                                        // ON DEMAND, never live (see the same note in YukiBar.qml): a window that reaches the visible Dock is captured at 60 fps
+                                        // (a slower refresh made a terminal's text visibly lag behind in the glass). Any other window, or every window while the
+                                        // Dock is tucked away, is left alone (nothing shows it) and
                                         // gets a frame the moment it starts to matter. A live capture kept a frame in flight ~90 % of the time and Hyprland drops
                                         // the frames of a window that closes, so the shell's destroy() of one killed the Wayland connection ("invalid object NNN").
                                         readonly property bool wanted: sc.canRun && gw.overlap && !ui.tucked
                                         onWantedChanged: { if (wanted && captureSource !== null && typeof captureFrame === "function") captureFrame(); }
                                         Timer {
-                                            interval: root.glassRT ? ((gw.burst || hh.hovered) ? 33 : 250) : 66
+                                            interval: root.glassRT ? 16 : 66
                                             repeat: true
                                             running: sc.wanted && sc.captureSource !== null
                                             onTriggered: if (typeof sc.captureFrame === "function") sc.captureFrame()
