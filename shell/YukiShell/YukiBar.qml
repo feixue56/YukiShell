@@ -3947,8 +3947,10 @@ Scope {
                 var sameF = true;
                 for (var f in fullMap) if (fullMap[f] !== (root.screenFullscreen[f] === true)) sameF = false;
                 if (!sameF) root.screenFullscreen = fullMap;
-                var same = true;
-                for (var q in next) if (next[q] !== (root.screenCovered[q] === true)) same = false;
+                // a monitor not probed before counts as a change too: with nothing covered the map would otherwise stay empty,
+                // and wallApply() (which waits for the first probe) would never pause or resume the wallpaper
+                var same = Object.keys(next).length === Object.keys(root.screenCovered).length;
+                for (var q in next) if (!(q in root.screenCovered) || next[q] !== (root.screenCovered[q] === true)) same = false;
                 if (!same) root.screenCovered = next;
                 root.wallApply();
             }
