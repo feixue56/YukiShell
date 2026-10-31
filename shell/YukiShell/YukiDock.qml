@@ -5573,7 +5573,7 @@ Scope {
                             y: 110
                             width: parent.width
                             horizontalAlignment: Text.AlignHCenter
-                            text: "YukiShell v1.2"
+                            text: "YukiShell v1.3"
                             color: pal.text
                             font.family: root.fontForWeight(Font.DemiBold, pal.fam)
                             font.pixelSize: 21
