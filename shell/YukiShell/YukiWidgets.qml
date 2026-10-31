@@ -43,6 +43,7 @@ Scope {
     // Liquid Glass look = the Appearance sliders (Translucency / Blur / Liquid strength) of the Dock + Menu Bar
     readonly property real glassOpacity: dock ? dock.glassOpacity : 0.42
     readonly property real glassBlur: (dock ? dock.glassBlur : 5) + 11     // the Appearance blur slider, plus 11 more for widgets
+    readonly property real dockGlassBlur: dock ? dock.glassBlur + dock.dockBlurBoost : 5   // the Dock's own blur (the music widget uses the Dock's glass)
     readonly property real glassLiquid: dock ? dock.glassLiquid : 1.0
     readonly property real glassRim: dock ? dock.glassRim : 0.45
     readonly property real glassGrain: dock ? dock.glassGrain : 0.03

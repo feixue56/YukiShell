@@ -218,8 +218,9 @@ Item {
             Timer { id: showT; interval: 100; onTriggered: w.glassShown = true }
             readonly property real margin: 72
             readonly property real padPx: 10
+            // the Dock's glass: the same blur (glassBlur here is the Dock's, see WidgetVisual.qml)
             readonly property real ds: w.glassBlur >= 8 ? 0.5 : 1.0
-            readonly property real bn: Math.min(1.0, w.glassBlur * 1.4 * ds / 64.0)
+            readonly property real bn: Math.min(1.0, w.glassBlur * 1.5 * ds / 64.0)
 
             Item {
                 id: backdrop
@@ -316,9 +317,10 @@ Item {
                 property real dispersion: 0.06 * w.glassLiquid
                 property real magnify: 0.08 * w.glassLiquid * Math.min(1, 90 / w.height)
                 property real rim: w.glassRim
-                property real grain: w.glassGrain * 0.15
-                property real blurPx: 1.0
-                property real tintMix: w.tint
+                // the Dock's glass: its light, adaptive tint (no heavy widget tint), grain and residual blur
+                property real grain: w.glassGrain * 0.3
+                property real blurPx: 1.5
+                property real tintMix: w.glassOpacity * 0.55
                 property vector4d accentTint: w.accentTint
                 property real saturation: 1.25
                 property real dark: w.dark ? 1 : 0
@@ -378,8 +380,8 @@ Item {
             blur: 1.0
             saturation: 0.35
             brightness: w.dark ? -0.08 : 0.12
-            // over Liquid Glass it stays light, so the refraction and the wallpaper keep showing through clearly
-            opacity: (w.glowWanted && ambArt.status === Image.Ready) ? w.glowT * w.glowAmt * (w.style === "liquid" ? 0.4 : (w.dark ? 0.85 : 0.7)) : 0
+            // Liquid Glass shows the glass itself, like the Dock: no wash of the cover's colours over it (the other styles keep it)
+            opacity: (w.glowWanted && ambArt.status === Image.Ready && w.style !== "liquid") ? w.glowT * w.glowAmt * (w.dark ? 0.85 : 0.7) : 0
             Behavior on opacity { NumberAnimation { duration: 500; easing.type: Easing.OutCubic } }
         }
         // the slow drift while music plays (Living artwork): a lazy turn and a gentle breathe
@@ -449,9 +451,10 @@ Item {
         colorBottom: Qt.rgba(base.r, base.g, base.b, w.isSmall ? 0.12 : 0.03)
     }
 
-    // Control Center border (all styles)
+    // Control Center border (the solid styles; Liquid Glass has the Dock's edge light from the shader instead)
     CornerBorder {
         z: 2
+        visible: w.style !== "liquid"
         anchors.fill: parent
         cornerR: w.radiusPx
         dark: w.dark
