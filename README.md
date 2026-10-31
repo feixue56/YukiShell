@@ -136,7 +136,7 @@ menu bar show each item's shortcut next to it.
 | `Super+C` | centre a floating window |
 | `Super+Shift+P` | pin a floating window to every workspace |
 | `Super+M` / `Super+Shift+M` | minimize / show minimized windows |
-| `Super+Alt+S` | hide the window, or bring back the one hidden last exactly as it was |
+| `Super+Alt+S` | hide the focused window (again: the next one); with nothing focused, bring them all back |
 | `Super+Shift+Tab` | terminal see-through: solid → glass → clear (terminals only) |
 | `Super+Alt+D` | dashboard (fastfetch, clock, cava) |
 
@@ -226,7 +226,7 @@ Besides the usual switches there are Lock Screen, Screenshot, Color Picker, Wall
 - Hardware you don't have isn't offered. No Wi-Fi card means no Wi-Fi tile.
 - Wallpapers from as many folders as you like, and new files show up by themselves.
 - Its own picture chooser with big thumbnails, so you don't need zenity or kdialog.
-- `Super+Alt+S` hides a window and brings it back exactly how it was: its workspace, floating or tiled, size and position, full screen.
+- `Super+Alt+S` hides the focused window; press it again to hide the next one too. With no window focused (everything hidden, or an empty workspace), it brings all hidden windows back exactly how they were: their workspace, floating or tiled, size and position, full screen.
 
 **Seven languages.** *Settings → General → Language* switches everything live: English, 简体中文, 繁體中文, 日本語, 한국어, Tiếng Việt and
 Русский. Dates follow the language too, including on the lock screen.

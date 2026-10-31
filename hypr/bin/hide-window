@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-"""Hide or show a window with one key (Super+Alt+S).
+"""Hide windows one by one, and bring them all back, with one key (Super+Alt+S).
 
-  hide-window          the toggle: nothing hidden -> hide the focused window; something hidden -> show the window hidden last
-  hide-window hide     always hide the focused window (the menu bar's "Hide <app>"), so several can be hidden
-  hide-window show     show the window hidden last (the menu bar's "Show Hidden Windows")
+  hide-window          the toggle: a window is focused -> hide it (press again to hide the next one too);
+                       no window focused (everything on this workspace is hidden, or it was empty) -> show ALL hidden windows
+  hide-window hide     always hide the focused window (the menu bar's "Hide <app>")
+  hide-window show     show all hidden windows (the menu bar's "Show Hidden Windows")
 
 Hiding moves the window to the special workspace "hidden" and remembers where it was (its workspace, floating or tiled, position
-and size, full screen); showing puts it back exactly like that and gives it the focus.
+and size, full screen); showing puts each one back exactly like that. The focus goes to the window hidden last that comes back
+onto the workspace you are looking at, so showing never throws you onto another workspace.
 
-The remembered windows live in $XDG_RUNTIME_DIR/yukishell-hidden.json (newest last). A window that was closed while hidden is
+The remembered windows live in $XDG_RUNTIME_DIR/yukishell-hidden.json (oldest first). A window that was closed while hidden is
 dropped from it. Windows that were put in "hidden" some other way (no record) come back to the current workspace."""
 import json, os, subprocess, sys
 
@@ -53,10 +55,9 @@ def ws_selector(ws):
     return str(ws["id"]) if isinstance(ws.get("id"), int) and ws["id"] > 0 else lua_str(ws.get("name", ""))
 
 
-def restore(entry):
+def restore(entry, focus):
     sel = f'window = "address:{entry["address"]}"'
     dispatch(f"hl.dsp.window.move({{ workspace = {entry['workspace']}, follow = false, {sel} }})")
-    dispatch(f"hl.dsp.focus({{ {sel} }})")
     if entry.get("floating"):
         dispatch(f'hl.dsp.window.float({{ action = "enable", {sel} }})')
         w, h = entry["size"]
@@ -66,36 +67,24 @@ def restore(entry):
     elif entry.get("floating") is False:
         dispatch(f'hl.dsp.window.float({{ action = "disable", {sel} }})')
     fs = entry.get("fullscreen", 0)
-    if fs:
+    if fs or focus:
+        dispatch(f"hl.dsp.focus({{ {sel} }})")
+    if fs:                          # full screen acts on the focused window
         dispatch(f'hl.dsp.window.fullscreen({{ mode = "{"maximized" if fs == 1 else "fullscreen"}", action = "set" }})')
 
 
-def main(mode):
-    clients = {c["address"]: c for c in hj("clients")}
-    in_hidden = {a for a, c in clients.items() if c.get("workspace", {}).get("name") == HIDDEN}
-
-    # forget windows that were closed (or taken out of "hidden" by hand) since they were hidden
-    entries = [e for e in load() if e.get("address") in in_hidden]
-
-    if mode != "hide" and entries:
-        entry = entries.pop()
-        save(entries)
-        restore(entry)
-        return
-    save(entries)
-
-    if mode != "hide" and in_hidden:                  # hidden before this toggle existed: no record, so bring it to the workspace in front
-        active = hj("activeworkspace")
-        addr = sorted(in_hidden, key=lambda a: clients[a].get("focusHistoryID", 0))[0]
-        restore({"address": addr, "workspace": ws_selector(active)})
-        return
-    if mode == "show":
-        return
-
+def focused_window():
+    """The focused window, if it is a normal one (not on a special workspace such as "hidden" itself)."""
     win = hj("activewindow")
-    addr = win.get("address") if isinstance(win, dict) else None
-    if not addr or win.get("workspace", {}).get("name", "").startswith("special:"):
-        return
+    if not isinstance(win, dict) or not win.get("address"):
+        return None
+    if win.get("workspace", {}).get("name", "").startswith("special:"):
+        return None
+    return win
+
+
+def hide(win, entries):
+    addr = win["address"]
     entry = {
         "address": addr,
         "workspace": ws_selector(win["workspace"]),
@@ -108,7 +97,40 @@ def main(mode):
     if entry["fullscreen"]:        # leave full screen first, so the workspace it leaves is not stuck in full-screen mode
         dispatch(f'hl.dsp.window.fullscreen({{ mode = "{"maximized" if entry["fullscreen"] == 1 else "fullscreen"}", action = "unset" }})')
     dispatch(f'hl.dsp.window.move({{ workspace = "{HIDDEN}", follow = false, {sel} }})')
-    save(entries + [entry])
+    save([e for e in entries if e["address"] != addr] + [entry])
+
+
+def show_all(entries, in_hidden, clients):
+    active = hj("activeworkspace")
+    here = ws_selector(active) if isinstance(active, dict) and active else None
+    recorded = {e["address"] for e in entries}
+    # windows hidden some other way (no record): back to the workspace in front, oldest focus first
+    stray = sorted((a for a in in_hidden if a not in recorded), key=lambda a: -clients[a].get("focusHistoryID", 0))
+    todo = [{"address": a, "workspace": here} for a in stray if here] + entries      # oldest first, the one hidden last at the end
+    # focus: the window hidden last among those coming back to this workspace (none: stay where you are)
+    target = next((e["address"] for e in reversed(todo) if here is not None and str(e["workspace"]) == str(here)), None)
+    save([])
+    for e in todo:
+        restore(e, False)
+    if target:
+        dispatch(f'hl.dsp.focus({{ window = "address:{target}" }})')
+
+
+def main(mode):
+    clients = {c["address"]: c for c in hj("clients")}
+    in_hidden = {a for a, c in clients.items() if c.get("workspace", {}).get("name") == HIDDEN}
+    # forget windows that were closed (or taken out of "hidden" by hand) since they were hidden
+    entries = [e for e in load() if e.get("address") in in_hidden]
+    save(entries)
+
+    if mode in ("hide", "toggle"):
+        win = focused_window()
+        if win:
+            hide(win, entries)
+            return
+        if mode == "hide":
+            return
+    show_all(entries, in_hidden, clients)
 
 
 main(sys.argv[1] if len(sys.argv) > 1 else "toggle")
