@@ -162,6 +162,10 @@ Item {
                 visColor: host.visColor
                 visGain: host.visGain
                 visAccent: host.visAccent
+                glowAmt: host.mwGlow
+                motion: host.mwMotion
+                barStyle: host.mwBar
+                visMode: host.mwVisMode
                 lyrics: host.lyricsLines
                 lyricsState: host.lyricsState
                 lyricsSynced: host.lyricsSynced

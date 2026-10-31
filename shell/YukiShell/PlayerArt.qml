@@ -32,7 +32,7 @@ Item {
     Item {
         id: idle
         anchors.fill: parent
-        visible: artImg.status !== Image.Ready
+        visible: artImg.status !== Image.Ready && art.oldT < 0.01
         layer.enabled: visible
         layer.effect: MultiEffect { maskEnabled: true; maskSource: artMask }
 
@@ -139,19 +139,59 @@ Item {
             mipmap: true
         }
     }
+    // --- the cover: a new one crossfades in over the old one (which fades away once the new one has loaded), settling from a
+    //     slight zoom, instead of cutting from one song to the next ---
+    property real newT: 1                  // 0 -> 1: the new cover coming in
+    property real oldT: 0                  // 1 -> 0: the previous cover going away
+    function swapCover() {
+        if (artImg.status === Image.Ready && String(artImg.source) !== "" && String(artImg.source) !== String(art.wd.artSrc)) {
+            artOld.source = artImg.source;
+            oldT = 1;
+        }
+        artImg.source = art.wd.artSrc;
+        if (artImg.status === Image.Ready) { newT = 1; oldOut.restart(); }
+        else { newT = 0; if (String(art.wd.artSrc) === "") oldOut.restart(); }
+    }
+    Connections { target: art.wd; function onArtSrcChanged() { art.swapCover(); } }
+    Component.onCompleted: artImg.source = art.wd.artSrc
+    NumberAnimation { id: newIn; target: art; property: "newT"; from: 0; to: 1; duration: 520; easing.type: Easing.OutCubic }
+    NumberAnimation { id: oldOut; target: art; property: "oldT"; to: 0; duration: 520; easing.type: Easing.InOutQuad }
     Image {
-        id: artImg
+        id: artOld
         anchors.fill: parent
-        source: art.wd.artSrc
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
         sourceSize.width: 400
         sourceSize.height: 400
         visible: false
+        onStatusChanged: if (status === Image.Error) art.oldT = 0
+    }
+    Image {
+        id: artImg
+        anchors.fill: parent
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+        sourceSize.width: 400
+        sourceSize.height: 400
+        visible: false
+        onStatusChanged: {
+            if (status === Image.Ready) { newIn.restart(); oldOut.restart(); }
+            else if (status === Image.Error) oldOut.restart();
+        }
+    }
+    MultiEffect {
+        anchors.fill: parent
+        visible: art.oldT > 0.01 && artOld.status === Image.Ready
+        opacity: art.oldT
+        source: artOld
+        maskEnabled: true
+        maskSource: artMask
     }
     MultiEffect {
         anchors.fill: parent
         visible: artImg.status === Image.Ready
+        opacity: art.newT
+        scale: 1.06 - 0.06 * art.newT
         source: artImg
         maskEnabled: true
         maskSource: artMask

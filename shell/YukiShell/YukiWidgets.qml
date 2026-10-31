@@ -70,6 +70,10 @@ Scope {
     readonly property string visStyle: (hub && hub.bar) ? hub.bar.visStyle : "bars"
     readonly property string visColor: (hub && hub.bar) ? hub.bar.visColor : "art"
     readonly property real visGain: (hub && hub.bar) ? hub.bar.visGain : 1.0
+    readonly property real mwGlow: (hub && hub.bar) ? hub.bar.mwGlow : 0.6
+    readonly property bool mwMotion: (hub && hub.bar) ? hub.bar.mwMotion && !hub.bar.reduceMotion : true
+    readonly property string mwBar: (hub && hub.bar) ? hub.bar.mwBar : "slim"
+    readonly property string mwVisMode: (hub && hub.bar) ? hub.bar.mwVisMode : "ambient"
     readonly property color visAccent: (hub && hub.bar) ? hub.bar.accent : "#0A84FF"
     readonly property vector4d accentTintVec: (hub && hub.bar) ? hub.bar.accentTintVec : Qt.vector4d(0, 0, 0, 0)
     readonly property int gridCell: Math.round(179 * widgetScale)

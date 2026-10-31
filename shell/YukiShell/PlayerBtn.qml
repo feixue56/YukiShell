@@ -47,6 +47,19 @@ Item {
         visible: b.on || b.idleFill
         Behavior on color { ColorAnimation { duration: 200 } }
     }
+    // hover: a soft round highlight grows in behind the glyph
+    Rectangle {
+        anchors.centerIn: parent
+        width: Math.min(b.width, b.height) * 1.08
+        height: width
+        radius: width / 2
+        color: b.wd.dark ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.08)
+        opacity: ma.containsMouse && ma.enabled ? 1 : 0
+        scale: ma.containsMouse && ma.enabled ? 1 : 0.6
+        visible: opacity > 0.01
+        Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+        Behavior on scale { NumberAnimation { duration: 260; easing.type: Easing.OutBack } }
+    }
     // icon: morphs into the next one (old glyph blurs + shrinks away, new one comes into focus);
     // back / forward also give a motion-blur nudge when clicked
     Item {
@@ -89,6 +102,8 @@ Item {
     MouseArea {
         id: ma
         anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
         enabled: !b.wd.preview && !b.wd.editing && b.wd.hasPlayer && b.enabledBtn
         onClicked: {
             if (b.kind === "next" || b.kind === "prev") { b.nudgeDir = b.kind === "next" ? 1 : -1; nudgeAnim.restart(); }

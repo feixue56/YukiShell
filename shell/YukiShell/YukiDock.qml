@@ -3825,6 +3825,46 @@ Scope {
                     }
                 }
 
+                // --- Music widget (the Now Playing card on the desktop) ---
+                SLabel { t: pal; header: true; text: I18n.tr("Music Widget") }
+                SCard {
+                    t: pal
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Cover glow")
+                        subtitle: I18n.tr("The album art lights up the card from behind, in its own colours")
+                        SSlider {
+                            t: pal
+                            from: 0; to: 1; stepSize: 0.05
+                            value: root.bar ? root.bar.mwGlow : 0.6
+                            leftLabel: I18n.tr("Off"); rightLabel: I18n.tr("Vivid")
+                            resetValue: 0.6
+                            onMoved: v => { if (root.bar) root.bar.mwGlow = Math.round(v * 100) / 100; }
+                        }
+                    }
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Living artwork")
+                        subtitle: I18n.tr("The cover sinks back when paused and springs forward when the music starts; the glow drifts slowly while it plays. Off with Reduce Motion.")
+                        SSwitch {
+                            t: pal
+                            checked: root.bar ? root.bar.mwMotion : true
+                            onToggled: v => { if (root.bar) root.bar.mwMotion = v; }
+                        }
+                    }
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Progress bar")
+                        SSegmented {
+                            t: pal
+                            model: ["Slim", "Bold"]
+                            segWidth: 72
+                            current: ["slim", "bold"].indexOf(root.bar ? root.bar.mwBar : "slim")
+                            onPicked: i => { if (root.bar) root.bar.mwBar = ["slim", "bold"][i]; }
+                        }
+                    }
+                }
+
                 // --- Audio visualizer (Now Playing widget + Control Center tile) ---
                 SLabel { t: pal; header: true; text: I18n.tr("Audio Visualizer") }
                 SCard {
@@ -3837,6 +3877,18 @@ Scope {
                             t: pal
                             checked: root.bar ? root.bar.visOn : true
                             onToggled: v => { if (root.bar) root.bar.visOn = v; }
+                        }
+                    }
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Placement")
+                        subtitle: I18n.tr("Ambient: a soft glow along the bottom of the music widget. Strip: bars behind its controls.")
+                        SSegmented {
+                            t: pal
+                            model: ["Ambient", "Strip"]
+                            segWidth: 72
+                            current: ["ambient", "strip"].indexOf(root.bar ? root.bar.mwVisMode : "ambient")
+                            onPicked: i => { if (root.bar) root.bar.mwVisMode = ["ambient", "strip"][i]; }
                         }
                     }
                     SRow {

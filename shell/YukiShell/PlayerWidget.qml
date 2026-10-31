@@ -56,6 +56,11 @@ Item {
     property string visColor: "art"          // art | white | accent
     property real visGain: 1.0
     property color visAccent: "#0A84FF"
+    // Settings -> Widgets -> Music Widget
+    property real glowAmt: 0.6               // cover glow: the album art lights the card from behind (0 = off)
+    property bool motion: true               // living artwork (off with Reduce Motion)
+    property string barStyle: "slim"         // progress bar: slim | bold
+    property string visMode: "ambient"       // visualizer: ambient (soft glowing wave along the bottom) | strip (bars behind the controls)
 
     // lyrics (fetched by YukiWidgets): [{ t: seconds (-1 = not synced), text: "..." }]
     property var lyrics: []
@@ -310,6 +315,97 @@ Item {
         }
     }
 
+    // --- ambience: the cover's colours fill the card from behind (a small, heavily blurred copy of the art scaled up, so it costs
+    //     next to nothing), and the ambient visualizer glows along the bottom; both are clipped to the card's rounded shape.
+    //     A new song fades the glow out and back in with the new colours; while playing (Living artwork) it drifts slowly. ---
+    property url glowSrc: ""
+    property real glowT: 0                   // the glow's own fade (track changes)
+    readonly property bool glowWanted: glowAmt > 0.01 && hasPlayer && !preview && artSrc != ""
+    onArtSrcChanged: glowSwap.restart()
+    Component.onCompleted: { w.glowSrc = w.artSrc; w.dispTitle = w.shownTitle; w.dispSub = w.shownSub; }
+    SequentialAnimation {
+        id: glowSwap
+        NumberAnimation { target: w; property: "glowT"; to: 0; duration: 260; easing.type: Easing.InQuad }
+        ScriptAction { script: w.glowSrc = w.artSrc }
+    }
+    NumberAnimation { id: glowIn; target: w; property: "glowT"; to: 1; duration: 900; easing.type: Easing.OutCubic }
+    Item {
+        id: amb
+        anchors.fill: parent
+        visible: glowFx.opacity > 0.01 || ambVis.opacity > 0.01
+        layer.enabled: visible
+        layer.effect: MultiEffect { maskEnabled: true; maskSource: ambMask }
+        Rectangle { id: ambMask; anchors.fill: parent; radius: w.radiusPx; visible: false; layer.enabled: true }
+
+        Image {
+            id: ambArt
+            source: w.glowSrc
+            sourceSize.width: 64
+            sourceSize.height: 64
+            asynchronous: true
+            visible: false
+            onStatusChanged: if (status === Image.Ready) glowIn.restart()
+        }
+        // rendered at a quarter size and scaled up: the blur ends up four times wider for the same cost
+        MultiEffect {
+            id: glowFx
+            readonly property real big: Math.max(amb.width, amb.height) * 1.6
+            width: big / 4; height: width
+            x: (amb.width - width) / 2
+            y: (amb.height - height) / 2
+            scale: 4 * glowDrift.zoom
+            rotation: glowDrift.turn
+            source: ambArt
+            autoPaddingEnabled: false
+            blurEnabled: true
+            blurMax: 32
+            blur: 1.0
+            saturation: 0.35
+            brightness: w.dark ? -0.08 : 0.12
+            // over Liquid Glass it stays lighter, so the glass still shows
+            opacity: (w.glowWanted && ambArt.status === Image.Ready) ? w.glowT * w.glowAmt * (w.style === "liquid" ? 0.7 : (w.dark ? 0.85 : 0.7)) : 0
+            Behavior on opacity { NumberAnimation { duration: 500; easing.type: Easing.OutCubic } }
+        }
+        // the slow drift while music plays (Living artwork): a lazy turn and a gentle breathe
+        QtObject {
+            id: glowDrift
+            property real turn: 0
+            property real zoom: 1
+        }
+        NumberAnimation {
+            target: glowDrift; property: "turn"; from: 0; to: 360; duration: 90000; loops: Animation.Infinite
+            running: w.motion && w.playing && amb.visible && !w.editing
+        }
+        SequentialAnimation {
+            loops: Animation.Infinite
+            running: w.motion && w.playing && amb.visible && !w.editing
+            NumberAnimation { target: glowDrift; property: "zoom"; to: 1.18; duration: 7000; easing.type: Easing.InOutSine }
+            NumberAnimation { target: glowDrift; property: "zoom"; to: 1.0; duration: 7000; easing.type: Easing.InOutSine }
+        }
+
+        // ambient visualizer: the spectrum as a soft, blurred glow rising from the bottom edge
+        VisBars {
+            id: ambVis
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            height: parent.height * (w.isSmall ? 0.36 : 0.42)
+            src: w.visSrc
+            active: w.visOn && w.visMode === "ambient" && w.hasPlayer && (w.playing || w.preview) && !w.editing
+            demo: w.preview
+            style: w.visStyle
+            gain: w.visGain
+            count: w.isSmall ? 10 : 18
+            barFill: 0.95
+            readonly property color base: visual.base
+            colorTop: Qt.rgba(base.r, base.g, base.b, w.dark ? 0.6 : 0.5)
+            colorBottom: Qt.rgba(base.r, base.g, base.b, 0.18)
+            // blurred until the bars melt into one glow that swells with the music
+            layer.enabled: opacity > 0.01
+            layer.effect: MultiEffect { blurEnabled: true; blurMax: 64; blur: 1.0; autoPaddingEnabled: false }
+        }
+    }
+
     // --- audio visualizer: under the content, over the glass / face. Medium / large: a strip behind the control row, below the
     //    time labels. Small: a little equaliser to the right of the artwork, under the play button.
     VisBars {
@@ -320,7 +416,7 @@ Item {
         y: (w.isSmall ? 77 : w.hr - 58) * w.k
         height: (w.isSmall ? w.artY + w.artS - 77 : 46) * w.k
         src: w.visSrc
-        active: w.visOn && w.hasPlayer && (w.playing || w.preview) && !w.editing
+        active: w.visOn && w.visMode === "strip" && w.hasPlayer && (w.playing || w.preview) && !w.editing
         demo: w.preview
         style: w.visStyle
         gain: w.visGain
@@ -413,12 +509,38 @@ Item {
 
 
 
+    // --- a new song: the title and artist slip out and the new ones slide in (instead of the text just changing) ---
+    property string dispTitle: ""
+    property string dispSub: ""
+    property real txtT: 1                    // 0 = between two songs, 1 = shown
+    function txtSwap() {
+        if (dispTitle === shownTitle && dispSub === shownSub) return;
+        if (preview || !visible) { dispTitle = shownTitle; dispSub = shownSub; return; }
+        txtAnim.restart();
+    }
+    onShownTitleChanged: txtSwap()
+    onShownSubChanged: txtSwap()
+    SequentialAnimation {
+        id: txtAnim
+        NumberAnimation { target: w; property: "txtT"; to: 0; duration: 170; easing.type: Easing.InCubic }
+        ScriptAction { script: { w.dispTitle = w.shownTitle; w.dispSub = w.shownSub; } }
+        NumberAnimation { target: w; property: "txtT"; to: 1; duration: 420; easing.type: Easing.OutCubic }
+    }
+    property real textVis: lyricsView ? 0 : 1           // the lyrics view hides title / subtitle / bar / times
+    Behavior on textVis { NumberAnimation { duration: 380; easing.type: Easing.OutCubic } }
+    // Living artwork: the cover sinks back a little while paused and springs forward when the music starts
+    readonly property real artRest: (motion && hasPlayer && !playing && !preview) ? 0.88 : 1
+    property real artB: artRest
+    Behavior on artB { NumberAnimation { duration: 700; easing.type: Easing.OutBack; easing.overshoot: 1.6 } }
+
     // --- layout numbers (RU), per size ---
     readonly property real mx: 23                                     // side margin
     readonly property real artX: isLarge ? (wr - artS) / 2 : w.mx
     readonly property real artY: 23
     readonly property real artS: isSmall ? 110 : (isMedium ? hr - 142 : hr - 218)
     readonly property real textX: isSmall ? w.mx : (isMedium ? w.mx + artS + 18 : w.mx)
+    // room left of the text where scrolling text fades out: beside the cover (medium) it stays clear of the art
+    readonly property real mqPad: isMedium ? 4 : 17
     readonly property real titleCY: isSmall ? hr - 60 : (isMedium ? artY + artS / 2 - 16 : hr - 165)
     readonly property real subCY: isSmall ? hr - 31 : (isMedium ? artY + artS / 2 + 16 : hr - 137.5)
     readonly property real barCY: hr - 95.5
@@ -430,9 +552,20 @@ Item {
         id: content
         anchors.fill: parent
 
-        // --- artwork ---
+        // --- artwork: a soft shadow in the cover's own colour lifts it off the card ---
+        RectangularShadow {
+            x: artItem.x; y: artItem.y + 7 * w.k * w.artB
+            width: artItem.width; height: artItem.height
+            radius: artItem.r
+            blur: 28 * w.k
+            spread: -2 * w.k
+            color: w.faceTint ? Qt.hsla(w.tintH, Math.min(0.75, w.tintS), w.dark ? 0.06 : 0.25, 0.75) : Qt.rgba(0, 0, 0, w.dark ? 0.55 : 0.28)
+            opacity: artItem.opacity * (w.hasPlayer ? 0.55 + 3.5 * (w.artB - 0.88) : 0.35)
+            transform: Scale { origin.x: artItem.width / 2; origin.y: artItem.height / 2; xScale: w.artB; yScale: w.artB }
+        }
         PlayerArt {
             id: artItem
+            transform: Scale { origin.x: artItem.width / 2; origin.y: artItem.height / 2; xScale: w.artB; yScale: w.artB }
             wd: w
             x: w.artX * w.k
             y: w.artY * w.k
@@ -461,44 +594,42 @@ Item {
         // --- title: scrolls like the subtitle when it does not fit ---
         MarqueeText {
             id: titleItem
-            x: (w.textX - 17) * w.k
-            y: w.titleCY * w.k - height / 2
-            width: (w.wr - (w.textX - 17) - (w.mx - 17) - (w.isMedium ? 50 : 0)) * w.k
-            opacity: w.lyricsView ? 0 : 1
+            x: (w.textX - w.mqPad) * w.k
+            y: w.titleCY * w.k - height / 2 + (1 - w.txtT) * 10 * w.k
+            width: (w.wr - (w.textX - w.mqPad) - (w.mx - 17) - (w.isMedium ? 50 : 0)) * w.k
+            opacity: w.textVis * w.txtT
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 380; easing.type: Easing.OutCubic } }
             layer.enabled: opacity > 0 && opacity < 0.999
             layer.sourceRect: Qt.rect(-12, -8, width + 24, height + 16)
             layer.effect: MultiEffect { blurEnabled: true; blurMax: 24; blur: Math.min(1, (1 - titleItem.opacity) * 0.9) }
-            text: w.shownTitle
+            text: w.dispTitle
             color: w.fg
             fam: Fonts.forWeight(Font.DemiBold, w.fam)
             pixelSize: (w.isSmall ? 21 : 24) * w.k
             weight: Font.DemiBold
-            fade: 20 * w.k
-            startPad: 17 * w.k
+            fade: (w.isMedium ? 14 : 20) * w.k
+            startPad: w.mqPad * w.k
             animate: !w.preview && w.playing
         }
 
         // --- subtitle: artist - album, scrolling when it does not fit ---
         MarqueeText {
             id: subItem
-            x: (w.textX - 17) * w.k
-            y: w.subCY * w.k - height / 2
-            width: (w.wr - (w.textX - 17) - (w.mx - 17) - (w.isMedium ? 50 : 0)) * w.k
-            opacity: w.lyricsView ? 0 : 1
+            x: (w.textX - w.mqPad) * w.k
+            y: w.subCY * w.k - height / 2 + (1 - w.txtT) * 14 * w.k
+            width: (w.wr - (w.textX - w.mqPad) - (w.mx - 17) - (w.isMedium ? 50 : 0)) * w.k
+            opacity: w.textVis * w.txtT
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 380; easing.type: Easing.OutCubic } }
             layer.enabled: opacity > 0 && opacity < 0.999
             layer.sourceRect: Qt.rect(-12, -8, width + 24, height + 16)
             layer.effect: MultiEffect { blurEnabled: true; blurMax: 24; blur: Math.min(1, (1 - subItem.opacity) * 0.9) }
-            text: w.shownSub
+            text: w.dispSub
             color: w.fg2
             fam: w.fam
             pixelSize: (w.isSmall ? 18 : 21) * w.k
             weight: Font.Medium
-            fade: 20 * w.k
-            startPad: 17 * w.k
+            fade: (w.isMedium ? 14 : 20) * w.k
+            startPad: w.mqPad * w.k
             animate: !w.preview && w.playing
         }
 
@@ -627,25 +758,48 @@ Item {
         Rectangle {
             id: bar
             visible: !w.isSmall && opacity > 0
-            opacity: w.lyricsView ? 0 : 1
-            Behavior on opacity { NumberAnimation { duration: 380; easing.type: Easing.OutCubic } }
+            opacity: w.textVis
             layer.enabled: opacity > 0 && opacity < 0.999
             layer.sourceRect: Qt.rect(-12, -16, width + 24, height + 32)
             layer.effect: MultiEffect { blurEnabled: true; blurMax: 24; blur: Math.min(1, (1 - bar.opacity) * 0.9) }
             x: w.mx * w.k
             y: w.barCY * w.k - height / 2
             width: (w.wr - 2 * w.mx) * w.k
-            height: (seekMa.pressed || seekMa.containsMouse ? 11 : 7) * w.k
-            Behavior on height { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+            readonly property bool hot: seekMa.pressed || seekMa.containsMouse
+            height: (w.barStyle === "bold" ? (hot ? 14 : 10) : (hot ? 10 : 6)) * w.k
+            Behavior on height { NumberAnimation { duration: 220; easing.type: Easing.OutBack } }
             radius: height / 2
             color: w.trackCol
+            // a soft glow of the played part, so the bar reads as lit rather than painted
+            RectangularShadow {
+                anchors.fill: barFill
+                radius: barFill.radius
+                blur: 10 * w.k
+                color: barFill.color
+                opacity: w.hasPlayer && w.length > 0 ? (w.playing ? 0.55 : 0.25) : 0
+                Behavior on opacity { NumberAnimation { duration: 400 } }
+            }
             Rectangle {
+                id: barFill
                 width: w.hasPlayer && w.length > 0 ? Math.max(parent.height, parent.width * w.dispFrac) : (w.live ? parent.width : 0)
                 opacity: w.live ? 0.35 : 1
                 height: parent.height
                 radius: height / 2
-                color: seekMa.pressed || seekMa.containsMouse ? w.ia(w.dark ? 0.78 : 0.66) : w.fillCol
-                Behavior on color { ColorAnimation { duration: 140 } }
+                color: bar.hot ? w.ia(w.dark ? 0.86 : 0.70) : w.fillCol
+                Behavior on color { ColorAnimation { duration: 160 } }
+            }
+            // the knob: grows in at the end of the played part while the bar is hovered or dragged
+            Rectangle {
+                readonly property real d: bar.height + 8 * w.k
+                width: d; height: d; radius: d / 2
+                x: Math.max(0, Math.min(bar.width, barFill.width)) - d / 2
+                anchors.verticalCenter: parent.verticalCenter
+                color: w.dark ? "#FFFFFF" : "#2A2A2E"
+                visible: w.hasPlayer && w.length > 0 && scale > 0.01
+                scale: bar.hot ? (seekMa.pressed ? 1.15 : 1) : 0
+                Behavior on scale { NumberAnimation { duration: 240; easing.type: Easing.OutBack } }
+                layer.enabled: visible
+                layer.effect: MultiEffect { shadowEnabled: true; shadowBlur: 0.5; shadowOpacity: 0.35; shadowVerticalOffset: 1 }
             }
             MouseArea {
                 id: seekMa

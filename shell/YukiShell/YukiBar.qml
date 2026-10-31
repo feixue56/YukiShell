@@ -371,6 +371,11 @@ Scope {
     property string visStyle: "bars"          // bars | mirror | wave
     property string visColor: "art"           // art (from the cover) | white | accent
     property real visGain: 1.0                // how tall the bars get
+    // the Now Playing widget (Settings -> Widgets -> Music Widget)
+    property real mwGlow: 0.6                 // the album art lights the card from behind (0 = off)
+    property bool mwMotion: true              // living artwork: the cover settles back when paused, the glow drifts while playing
+    property string mwBar: "slim"             // progress bar: slim | bold
+    property string mwVisMode: "ambient"      // visualizer: ambient (a glowing wave along the bottom) | strip (bars behind the controls)
     property bool visInCC: true               // also inside the Control Center's Now Playing tile
     // Control Center: ids of the enabled controls, in order (edit with Control Center -> Edit Controls)
     property var ccControls: ["wifi", "nowplaying", "bluetooth", "airplane", "focus", "record", "nightshift", "keepawake", "display", "sound"]
@@ -392,7 +397,7 @@ Scope {
         "barStyle", "barGlass", "glassRim", "glassGrain", "glassLiquid", "glassBlur", "barBgOpacity", "glassRealtime", "liveWallGlass", "wallPauseCovered", "wallUserPaused", "showWallButton", "glassDebug", "wallpaperPath", "use24h", "language", "showDate",
         "showSeconds", "showBatteryPercent", "showTray", "showSearch",
         "spotlightEnabled", "reduceMotion", "ccEnabled", "notificationsEnabled", "clockAppEnabled", "ccStyle", "barLogoMode", "barCustomLogoPath", "barWidgets", "weekStartsMonday", "terminal", "launcher",
-        "filesCmd", "clipboardCmd", "appUsage", "clipHistory", "clipAutoPaste", "emojiRecent", "screenshotDir", "screenshotSave", "screenshotClipboard", "screenshotNotify", "nightTemp", "ccControls", "ccSizes", "ccPos", "ccRowH", "ccGapPx", "ccOnColor", "ccMigRec", "visOn", "visStyle", "visColor", "visGain", "visInCC", "wallpaperDir", "wallpaperDirs", "wallpaperFavs", "wallpaperCmd", "wallpaperVideo", "wpRestorePath", "uiSounds", "gamingMode", "gamingAuto", "ccMigGame", "lockArtBackground",
+        "filesCmd", "clipboardCmd", "appUsage", "clipHistory", "clipAutoPaste", "emojiRecent", "screenshotDir", "screenshotSave", "screenshotClipboard", "screenshotNotify", "nightTemp", "ccControls", "ccSizes", "ccPos", "ccRowH", "ccGapPx", "ccOnColor", "ccMigRec", "visOn", "visStyle", "visColor", "visGain", "visInCC", "mwGlow", "mwMotion", "mwBar", "mwVisMode", "wallpaperDir", "wallpaperDirs", "wallpaperFavs", "wallpaperCmd", "wallpaperVideo", "wpRestorePath", "uiSounds", "gamingMode", "gamingAuto", "ccMigGame", "lockArtBackground",
         "lockClockStyle", "switcherStyle", "lockClockFont", "lockClockWeight", "lockClockMaterial", "lockClockIntensity", "lockClockTint", "lockClockDate", "autoContrast", "wallpaperAppearance", "wpPairLight", "wpPairDark",
         "notifDnd", "dnd", "nightOn", "keepAwake", "notifBannerSecs", "notifMutedApps", "notifAppsSeen", "focusSchedule", "focusFrom", "focusTo",
         "focusFullscreen", "focusAllowUrgent", "lockShowNotifs", "lockWallpaper", "uiSoundVolume", "alertSound",
