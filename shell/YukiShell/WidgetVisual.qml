@@ -25,6 +25,7 @@ Item {
     property string wsize: "small"
     property string wmode: "auto"
     property string wsrc: ""             // image widget: path of the picture
+    property string wlay: wsize          // the design for its grid shape: small | medium | large | tall | strip | hero
     property real sx: 0                  // position on the screen (the glass uses it to find the wallpaper behind the widget)
     property real sy: 0
     property string sname: ""            // screen name
@@ -44,6 +45,7 @@ Item {
                 scaleF: host.widgetScale
                 style: wstyle
                 fit: v.fit
+                lay: v.wlay
                 size: wsize
                 fam: host.fontFamily
                 screenX: v.sx; screenY: v.sy
@@ -84,6 +86,7 @@ Item {
                 scaleF: host.widgetScale
                 style: wstyle
                 fit: v.fit
+                lay: v.wlay
                 size: wsize
                 mode: wmode
                 fam: host.fontFamily
@@ -114,6 +117,7 @@ Item {
                 accentTint: host.accentTintVec
                 scaleF: host.widgetScale
                 style: wstyle
+                lay: v.wlay
                 size: wsize
                 fam: host.fontFamily
                 boldFam: host.boldFontFamily
@@ -144,6 +148,7 @@ Item {
                 accentTint: host.accentTintVec
                 scaleF: host.widgetScale
                 style: wstyle
+                lay: v.wlay
                 size: wsize
                 contentScale: host.playerScale
                 fam: host.fontFamily

@@ -47,6 +47,9 @@ Item {
     readonly property bool isSmall: size === "small"
     readonly property bool isMedium: size === "medium"
     readonly property bool isLarge: size === "large"
+    // the design for its grid shape: the three classic ones, or one of the designs in ClockAlt.qml (tall | strip | hero)
+    property string lay: size
+    readonly property bool alt: lay === "tall" || lay === "strip" || lay === "hero"
 
     // content scale: follows the real size of the widget, so it still fits if the host stretches it
     readonly property real u: Math.min(width, height) / 158
@@ -362,7 +365,7 @@ Item {
     }
 
     Repeater {
-        model: 60
+        model: w.alt ? 0 : 60
 
         delegate: Rectangle {
             required property int index
@@ -388,6 +391,7 @@ Item {
 
     // City label (Cupertino is "CUP" on the Mac): small, bold, grey, a fifth of the way down.
     Text {
+        visible: !w.alt
         id: cityLabel
 
         anchors.horizontalCenter: parent.horizontalCenter
@@ -412,6 +416,7 @@ Item {
     // The time: Open Runde Semibold, drawn smooth (no synthetic outline, no hinting) and stretched slightly taller than wide,
     // like the Mac Clock widget. 12-hour, no leading zero; longer times like 12:45 shrink to stay inside the ticks.
     Text {
+        visible: !w.alt
         id: clockText
 
         readonly property real xs: 0.94       // horizontal squeeze
@@ -449,5 +454,13 @@ Item {
 
         fontSizeMode: Text.Fit
         minimumPixelSize: 10
+    }
+
+    // --- the designs of the other grid shapes ---
+    Loader {
+        anchors.fill: parent
+        z: 3
+        active: w.alt
+        sourceComponent: Component { ClockAlt { wd: w; lay: w.lay } }
     }
 }

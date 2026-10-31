@@ -64,6 +64,9 @@ Item {
     readonly property bool isSmall: size === "small"
     readonly property bool isMedium: size === "medium"
     readonly property bool isLarge: size === "large"
+    // the design for its grid shape: the three classic ones, or one of the designs in WeatherAlt.qml (tall | strip | hero)
+    property string lay: size
+    readonly property bool alt: lay === "tall" || lay === "strip" || lay === "hero"
     // a bigger grid block (Settings: drag the corner while editing): `fit` = how much bigger than this design's own block, given
     // by the desktop. The contents are drawn that much larger (natively, not stretched) in the block bw x bh, placed at ox, oy.
     property real fit: 1
@@ -280,6 +283,7 @@ Item {
 
     // city (+ location arrow)
     Row {
+        visible: !w.alt
         x: w.ox + (w.pad)
         y: w.oy + (w.pad - 1 * w.s)
         spacing: 4 * w.s
@@ -320,6 +324,7 @@ Item {
 
     // big temperature
     Text {
+        visible: !w.alt
         x: w.ox + (w.pad - 1 * w.s)
         y: w.oy + (30 * w.s)
         text: w.hasData ? (w.temp + w.unitSuffix) : "–°"
@@ -331,6 +336,7 @@ Item {
 
     // condition + high / low (bottom-left; top-right in the large widget)
     Column {
+        visible: !w.alt
         id: condCol
         width: w.isLarge ? 150 * w.s : 158 * w.s - 2 * w.pad
         x: w.ox + (w.isLarge ? w.bw - w.pad - width : w.pad)
@@ -371,13 +377,13 @@ Item {
 
     // --- medium: hourly forecast on the right ---
     Rectangle {   // divider
-        visible: w.isMedium
+        visible: !w.alt && (w.isMedium)
         x: w.ox + (164 * w.s); y: w.oy + (16 * w.s)
         width: 1; height: w.bh - 32 * w.s
         color: w.line
     }
     Row {
-        visible: w.isMedium
+        visible: !w.alt && (w.isMedium)
         x: w.ox + (172 * w.s)
         anchors.verticalCenter: parent.verticalCenter
         Repeater {
@@ -392,9 +398,9 @@ Item {
     }
 
     // --- large: hourly strip + 5-day list ---
-    Rectangle { visible: w.isLarge; x: w.ox + (w.pad); y: w.oy + (134 * w.s); width: w.bw - 2 * w.pad; height: 1; color: w.line }
+    Rectangle { visible: !w.alt && w.isLarge; x: w.ox + (w.pad); y: w.oy + (134 * w.s); width: w.bw - 2 * w.pad; height: 1; color: w.line }
     Row {
-        visible: w.isLarge
+        visible: !w.alt && (w.isLarge)
         x: w.ox + (w.pad)
         y: w.oy + (142 * w.s)
         Repeater {
@@ -407,10 +413,10 @@ Item {
             }
         }
     }
-    Rectangle { visible: w.isLarge; x: w.ox + (w.pad); y: w.oy + (206 * w.s); width: w.bw - 2 * w.pad; height: 1; color: w.line }
+    Rectangle { visible: !w.alt && w.isLarge; x: w.ox + (w.pad); y: w.oy + (206 * w.s); width: w.bw - 2 * w.pad; height: 1; color: w.line }
     Column {
         id: dailyCol
-        visible: w.isLarge
+        visible: !w.alt && (w.isLarge)
         x: w.ox + (w.pad)
         y: w.oy + (210 * w.s)
         width: w.bw - 2 * w.pad
@@ -482,5 +488,13 @@ Item {
                 }
             }
         }
+    }
+
+    // --- the designs of the other grid shapes ---
+    Loader {
+        anchors.fill: parent
+        z: 3
+        active: w.alt
+        sourceComponent: Component { WeatherAlt { wd: w; lay: w.lay } }
     }
 }

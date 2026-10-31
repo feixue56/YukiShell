@@ -948,6 +948,7 @@ var strings = {
     "Switching workspace moves the pointer onto the window that gets the focus": "작업 공간을 바꾸면 포인터가 포커스된 창으로 이동합니다",
     "Magnifier": "돋보기",
     "Zooms the screen in around the pointer": "포인터 주변 화면을 확대합니다",
+    "Day %1 \u00b7 Week %2": "%1일째 · %2주차",
     "Bars": "막대",
     "Mirror": "대칭",
     "Wave": "파형",

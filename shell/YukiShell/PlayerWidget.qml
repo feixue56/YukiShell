@@ -99,18 +99,29 @@ Item {
 
     signal glassFailed()
 
-    readonly property bool isSmall: size === "small"
-    readonly property bool isMedium: size === "medium"
-    readonly property bool isLarge: size === "large"
+    // the design for its grid shape: the three classic ones (size), or tall (one column, 2+ rows: a portrait card), strip
+    // (4 x 1: everything on one line) or hero (4 columns, 2+ rows: a big cover and a Now Playing column). The isSmall / isMedium /
+    // isLarge flags only mean the classic designs.
+    property string lay: size
+    readonly property bool isTall: lay === "tall"
+    readonly property bool isStrip: lay === "strip"
+    readonly property bool isHero: lay === "hero"
+    readonly property bool alt: isTall || isStrip || isHero
+    readonly property bool isSmall: size === "small" && !alt
+    readonly property bool isMedium: size === "medium" && !alt
+    readonly property bool isLarge: size === "large" && !alt
 
     // RU -> px. It follows the real size of the widget, so it still fits if the host stretches it.
     // On a bigger grid block the side that runs out first decides, and the layout stretches along the other one.
     readonly property real k0: isSmall ? Math.min(width, height) / 202
-                             : (isMedium ? Math.min(height / 202, width / 430) : Math.min(width / 446, height / 441))
+                             : isTall ? width / 202
+                             : (isMedium || isStrip) ? Math.min(height / 202, width / 430)
+                             : isHero ? height / 376
+                             : Math.min(width / 446, height / 441)
     readonly property real k: contentScale * k0        // RU -> px for the contents
     readonly property real wr: width / k               // card size in RU: the layout stretches to fill the whole card
     readonly property real hr: height / k
-    readonly property real radiusPx: 28 * scaleF * (isSmall ? 168 / 158 : (isMedium ? 358 / 338 : 1))
+    readonly property real radiusPx: 28 * scaleF * (size === "small" ? 168 / 158 : (size === "medium" ? 358 / 338 : 1))
 
     width: (isSmall ? 158 : (isMedium ? 338 : 358)) * scaleF
            * (isSmall ? 168 / 158 : (isMedium ? 358 / 338 : 1.0))
@@ -453,7 +464,7 @@ Item {
     }
     readonly property real progress: length > 0 ? Math.max(0, Math.min(1, position / length)) : 0
     // lyrics view is only for the wide cards (the small one has no room)
-    readonly property bool lyricsView: lyricsOn && !isSmall
+    readonly property bool lyricsView: lyricsOn && !isSmall && !isTall
     // index of the line being sung (-1 = before the first line / not synced)
     readonly property int lyricIdx: {
         var L = lyrics;
@@ -541,15 +552,31 @@ Item {
     readonly property real mx: 23                                     // side margin
     readonly property real artX: isLarge ? (wr - artS) / 2 : w.mx
     readonly property real artY: 23
-    readonly property real artS: isSmall ? 110 : (isMedium ? hr - 142 : hr - 218)
-    readonly property real textX: isSmall ? w.mx : (isMedium ? w.mx + artS + 18 : w.mx)
+    readonly property real artS: isSmall ? 110 : (isMedium ? hr - 142 : (alt ? (isTall ? wr - 2 * mx : hr - 46) : Math.min(hr - 218, wr - 2 * mx)))
+    // strip / hero: the column right of the cover
+    readonly property real sideX: artX + artS + (isHero ? 40 : 26)
+    readonly property real textX: isSmall || isTall ? w.mx : ((isMedium || alt) ? (isMedium ? w.mx + artS + 18 : sideX) : w.mx)
+    // right edge of the title / subtitle
+    readonly property real textR: isStrip ? textX + Math.min(330, wr * 0.3) : (isHero ? wr - mx - 50 : wr - (mx - 17) - (isMedium ? 50 : 0))
     // room left of the text where scrolling text fades out: beside the cover (medium) it stays clear of the art
-    readonly property real mqPad: isMedium ? 4 : 17
-    readonly property real titleCY: isSmall ? hr - 60 : (isMedium ? artY + artS / 2 - 16 : hr - 165)
-    readonly property real subCY: isSmall ? hr - 31 : (isMedium ? artY + artS / 2 + 16 : hr - 137.5)
-    readonly property real barCY: hr - 95.5
-    readonly property real timeCY: hr - 75.2
-    readonly property real ctlCY: hr - 44
+    readonly property real mqPad: (isMedium || isStrip || isHero) ? 4 : 17
+    // tall: the title block sits half way between the cover and the progress bar
+    readonly property real tallMid: (artY + artS + barCY) / 2
+    readonly property real titleCY: isSmall ? hr - 60 : isMedium ? artY + artS / 2 - 16 : isTall ? tallMid - 15
+                                  : isStrip ? hr / 2 - 16 : isHero ? 112 : hr - 165
+    readonly property real subCY: isSmall ? hr - 31 : isMedium ? artY + artS / 2 + 16 : isTall ? tallMid + 15
+                                : isStrip ? hr / 2 + 16 : isHero ? 160 : hr - 137.5
+    readonly property real barCY: isTall ? hr - 118 : isStrip ? hr / 2 + 40 : isHero ? hr - 150 : hr - 95.5
+    readonly property real timeCY: isTall ? hr - 98 : isStrip ? hr / 2 + 60 : isHero ? hr - 128 : hr - 75.2
+    readonly property real ctlCY: isTall ? hr - 50 : isStrip ? hr / 2 - 26 : isHero ? hr - 62 : hr - 44
+    // the progress bar and the controls row: from / to (RU); the controls keep shuffle and repeat at their ends unless narrow
+    readonly property real barL: isStrip ? textR + 34 : (isHero ? sideX : mx)
+    readonly property real barR: wr - mx
+    readonly property real ctlL: isStrip ? textR + 10 : (isHero ? sideX - 25 : 0)
+    readonly property real ctlR: isStrip ? wr - 50 : wr
+    readonly property bool ctlSides: !isTall
+    readonly property real titlePx: isSmall ? 21 : isTall ? 20 : isHero ? 36 : 24
+    readonly property real subPx: isSmall ? 18 : isTall ? 17 : isHero ? 24 : 21
 
     // the contents (artwork, title, controls) fill the card edge to edge
     Item {
@@ -600,7 +627,7 @@ Item {
             id: titleItem
             x: (w.textX - w.mqPad) * w.k
             y: w.titleCY * w.k - height / 2 + (1 - w.txtT) * 10 * w.k
-            width: (w.wr - (w.textX - w.mqPad) - (w.mx - 17) - (w.isMedium ? 50 : 0)) * w.k
+            width: (w.textR - (w.textX - w.mqPad)) * w.k
             opacity: w.textVis * w.txtT
             visible: opacity > 0
             layer.enabled: opacity > 0 && opacity < 0.999
@@ -609,9 +636,9 @@ Item {
             text: w.dispTitle
             color: w.fg
             fam: Fonts.forWeight(Font.DemiBold, w.fam)
-            pixelSize: (w.isSmall ? 21 : 24) * w.k
+            pixelSize: w.titlePx * w.k
             weight: Font.DemiBold
-            fade: (w.isMedium ? 14 : 20) * w.k
+            fade: (w.mqPad < 10 ? 14 : 20) * w.k
             startPad: w.mqPad * w.k
             animate: !w.preview && w.playing
         }
@@ -621,7 +648,7 @@ Item {
             id: subItem
             x: (w.textX - w.mqPad) * w.k
             y: w.subCY * w.k - height / 2 + (1 - w.txtT) * 14 * w.k
-            width: (w.wr - (w.textX - w.mqPad) - (w.mx - 17) - (w.isMedium ? 50 : 0)) * w.k
+            width: (w.textR - (w.textX - w.mqPad)) * w.k
             opacity: w.textVis * w.txtT
             visible: opacity > 0
             layer.enabled: opacity > 0 && opacity < 0.999
@@ -630,11 +657,25 @@ Item {
             text: w.dispSub
             color: w.fg2
             fam: w.fam
-            pixelSize: (w.isSmall ? 18 : 21) * w.k
+            pixelSize: w.subPx * w.k
             weight: Font.Medium
-            fade: (w.isMedium ? 14 : 20) * w.k
+            fade: (w.mqPad < 10 ? 14 : 20) * w.k
             startPad: w.mqPad * w.k
             animate: !w.preview && w.playing
+        }
+
+        // --- hero: a small "Now Playing" heading over the title, with the player's name ---
+        Text {
+            visible: w.isHero && w.hasPlayer
+            x: w.textX * w.k
+            y: 52 * w.k
+            opacity: w.textVis
+            text: I18n.tr("Now Playing").toUpperCase() + (w.appName !== "" ? "  ·  " + w.appName.toUpperCase() : "")
+            color: w.fgDim
+            font.family: Fonts.forWeight(Font.Bold, w.fam)
+            font.pixelSize: 13 * w.k
+            font.weight: Font.Bold
+            font.letterSpacing: 1.2 * w.k
         }
 
         // --- small: play / pause at the top right ---
@@ -766,9 +807,9 @@ Item {
             layer.enabled: opacity > 0 && opacity < 0.999
             layer.sourceRect: Qt.rect(-12, -16, width + 24, height + 32)
             layer.effect: MultiEffect { blurEnabled: true; blurMax: 24; blur: Math.min(1, (1 - bar.opacity) * 0.9) }
-            x: w.mx * w.k
+            x: w.barL * w.k
             y: w.barCY * w.k - height / 2
-            width: (w.wr - 2 * w.mx) * w.k
+            width: (w.barR - w.barL) * w.k
             readonly property bool hot: seekMa.pressed || seekMa.containsMouse
             height: (w.barStyle === "bold" ? (hot ? 14 : 10) : (hot ? 10 : 6)) * w.k
             Behavior on height { NumberAnimation { duration: 220; easing.type: Easing.OutBack } }
@@ -834,7 +875,7 @@ Item {
             layer.enabled: opacity > 0 && opacity < 0.999
             layer.sourceRect: Qt.rect(-8, -8, width + 16, height + 16)
             layer.effect: MultiEffect { blurEnabled: true; blurMax: 16; blur: Math.min(1, (1 - timeL.opacity) * 0.9) }
-            x: w.mx * w.k
+            x: w.barL * w.k
             y: w.timeCY * w.k - height / 2
             height: 18 * w.k
             verticalAlignment: Text.AlignVCenter
@@ -852,7 +893,7 @@ Item {
             layer.enabled: opacity > 0 && opacity < 0.999
             layer.sourceRect: Qt.rect(-8, -8, width + 16, height + 16)
             layer.effect: MultiEffect { blurEnabled: true; blurMax: 16; blur: Math.min(1, (1 - timeR.opacity) * 0.9) }
-            x: (w.wr - w.mx) * w.k - width
+            x: w.barR * w.k - width
             y: w.timeCY * w.k - height / 2
             height: 18 * w.k
             verticalAlignment: Text.AlignVCenter
@@ -865,9 +906,9 @@ Item {
 
         // --- controls: shuffle · back · play · forward · repeat ---
         PlayerBtn {
-            visible: !w.isSmall
+            visible: !w.isSmall && w.ctlSides
             wd: w
-            x: 25 * w.k
+            x: (w.ctlL + 25) * w.k
             y: w.ctlCY * w.k - height / 2
             width: 44 * w.k
             height: width
@@ -882,7 +923,7 @@ Item {
         PlayerBtn {
             visible: !w.isSmall
             wd: w
-            x: 0.30 * content.width - width / 2
+            x: (w.ctlL + (w.ctlSides ? 0.30 : 0.2) * (w.ctlR - w.ctlL)) * w.k - width / 2
             y: w.ctlCY * w.k - height / 2
             width: 56 * w.k
             height: 44 * w.k
@@ -895,7 +936,7 @@ Item {
         PlayerBtn {
             visible: !w.isSmall
             wd: w
-            x: 0.50 * content.width - width / 2
+            x: (w.ctlL + 0.50 * (w.ctlR - w.ctlL)) * w.k - width / 2
             y: w.ctlCY * w.k - height / 2
             width: 56 * w.k
             height: 52 * w.k
@@ -908,7 +949,7 @@ Item {
         PlayerBtn {
             visible: !w.isSmall
             wd: w
-            x: 0.70 * content.width - width / 2
+            x: (w.ctlL + (w.ctlSides ? 0.70 : 0.8) * (w.ctlR - w.ctlL)) * w.k - width / 2
             y: w.ctlCY * w.k - height / 2
             width: 56 * w.k
             height: 44 * w.k
@@ -919,9 +960,9 @@ Item {
             onClicked: w.nextTrack()
         }
         PlayerBtn {
-            visible: !w.isSmall
+            visible: !w.isSmall && w.ctlSides
             wd: w
-            x: (w.wr - 25 - 44) * w.k
+            x: (w.ctlR - 25 - 44) * w.k
             y: w.ctlCY * w.k - height / 2
             width: 44 * w.k
             height: width
@@ -937,7 +978,7 @@ Item {
 
         // --- lyrics button (top right corner) ---
         PlayerBtn {
-            visible: !w.isSmall
+            visible: !w.isSmall && !w.isTall
             wd: w
             x: (w.wr - w.mx - 40) * w.k
             y: 18 * w.k

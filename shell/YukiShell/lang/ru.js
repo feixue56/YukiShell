@@ -958,6 +958,7 @@ var strings = {
     "Switching workspace moves the pointer onto the window that gets the focus": "При смене рабочего стола указатель перемещается на окно в фокусе",
     "Magnifier": "Лупа",
     "Zooms the screen in around the pointer": "Увеличивает экран вокруг указателя",
+    "Day %1 \u00b7 Week %2": "День %1 · Неделя %2",
     "Bars": "Столбики",
     "Mirror": "Зеркало",
     "Wave": "Волна",

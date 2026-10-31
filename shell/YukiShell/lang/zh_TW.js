@@ -948,6 +948,7 @@ var strings = {
     "Switching workspace moves the pointer onto the window that gets the focus": "切換工作區時指標移到取得焦點的視窗上",
     "Magnifier": "放大鏡",
     "Zooms the screen in around the pointer": "放大指標周圍的螢幕",
+    "Day %1 \u00b7 Week %2": "第 %1 天 · 第 %2 週",
     "Bars": "長條",
     "Mirror": "鏡像",
     "Wave": "波形",

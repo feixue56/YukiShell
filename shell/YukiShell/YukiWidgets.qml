@@ -9,6 +9,7 @@
 //   qs -c YukiShell ipc call widgets edit true      start / stop editing
 //   qs -c YukiShell ipc call widgets span 0 4 2   make widget 0 cover 4 x 2 grid cells (drag its corner while editing)
 //   qs -c YukiShell ipc call widgets move 0 40 60  move widget 0 to the free slot nearest to x 40, y 60
+//   qs -c YukiShell ipc call widgets add clock liquid small   /   ... remove 2    add a widget / remove widget 2
 //
 // Hyprland: nothing is required. (No blur layerrule is needed, the Liquid Glass style blurs the wallpaper itself.)
 
@@ -79,6 +80,15 @@ Scope {
         if (sp[0] === 1) return "small";
         if (type === "weather" && sp[1] >= 2) return "large";
         return sp[0] >= 2 * sp[1] ? "medium" : "large";
+    }
+    // the design a widget shows for its span: besides the three classic ones, every widget has its own design for a tall card
+    // (one column, two or more rows), a strip (4 x 1) and a hero card (4 columns, two or more rows)
+    function layoutOf(x, type) {
+        var sp = spanArr(x), c = sp[0], r = sp[1];
+        if (c === 1) return r === 1 ? "small" : "tall";
+        if (r === 1) return c >= 4 ? "strip" : "medium";
+        if (c >= 4) return "hero";
+        return sizeClass(x, type);
     }
     function dims(x) {
         var sp = spanArr(x), c = sp[0], r = sp[1];
@@ -846,6 +856,7 @@ Scope {
                             host: root
                             wallItem: sharedWall
                             wtype: ww.wtype; wstyle: ww.wstyle; wsize: ww.effClass; wmode: ww.wmode; wsrc: ww.wsrc
+                            wlay: root.layoutOf(ww.effSpan, ww.wtype)
                             sx: ww.x; sy: ww.y
                             sname: win.modelData.name; sw: win.modelData.width; sh: win.modelData.height
                         }
@@ -971,6 +982,10 @@ Scope {
         target: "widgets"
         function refresh(): void { root.refresh(); }
         function edit(on: bool): void { root.editing = on; }
+        // add a widget (type: weather | calendar | clock | player; style: liquid | normal | light | dark; size: small | medium | large)
+        // in the first free slot, or remove the widget at `index`
+        function add(type: string, style: string, size: string): bool { return root.addWidget(type, style, size, ""); }
+        function remove(index: int): void { if (index >= 0 && index < wmodel.count) root.removeWidget(wmodel.get(index).wid); }
         // move the widget at `index` to the free grid slot nearest to x, y (screen pixels)
         function move(index: int, x: int, y: int): void {
             if (index >= 0 && index < wmodel.count) root.moveWidget(wmodel.get(index).wid, x, y);

@@ -948,6 +948,7 @@ var strings = {
     "Switching workspace moves the pointer onto the window that gets the focus": "ワークスペースを切り替えると、ポインタがフォーカスされたウインドウへ移動します",
     "Magnifier": "拡大鏡",
     "Zooms the screen in around the pointer": "ポインタの周りを拡大します",
+    "Day %1 \u00b7 Week %2": "%1日目 · 第%2週",
     "Bars": "バー",
     "Mirror": "ミラー",
     "Wave": "ウェーブ",

@@ -906,6 +906,7 @@ var strings = {
     "Switching workspace moves the pointer onto the window that gets the focus": "Khi chuyển không gian làm việc, con trỏ di chuyển lên cửa sổ được chọn",
     "Magnifier": "Kính lúp",
     "Zooms the screen in around the pointer": "Phóng to màn hình quanh con trỏ",
+    "Day %1 \u00b7 Week %2": "Ngày %1 · Tuần %2",
     "Bars": "Thanh",
     "Mirror": "Đối xứng",
     "Wave": "Sóng",

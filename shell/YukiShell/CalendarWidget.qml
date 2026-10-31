@@ -58,6 +58,9 @@ Item {
     readonly property bool isSmall: size === "small"
     readonly property bool isMedium: size === "medium"
     readonly property bool isLarge: size === "large"
+    // the design for its grid shape: the three classic ones, or one of the designs in CalendarAlt.qml (tall | strip | hero)
+    property string lay: size
+    readonly property bool alt: lay === "tall" || lay === "strip" || lay === "hero"
     // a bigger grid block (Settings: drag the corner while editing): `fit` = how much bigger than this design's own block, given
     // by the desktop. The contents are drawn that much larger (natively, not stretched) in the block bw x bh, placed at ox, oy.
     property real fit: 1
@@ -292,6 +295,7 @@ Item {
                                   : (isMedium ? { x: 172, y: 11, w: 152, wdH: 18, rowH: 19.5, wdPx: 11, dayPx: 12.5, circ: 18 }
                                               : { x: 15, y: 58, w: 308, wdH: 24, rowH: 44, wdPx: 13, dayPx: 19, circ: 33 })
     Item {
+        visible: !w.alt
         id: grid
         x: w.ox + (Math.round(w.gridSpec.x * w.s))
         y: w.oy + (Math.round(w.gridSpec.y * w.s))
@@ -353,7 +357,7 @@ Item {
 
     // --- small: month name above the grid ---
     Text {
-        visible: w.isSmall
+        visible: !w.alt && (w.isSmall)
         x: w.ox + (13 * w.s)
         y: w.oy + (10 * w.s)
         text: w.monthNames[w.cal.month].toUpperCase()
@@ -365,13 +369,13 @@ Item {
 
     // --- medium: weekday, big day number and month on the left ---
     Rectangle {   // divider
-        visible: w.isMedium
+        visible: !w.alt && (w.isMedium)
         x: w.ox + (164 * w.s); y: w.oy + (16 * w.s)
         width: 1; height: w.bh - 32 * w.s
         color: w.line
     }
     Text {
-        visible: w.isMedium
+        visible: !w.alt && (w.isMedium)
         x: w.ox + (w.pad)
         y: w.oy + (14 * w.s)
         width: 142 * w.s
@@ -383,7 +387,7 @@ Item {
         font.weight: Font.Bold
     }
     Text {
-        visible: w.isMedium
+        visible: !w.alt && (w.isMedium)
         x: w.ox + (w.pad - 1 * w.s)
         y: w.oy + (30 * w.s)
         text: w.cal.today
@@ -393,7 +397,7 @@ Item {
         font.weight: Font.Light
     }
     Text {
-        visible: w.isMedium
+        visible: !w.alt && (w.isMedium)
         x: w.ox + (w.pad)
         y: w.oy + (w.bh - w.pad + 1 * w.s - implicitHeight)
         width: 142 * w.s
@@ -407,7 +411,7 @@ Item {
 
     // --- large: month + year header, hairline under the weekday row ---
     Row {
-        visible: w.isLarge
+        visible: !w.alt && (w.isLarge)
         x: w.ox + (w.pad)
         y: w.oy + (13 * w.s)
         spacing: 7 * w.s
@@ -427,11 +431,19 @@ Item {
         }
     }
     Rectangle {
-        visible: w.isLarge
+        visible: !w.alt && (w.isLarge)
         x: w.ox + (w.pad)
         y: grid.y + grid.wdH
         width: w.bw - 2 * w.pad
         height: 1
         color: w.line
+    }
+
+    // --- the designs of the other grid shapes ---
+    Loader {
+        anchors.fill: parent
+        z: 3
+        active: w.alt
+        sourceComponent: Component { CalendarAlt { wd: w; lay: w.lay } }
     }
 }

@@ -5551,6 +5551,7 @@ Scope {
                                     host: root.hub.widgets
                                     wallItem: barWall               // the backdrop's own player, not one more per widget
                                     wtype: mw.wtype; wstyle: mw.wstyle; wsize: mw.wsize; wmode: mw.wmode; wsrc: mw.wsrc
+                                    wlay: root.hub.widgets.layoutOf(mw.wspan, mw.wtype)
                                     sx: mw.x; sy: mw.y
                                     sname: win.modelData.name; sw: win.modelData.width; sh: win.modelData.height
                                 }
