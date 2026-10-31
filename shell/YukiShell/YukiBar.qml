@@ -109,7 +109,7 @@ Scope {
     readonly property bool panelDarkMode: darkMode
     // with "Tint the interface" on, the panels sit on a deep accent shade in dark mode, so the text stays white there
     readonly property bool panelTextWhite: (autoContrast && panelTone !== 0 && !accentUi) ? (panelTone === -1) : darkMode
-    property color accent: "#0A84FF"
+    property color accent: "#eeacbe"
     property bool accentUi: false            // Appearance -> "Tint the interface": glass, panels and cards take a shade of the accent
     // the accent as an icon colour: a little lighter on white-text panels, a little deeper on black-text ones
     readonly property color accentInk: panelTextWhite ? Qt.tint(accent, Qt.rgba(1, 1, 1, 0.18)) : Qt.tint(accent, Qt.rgba(0, 0, 0, 0.25))
@@ -156,7 +156,7 @@ Scope {
             if (pass < 2) restart(); else pass = 0;      // a second pass ~0.5 s later, after the windows finished re-tiling
         }
     }
-    property string barLogoMode: "arch"       // "arch", "apple", or "custom"
+    property string barLogoMode: "apple"       // "arch", "apple", or "custom"
     property string barCustomLogoPath: ""     // absolute path, ~/path, or file URL for the custom menu-bar logo
     // The bar-size slider scales its widget groups while the left/right groups stay pinned to their corners.
     readonly property real barWidgetScale: Math.max(0.45, Math.min(1.55, barHeight / 28 * uiScale))
@@ -166,14 +166,14 @@ Scope {
     property string barStyle: "liquid"        // "liquid" = Liquid Glass popovers, "blur" = flat translucent
     property real glassRim: 0.45
     property real glassGrain: 0.015
-    property real glassLiquid: 1.0
+    property real glassLiquid: 1.5
     property real glassBlur: 5
     // --- Keyboard / Mouse / Trackpad (Settings): applied live to Hyprland with `hyprctl eval`, remembered here ---
     property int kbRepeatRate: 35
     property int kbRepeatDelay: 250
     property real mouseSens: 0
     property bool mouseNatural: false
-    property bool mouseAccel: true      // pointer acceleration: on = libinput's default (adaptive), off = flat (1:1)
+    property bool mouseAccel: false      // pointer acceleration: on = libinput's default (adaptive), off = flat (1:1)
     property bool tpNatural: true
     property bool tpTap: true
     property bool tpDwt: true
@@ -186,8 +186,8 @@ Scope {
     // hypr/rice/look.lua reads at login); the behaviours are applied live with `hyprctl eval`, like the input settings.
     property string cursorTheme: "Bibata-Modern-Classic"
     property int cursorSize: 24
-    property bool cursorHideTyping: true    // hide the pointer while typing
-    property real cursorHideIdle: 5         // hide it after this many seconds without moving (0 = never)
+    property bool cursorHideTyping: false    // hide the pointer while typing
+    property real cursorHideIdle: 10         // hide it after this many seconds without moving (0 = never)
     property bool cursorFollowFocus: true   // focus follows the mouse (off: click a window to focus it)
     property bool cursorWarpWs: false       // switching workspace puts the pointer on the window that gets the focus
     property real cursorZoom: 1.0           // magnify the screen around the pointer (1 = off)
@@ -207,7 +207,7 @@ Scope {
     // --- Window borders follow the accent colour (Settings -> Appearance -> Accent) ---
     // Every window, the terminals included, gets the same border: the accent on the focused window, a faint accent on the others.
     // hypr/rice/theme.lua only sets the colours used before the shell starts; this is re-applied after every Hyprland config reload.
-    property int windowBorder: 2            // border thickness in px (Settings -> Desktop & Dock -> Windows), 0 = no border
+    property int windowBorder: 1            // border thickness in px (Settings -> Desktop & Dock -> Windows), 0 = no border
     onAccentChanged: if (settingsReady) borderApplyT.restart()
     onWindowBorderChanged: if (settingsReady) borderApplyT.restart()
     Timer { id: borderApplyT; interval: 150; onTriggered: root.applyBorders() }
@@ -327,12 +327,12 @@ Scope {
     }
     property bool lockArtBackground: true     // lock screen: blurred album art as the background while the cover is enlarged
     // lock screen clock (Settings -> Lock Screen -> Clock); YukiLock reads these when it starts
-    property string lockClockStyle: "glass"   // preset last picked: glass | classic | serif | liquid | thin | custom
+    property string lockClockStyle: "custom"   // preset last picked: glass | classic | serif | liquid | thin | custom
     property string lockClockFont: "rounded"   // rounded | serif | inter
-    property int lockClockWeight: 680
+    property int lockClockWeight: 1000
     property string lockClockMaterial: "glass"   // solid (Apple's vibrancy) | glass (Liquid Glass)
-    property real lockClockIntensity: 0.6        // solid: how bright / opaque; glass: clear (0) ... frosted (1)
-    property string lockClockTint: "#FFFFFF"
+    property real lockClockIntensity: 0.099        // solid: how bright / opaque; glass: clear (0) ... frosted (1)
+    property string lockClockTint: "#EEACBE"
     property string lockClockDate: "long"        // long ("Friday, October 16") | short ("Fri Oct 16")
     readonly property var lockClockPresets: ({
         glass:   { f: "rounded",   w: 680, m: "glass", i: 0.6,  d: "long" },
@@ -365,11 +365,11 @@ Scope {
     property bool ccMigGame: false            // one-time: add the Game Mode tile to an existing Control Center layout
     property bool barGlass: true              // the bar strip itself is Liquid Glass (needs barStyle "liquid")
     property real barBgOpacity: 0.10          // fill of the separate "yukibarbg" layer (0 = layer hidden). Must stay above the layerrule's ignore_alpha (0.05) for Hyprland to blur it
-    property bool glassRealtime: false        // live-capture every window all the time; off by default now that popovers refract a screen snapshot       // keep every window capture live all the time (no wallpaper-first delay when a popover opens)
+    property bool glassRealtime: true        // live-capture every window all the time; off by default now that popovers refract a screen snapshot       // keep every window capture live all the time (no wallpaper-first delay when a popover opens)
     // Animated wallpaper inside the Liquid Glass (bar, Dock, widgets, Settings): OFF by default. Off = no video decoder exists at all and the
     // glass refracts a still frame of the wallpaper (the wallpaper itself still plays through mpvpaper). On = the glass plays a small
     // low-resolution copy (see glassVideo) so it stays cheap.
-    property bool liveWallGlass: false
+    property bool liveWallGlass: true
     // The animated wallpaper keeps playing behind windows. "Pause behind windows" (off by default) stops it while tiled windows hide the desktop;
     // wallUserPaused is the menu bar button: paused by hand until it is pressed again (also after a restart).
     property bool wallPauseCovered: false
@@ -381,11 +381,11 @@ Scope {
     property string language: "auto"        // "auto" = the system language, or a code with a table in lang/
     onLanguageChanged: Qt.uiLanguage = language === "auto" ? "" : language
     property bool showDate: true
-    property bool showSeconds: false
-    property bool showBatteryPercent: true
+    property bool showSeconds: true
+    property bool showBatteryPercent: false
     property bool showTray: true
     property bool showSearch: true
-    property bool weekStartsMonday: false
+    property bool weekStartsMonday: true
     property string terminal: "kitty"
     property string launcher: ""              // "" = built-in Spotlight; set a command (rofi, fuzzel, ...) to use an external launcher instead
     property string filesCmd: "xdg-open \"$HOME\""
@@ -403,11 +403,11 @@ Scope {
     property int nightTemp: 4000
     // audio visualizer (the Now Playing widget and the Control Center tile; Settings -> Widgets)
     property bool visOn: true
-    property string visStyle: "bars"          // bars | mirror | wave
-    property string visColor: "art"           // art (from the cover) | white | accent
-    property real visGain: 1.0                // how tall the bars get
-    property int visCount: 24                 // how many columns (the music widget and the Control Center tile)
-    property real visWidth: 0.62              // bar width as a share of its column (0.2 thin .. 1 touching)
+    property string visStyle: "mirror"          // bars | mirror | wave
+    property string visColor: "white"           // art (from the cover) | white | accent
+    property real visGain: 2.0                // how tall the bars get
+    property int visCount: 64                 // how many columns (the music widget and the Control Center tile)
+    property real visWidth: 0.5              // bar width as a share of its column (0.2 thin .. 1 touching)
     // the Now Playing widget (Settings -> Widgets -> Music Widget)
     property real mwGlow: 0.6                 // the album art lights the card from behind (0 = off)
     property bool mwMotion: true              // living artwork: the cover settles back when paused, the glow drifts while playing
@@ -415,7 +415,7 @@ Scope {
     property string mwVisMode: "ambient"      // visualizer: ambient (a glowing wave along the bottom) | strip (bars behind the controls)
     property bool visInCC: true               // also inside the Control Center's Now Playing tile
     // Control Center: ids of the enabled controls, in order (edit with Control Center -> Edit Controls)
-    property var ccControls: ["wifi", "nowplaying", "bluetooth", "airplane", "focus", "record", "nightshift", "keepawake", "display", "sound"]
+    property var ccControls: ["nowplaying", "focus", "record", "keepawake", "nightshift", "display", "sound", "darkmode", "micmute", "settings", "wallpapers", "lock"]
     property bool ccMigRec: false              // one-time: add the Screen Recording tile to an existing Control Center layout
     property bool recording: false
     property int recSecs: 0
@@ -441,7 +441,7 @@ Scope {
         "kbRepeatRate", "kbRepeatDelay", "mouseSens", "mouseNatural", "mouseAccel", "tpNatural", "tpTap", "tpDwt", "tpScroll",
         "cursorTheme", "cursorSize", "cursorHideTyping", "cursorHideIdle", "cursorFollowFocus", "cursorWarpWs", "cursorZoom", "windowBorder"]
     // Optional bar widgets; tray and Spotlight use their existing showTray/showSearch settings.
-    property var barWidgets: ["appleMenu", "appMenus", "workspaces", "volume", "keyboard", "notifications", "wifi", "bluetooth", "privacy", "controlCenter", "clock"]
+    property var barWidgets: ["appleMenu", "appMenus", "workspaces", "volume", "keyboard", "notifications", "privacy", "controlCenter", "clock", "wifi", "bluetooth"]
     function barWidgetEnabled(id) { return barWidgets.indexOf(id) >= 0; }
     function resolvedBarLogoUrl() {
         var p = String(barCustomLogoPath || "").trim();
@@ -493,7 +493,7 @@ Scope {
         { id: "micmute",     label: I18n.tr("Microphone"),      glyph: "mic",     w: 4, h: 1, sizes: [[4, 1], [3, 1], [2, 1]], range: [2, 4, 1, 1] },
         { id: "powermode",   label: I18n.tr("Power Mode"),      glyph: "bolt",    w: 1, h: 1, sizes: [[1, 1], [2, 1], [4, 1], [2, 2]] }
     ]
-    property var ccSizes: ({})             // control id -> "WxH" the user picked (only for controls that offer several sizes)
+    property var ccSizes: ({ "micmute": "4x1", "nowplaying": "4x2", "wallpapers": "2x1", "settings": "1x1", "lock": "2x1" })             // control id -> "WxH" the user picked (only for controls that offer several sizes)
     function ccRange(id) {
         var d = ccDef(id);
         return d && d.range ? d.range : [1, 4, 1, 2];
@@ -542,12 +542,12 @@ Scope {
     function ccResetLayout() { ccControls = ccDefault.slice(); ccSizes = ({}); ccPos = ({}); }
     function ccResetAll() { ccResetLayout(); ccRowH = 66; ccGapPx = 6; ccOnColor = ""; }
     // looks of the Control Center (Settings -> Control Center)
-    property real ccRowH: 66               // height of one row of tiles, px (the old Compact / Regular / Large were 56 / 66 / 78)
-    property real ccGapPx: 6               // gap between tiles, px (the old Tight / Normal / Loose were 3 / 6 / 10)
+    property real ccRowH: 68               // height of one row of tiles, px (the old Compact / Regular / Large were 56 / 66 / 78)
+    property real ccGapPx: 8               // gap between tiles, px (the old Tight / Normal / Loose were 3 / 6 / 10)
     property var ccPos: ({})               // control id -> "col,row": dropped on that cell by hand. Empty = everything packs in order.
     readonly property bool ccFree: Object.keys(ccPos).length > 0
     function ccTidy() { ccPos = ({}); }
-    property string ccOnColor: ""          // "" = white; otherwise the colour a switched-on tile (or its icon disc) turns
+    property string ccOnColor: "#eeacbe"          // "" = white; otherwise the colour a switched-on tile (or its icon disc) turns
     readonly property color ccOnFill: ccOnColor !== "" ? Qt.color(ccOnColor) : Qt.color("white")
     readonly property bool ccOnLight: (0.299 * ccOnFill.r + 0.587 * ccOnFill.g + 0.114 * ccOnFill.b) > 0.62
     readonly property color ccOnInk: ccOnLight ? Qt.rgba(0.07, 0.07, 0.09, 1) : Qt.color("white")     // text / icon drawn on the on-colour

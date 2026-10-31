@@ -705,12 +705,12 @@ Item {
     }
     readonly property string ckFamily: !ckFontOk ? "Open Runde"
         : (ckFont === "serif" ? "Noto Serif Display" : (ckFont === "inter" ? "Open Runde" : "Nunito"))
-    readonly property int ckWeight: (typeof ckCfg.w === "number" && ckCfg.w >= 100 && ckCfg.w <= 1000) ? ckCfg.w : 680
+    readonly property int ckWeight: (typeof ckCfg.w === "number" && ckCfg.w >= 100 && ckCfg.w <= 1000) ? ckCfg.w : 1000
     // material: "solid" (vibrancy) | "glass" (Liquid Glass); older settings: liquid -> clear glass, frosted -> frosted glass
     readonly property bool ckGlass: ckCfg.m !== "solid"
     readonly property real ckIntensity: typeof ckCfg.i === "number" ? Math.max(0, Math.min(1, ckCfg.i))
                                        : (ckCfg.m === "liquid" ? 0.12 : (ckCfg.m === "solid" ? 0.8 : 0.6))
-    readonly property color ckTint: (typeof ckCfg.c === "string" && ckCfg.c !== "") ? ckCfg.c : "#FFFFFF"
+    readonly property color ckTint: (typeof ckCfg.c === "string" && ckCfg.c !== "") ? ckCfg.c : "#EEACBE"
     readonly property bool ckLiquid: ckGlass && ckIntensity < 0.35
     // the light on the glass follows the pointer (tilting a phone); rests at the top-left
     HoverHandler { id: lightHover }

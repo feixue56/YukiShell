@@ -21,7 +21,7 @@ hl.config({
     general = {
         gaps_in     = 6,
         gaps_out    = 12,
-        border_size = 2,
+        border_size = 1,     -- Settings -> Desktop & Dock -> Windows -> Border thickness overrides it
         col = {
             active_border   = { colors = { c.accent, c.accent2 }, angle = 45 },
             inactive_border = c.muted,

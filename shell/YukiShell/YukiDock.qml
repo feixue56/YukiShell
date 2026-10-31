@@ -140,25 +140,25 @@ Scope {
 
     // --- Config --- Lachowski
     property string monitor: ""          // "" = every monitor, or e.g. "DP-1"
-    property int iconSize: 52
+    property int iconSize: 48
     readonly property real labelK: Math.max(0.7, Math.min(2.2, iconSize / 52))     // the hover label and menu grow with the Dock
-    property real magnification: 1.7     // peak icon scale
-    property int spacing: 6
+    property real magnification: 1.5     // peak icon scale
+    property int spacing: 4
     property int hPad: 10
     property int topPad: 8
     property int bottomPad: 9            // room under icons (running dots live here)
-    property int cornerRadius: 18
+    property int cornerRadius: 32
     readonly property real uiS: bar ? bar.uiScale : 1      // UI scale (Settings -> Menu Bar): Settings / About windows follow it
-    property int margin: 6
+    property int margin: 8
     property bool darkMode: true
     // the dock keeps one fixed look (dark): switching the system between Light and Dark does not change its colours
     readonly property bool dockDark: true
     property string appearanceMode: "dark"      // light | dark | auto (kept in step with the Menu Bar, see setAppearance)
-    property string dockStyle: "blur"   // "blur" = Normal Blur, "liquid" = Liquid Glass
+    property string dockStyle: "liquid"   // "blur" = Normal Blur, "liquid" = Liquid Glass
     // Liquid Glass tuning (settings.json): rim = edge highlight, grain = noise, liquid = refraction depth
     property real glassRim: 0.45
     property real glassGrain: 0.03
-    property real glassLiquid: 1.0
+    property real glassLiquid: 1.5
     // The Dock's own real-time switch (Dock Preferences -> Appearance). It used to follow the Menu Bar's "Real-time glass" toggle, which is OFF by
     // default, so the Dock glass was a 15 fps, pause-while-windows-open snapshot unless that was found and switched on.
     property bool glassLive: true
@@ -170,7 +170,7 @@ Scope {
     property real glassOpacity: 0.42     // 0 = fully clear; below the layerrule's ignore_alpha (0.2) the blur turns off
     // "smart"  = hide while a non-floating window is open on that monitor's workspace
     // "always" = always auto-hide, "never" = always visible and reserves space
-    property string hideMode: "smart"
+    property string hideMode: "windows"
     property int faceVer: 0               // bumped when ~/.face changes so every picture reloads
     property bool showSettings: true      // the YukiShell button at the end of the Dock that opens the Settings window
     property string fontFamily: "Open Runde"  // bundled in assets/fonts (shell.qml loads it); falls back to the system font if missing
@@ -185,14 +185,14 @@ Scope {
     property bool showThumbs: true       // open windows get a live preview cell next to the Settings button
     property int pickerThumb: 220        // size of the thumbnails in the picture chooser (FilePicker.qml), a slider in the chooser itself
     property bool windowCapture: true    // live window capture for those previews (off: the cells show the app icon, nothing is captured). Liquid Glass is not affected
-    property int hideDelay: 450          // ms before the dock hides after the pointer leaves
+    property int hideDelay: 500          // ms before the dock hides after the pointer leaves
     readonly property var accentChoices: [
         { name: "Blue",     c: "#0a84ff" }, { name: "Purple", c: "#bf5af2" },
         { name: "Pink",     c: "#ff375f" }, { name: "Red",    c: "#ff453a" },
         { name: "Orange",   c: "#ff9f0a" }, { name: "Yellow", c: "#ffd60a" },
         { name: "Green",    c: "#30d158" }, { name: "Graphite", c: "#8e8e93" }
     ]
-    property color accent: "#0A84FF"     // menu highlight (macOS blue)
+    property color accent: "#eeacbe"     // menu highlight (macOS blue)
     property bool accentUi: false        // the whole interface (glass, panels, cards) takes a shade of the accent; text stays white / black
     readonly property vector4d accentTintVec: Qt.vector4d(accent.r, accent.g, accent.b, accentUi ? 1 : 0)     // handed to the glass shaders (accentTint)
     // "Tint the interface": lean a surface colour toward the accent shade the glass shaders use (deep in dark mode, pale in light
@@ -204,7 +204,7 @@ Scope {
     }
     // Dock icon tint: every icon is re-coloured with one colour (works with any icon pack)
     property bool iconTint: false
-    property string iconTintColor: "#0a84ff"
+    property string iconTintColor: "#eeacbe"
     property real iconTintStrength: 1.0
     readonly property var tintChoices: [
         { name: "Blue",     c: "#0a84ff" }, { name: "Purple", c: "#bf5af2" }, { name: "Pink",  c: "#ff375f" },
@@ -2558,7 +2558,7 @@ Scope {
                             from: 32; to: 128; stepSize: 1
                             value: root.iconSize
                             leftLabel: I18n.tr("Small"); rightLabel: I18n.tr("Large")
-                            resetValue: 52
+                            resetValue: 48
                             onMoved: v => root.iconSize = Math.round(v)
                         }
                     }
@@ -2582,7 +2582,7 @@ Scope {
                             from: 1.1; to: 2.5; stepSize: 0.05
                             value: root.magnification
                             leftLabel: I18n.tr("Min"); rightLabel: I18n.tr("Max")
-                            resetValue: 1.7
+                            resetValue: 1.5
                             onMoved: v => root.magnification = v
                         }
                     }
@@ -2635,7 +2635,7 @@ Scope {
                             from: 0; to: 20; stepSize: 1
                             value: root.spacing
                             leftLabel: I18n.tr("Tight"); rightLabel: I18n.tr("Loose")
-                            resetValue: 6
+                            resetValue: 4
                             onMoved: v => root.spacing = Math.round(v)
                         }
                     }
@@ -2647,7 +2647,7 @@ Scope {
                             from: 0; to: 40; stepSize: 1
                             value: root.margin
                             leftLabel: I18n.tr("Flush"); rightLabel: I18n.tr("Floating")
-                            resetValue: 6
+                            resetValue: 8
                             onMoved: v => root.margin = Math.round(v)
                         }
                     }
@@ -2659,7 +2659,7 @@ Scope {
                             from: 0; to: 32; stepSize: 1
                             value: root.cornerRadius
                             leftLabel: I18n.tr("Square"); rightLabel: I18n.tr("Round")
-                            resetValue: 18
+                            resetValue: 32
                             onMoved: v => root.cornerRadius = Math.round(v)
                         }
                     }
@@ -2771,7 +2771,7 @@ Scope {
                             from: 0.5; to: 2.5; stepSize: 0.05
                             value: root.glassLiquid
                             leftLabel: I18n.tr("Subtle"); rightLabel: I18n.tr("Very liquid")
-                            resetValue: 1.0
+                            resetValue: 1.5
                             onMoved: v => root.setLook("glassLiquid", v)
                         }
                     }
@@ -2820,7 +2820,7 @@ Scope {
                             from: 0; to: 1500; stepSize: 50
                             value: root.hideDelay
                             leftLabel: I18n.tr("Instant"); rightLabel: "1.5 s"
-                            resetValue: 450
+                            resetValue: 500
                             onMoved: v => root.hideDelay = Math.round(v)
                         }
                     }
@@ -3555,9 +3555,9 @@ Scope {
                         SSlider {
                             t: pal
                             from: 44; to: 100; stepSize: 1
-                            value: root.bar ? root.bar.ccRowH : 66
+                            value: root.bar ? root.bar.ccRowH : 68
                             leftLabel: I18n.tr("Compact"); rightLabel: I18n.tr("Large")
-                            resetValue: 66
+                            resetValue: 68
                             onMoved: v => { if (root.bar) root.bar.ccRowH = Math.round(v); }
                         }
                     }
@@ -3568,9 +3568,9 @@ Scope {
                         SSlider {
                             t: pal
                             from: 2; to: 16; stepSize: 1
-                            value: root.bar ? root.bar.ccGapPx : 6
+                            value: root.bar ? root.bar.ccGapPx : 8
                             leftLabel: I18n.tr("Tight"); rightLabel: I18n.tr("Loose")
-                            resetValue: 6
+                            resetValue: 8
                             onMoved: v => { if (root.bar) root.bar.ccGapPx = Math.round(v); }
                         }
                     }
@@ -3676,10 +3676,10 @@ Scope {
                         SSlider {
                             t: pal
                             from: 0; to: 8; stepSize: 1
-                            value: root.bar ? root.bar.windowBorder : 2
+                            value: root.bar ? root.bar.windowBorder : 1
                             leftLabel: I18n.tr("Off"); rightLabel: "8 px"
                             valueSuffix: " px"
-                            resetValue: 2
+                            resetValue: 1
                             onMoved: v => { if (root.bar) root.bar.windowBorder = Math.round(v); }
                         }
                     }
@@ -3732,9 +3732,9 @@ Scope {
                         SSlider {
                             t: pal
                             from: 0.6; to: 1.5; stepSize: 0.05
-                            value: wgPane.wdg ? wgPane.wdg.widgetScale : 1
+                            value: wgPane.wdg ? wgPane.wdg.widgetScale : 0.9
                             leftLabel: I18n.tr("Small"); rightLabel: I18n.tr("Large")
-                            resetValue: 1.0
+                            resetValue: 0.9
                             onMoved: v => { if (wgPane.wdg) wgPane.wdg.widgetScale = Math.round(v * 100) / 100; }
                         }
                     }
@@ -3831,9 +3831,9 @@ Scope {
                         SSlider {
                             t: pal
                             from: 0.5; to: 2; stepSize: 0.05
-                            value: root.bar ? root.bar.visGain : 1
+                            value: root.bar ? root.bar.visGain : 2
                             leftLabel: I18n.tr("Low"); rightLabel: I18n.tr("High")
-                            resetValue: 1.0
+                            resetValue: 2.0
                             onMoved: v => { if (root.bar) root.bar.visGain = Math.round(v * 100) / 100; }
                         }
                     }
@@ -3843,9 +3843,9 @@ Scope {
                         SSlider {
                             t: pal
                             from: 8; to: 128; stepSize: 1
-                            value: root.bar ? root.bar.visCount : 24
+                            value: root.bar ? root.bar.visCount : 64
                             leftLabel: "8"; rightLabel: "128"
-                            resetValue: 24
+                            resetValue: 64
                             onMoved: v => { if (root.bar) root.bar.visCount = Math.round(v); }
                         }
                     }
@@ -3855,9 +3855,9 @@ Scope {
                         SSlider {
                             t: pal
                             from: 0.2; to: 1; stepSize: 0.02
-                            value: root.bar ? root.bar.visWidth : 0.62
+                            value: root.bar ? root.bar.visWidth : 0.5
                             leftLabel: I18n.tr("Thin"); rightLabel: I18n.tr("Wide")
-                            resetValue: 0.62
+                            resetValue: 0.5
                             onMoved: v => { if (root.bar) root.bar.visWidth = Math.round(v * 100) / 100; }
                         }
                     }
@@ -4627,9 +4627,9 @@ Scope {
                     SRow {
                         t: pal; title: I18n.tr("Weight")
                         SSlider {
-                            t: pal; resetValue: 680; width: 220; from: 100; to: 1000; stepSize: 10
+                            t: pal; resetValue: 1000; width: 220; from: 100; to: 1000; stepSize: 10
                             leftLabel: I18n.tr("Thin"); rightLabel: I18n.tr("Heavy")
-                            value: root.bar ? root.bar.lockClockWeight : 680
+                            value: root.bar ? root.bar.lockClockWeight : 1000
                             onMoved: v => { if (root.bar) { root.bar.lockClockWeight = Math.round(v); root.bar.lockClockStyle = "custom"; } }
                         }
                     }
@@ -4645,10 +4645,10 @@ Scope {
                     SRow {
                         t: pal; title: root.bar && root.bar.lockClockMaterial === "solid" ? I18n.tr("Brightness") : I18n.tr("Glass")
                         SSlider {
-                            t: pal; resetValue: 0.6; width: 220; from: 0; to: 1
+                            t: pal; resetValue: 0.099; width: 220; from: 0; to: 1
                             leftLabel: root.bar && root.bar.lockClockMaterial === "solid" ? I18n.tr("Subtle") : I18n.tr("Clear")
                             rightLabel: root.bar && root.bar.lockClockMaterial === "solid" ? I18n.tr("Bright") : I18n.tr("Frosted")
-                            value: root.bar ? root.bar.lockClockIntensity : 0.6
+                            value: root.bar ? root.bar.lockClockIntensity : 0.099
                             onMoved: v => { if (root.bar) { root.bar.lockClockIntensity = v; root.bar.lockClockStyle = "custom"; } }
                         }
                     }
@@ -5013,9 +5013,9 @@ Scope {
                         SSlider {
                             t: pal
                             from: 0; to: 30; stepSize: 1
-                            value: root.bar ? root.bar.cursorHideIdle : 5
+                            value: root.bar ? root.bar.cursorHideIdle : 10
                             leftLabel: I18n.tr("Never"); rightLabel: "30 s"
-                            resetValue: 5
+                            resetValue: 10
                             onMoved: v => { if (root.bar) root.bar.cursorHideIdle = Math.round(v); }
                         }
                     }
