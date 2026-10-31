@@ -8022,18 +8022,20 @@ Scope {
                         dark: root.effDark
                         bx: cal.x; by: cal.y
                         cornerR: 24
+                        // the same Liquid Glass as the Control Center tiles: your blur / strength / translucency settings,
+                        // clear and refracting (it used to be a heavily frosted pane: a fixed 42 px blur, 55 % strength)
                         tint: root.glassOpacity
                         thickness: 22
-                        strength: 0.55 * root.glassLiquid
+                        strength: root.glassLiquid
                         rim: root.glassRim
                         grain: root.glassGrain
-                        blur: 42
+                        blur: root.glassBlur
                         debug: root.glassDebug
                         onShaderError: root.glassState = "failed"
                         shadowAmt: 0
                         flatInner: 1
                         rimTint: 1
-                        ringW: 1.4
+                        ringW: 0
                     }
                     MenuBorder {
                         z: 2
