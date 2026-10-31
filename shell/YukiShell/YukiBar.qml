@@ -6554,14 +6554,14 @@ Scope {
                         cornerR: 22
                         tint: root.glassOpacity
                         thickness: 22
-                        strength: 0.55 * root.glassLiquid
+                        strength: root.glassLiquid
                         rim: root.glassRim
                         grain: root.glassGrain
-                        blur: 42
+                        blur: root.glassBlur
                         debug: root.glassDebug
                         onShaderError: root.glassState = "failed"
                         rimTint: 1
-                        ringW: 1.4
+                        ringW: 0
                     }
                     MenuBorder {
                         z: 2
@@ -7059,14 +7059,14 @@ Scope {
                         shadowAmt: 0
                         flatInner: 1
                         rimTint: 1
-                        ringW: 1.4
+                        ringW: 0
                         cornerR: 14
                         tint: root.glassOpacity
                         thickness: 22
-                        strength: 0.55 * root.glassLiquid
+                        strength: root.glassLiquid
                         rim: root.glassRim
                         grain: root.glassGrain
-                        blur: 42
+                        blur: root.glassBlur
                         debug: root.glassDebug
                         onShaderError: root.glassState = "failed"
                     }
@@ -7215,10 +7215,10 @@ Scope {
                         cornerR: 14
                         tint: root.glassOpacity
                         thickness: 22
-                        strength: 0.55 * root.glassLiquid
+                        strength: root.glassLiquid
                         rim: root.glassRim
                         grain: root.glassGrain
-                        blur: 42
+                        blur: root.glassBlur
                         debug: root.glassDebug
                         onShaderError: root.glassState = "failed"
                     }
