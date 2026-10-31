@@ -685,7 +685,7 @@ Scope {
         }
 
         // --- navigation state ---
-        property int cur: 0
+        property int cur: Math.max(0, paneIndex("general"))     // General is the home pane (index 0 is Wi-Fi, hidden without an adapter)
         property var backStack: []
         property var fwdStack: []
         property string query: ""
@@ -901,6 +901,16 @@ Scope {
             stdout: StdioCollector { onStreamFinished: prefsWindow.hasTouchpad = text.trim() === "yes" }
         }
 
+        function paneIndex(id) { for (var i = 0; i < panes.length; i++) if (panes[i].id === id) return i; return -1; }
+        // a pane this computer has (no Wi-Fi / Bluetooth adapter or touchpad: that pane does not exist here)
+        function available(i) {
+            var p = panes[i];
+            if (!p) return false;
+            if (p.id === "trackpad" && !hasTouchpad) return false;
+            if (p.id === "wifi" && root.bar && !root.bar.hasWifi) return false;
+            if (p.id === "bluetooth" && root.bar && !root.bar.hasBt) return false;
+            return true;
+        }
         readonly property var filtered: {
             var q = query.trim().toLowerCase();
             var out = [];
@@ -914,25 +924,32 @@ Scope {
             return out;
         }
 
+        // opening the window starts a fresh history: the first pane has nothing to go back to
+        function start(i) {
+            backStack = [];
+            fwdStack = [];
+            cur = available(i) ? i : Math.max(0, paneIndex("general"));
+        }
         function go(i) {
-            if (i === cur) return;
-            backStack = backStack.concat([cur]);
+            if (i === cur || !available(i)) return;
+            if (available(cur)) backStack = backStack.concat([cur]);
             fwdStack = [];
             cur = i;
         }
+        // panes that are not available here are never in the history (and are skipped if they ever were)
         function back() {
-            if (backStack.length === 0) return;
-            var b = backStack.slice();
+            var b = backStack.filter(available);
+            if (b.length === 0) { backStack = []; return; }
             var p = b.pop();
-            fwdStack = fwdStack.concat([cur]);
+            if (available(cur)) fwdStack = fwdStack.filter(available).concat([cur]);
             backStack = b;
             cur = p;
         }
         function forward() {
-            if (fwdStack.length === 0) return;
-            var f = fwdStack.slice();
+            var f = fwdStack.filter(available);
+            if (f.length === 0) { fwdStack = []; return; }
             var p = f.pop();
-            backStack = backStack.concat([cur]);
+            if (available(cur)) backStack = backStack.filter(available).concat([cur]);
             fwdStack = f;
             cur = p;
         }
@@ -5717,10 +5734,10 @@ Scope {
             darkMode = bar.darkMode;
             appearanceMode = bar.appearanceMode;
         }
-        if (pane !== undefined && pane !== "") {
-            for (var i = 0; i < prefsWindow.panes.length; i++)
-                if (prefsWindow.panes[i].id === pane) { prefsWindow.go(i); break; }
-        }
+        // a closed window opens on the asked pane (General if none) with no history; an open one moves there like a click
+        var i = prefsWindow.paneIndex(pane !== undefined && pane !== "" ? pane : "general");
+        if (!prefsWindow.visible) prefsWindow.start(i >= 0 ? i : prefsWindow.paneIndex("general"));
+        else if (i >= 0) prefsWindow.go(i);
         prefsWindow.visible = true;
         prefsWindow.requestActivate();
     }
