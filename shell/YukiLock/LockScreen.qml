@@ -664,11 +664,16 @@ Item {
     readonly property Item coverOld: coverIdx === 0 ? coverB : coverA
 
     // --- Now playing ---
+    // the same rule as YukiShell's PlayerPicker.qml: playing beats paused, then the richer metadata wins. Browsers register the
+    // same media twice (Chromium itself, with no cover and no artist, and plasma-browser-integration with both); taking the first
+    // playing one showed the copy without the cover.
     readonly property var player: {
-        var ps = Mpris.players.values, best = null;
+        var ps = Mpris.players.values, best = null, bs = -1;
         for (var i = 0; i < ps.length; i++) {
-            if (ps[i].isPlaying) return ps[i];
-            if (!best && ps[i].trackTitle) best = ps[i];
+            var p = ps[i];
+            if (!p.trackTitle) continue;
+            var sc = (p.isPlaying ? 100 : 0) + (p.trackArtUrl ? 8 : 0) + (p.trackArtist ? 4 : 0) + 2 + ((p.lengthSupported && p.length > 0) ? 1 : 0);
+            if (sc > bs) { bs = sc; best = p; }
         }
         return best;
     }
