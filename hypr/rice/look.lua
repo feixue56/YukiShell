@@ -51,14 +51,16 @@ hl.config({
             color        = c.shadow,
         },
 
+        -- matched to YukiShell's Liquid Glass (the Dock / widgets): a light blur that keeps the wallpaper's shapes, a little
+        -- extra colour and no darkening, so translucent windows (kitty) read as the same clear glass
         blur = {
             enabled  = true,
-            size     = 8,
-            passes   = 2,
-            vibrancy = 0.35,
+            size     = 7,
+            passes   = 1,
+            vibrancy = 0.5,
             noise    = 0.015,
-            contrast = 0.95,
-            brightness = 0.9,
+            contrast = 1.0,
+            brightness = 1.0,
             popups   = true,
             new_optimizations = true,
         },

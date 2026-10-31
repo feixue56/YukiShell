@@ -40,11 +40,12 @@ hl.window_rule({
     size = "1120 740",
 })
 
--- Liquid-glass kitty: heavy blur behind a translucent window, frosted white rim instead of the accent border.
+-- Liquid-glass kitty, like the Dock: clear glass (light blur, a light dark fill from kitty.conf) and the Dock's edge light
+-- instead of the accent border: bright along the top and bottom edges, faint down the sides.
 hl.window_rule({
     name  = "glass-kitty",
     match = { class = "^(kitty|dash-.*)$" },
-    border_color = { colors = { "rgba(ffffff55)", "rgba(cba6f755)", "rgba(ffffff22)" }, angle = 135 },
+    border_color = { colors = { "rgba(ffffffb0)", "rgba(ffffff1c)", "rgba(ffffff14)", "rgba(ffffff1c)", "rgba(ffffff80)" }, angle = 90 },
     opacity  = "1.0 override 1.0 override",
     xray     = false,
     rounding = 20,
