@@ -6,7 +6,7 @@ local mod = "SUPER"
 local bind = require("rice.keys").bind
 
 bind(mod .. " + Return",         hl.dsp.exec_cmd("kitty"), "Open Terminal")
-bind(mod .. " + E",              hl.dsp.exec_cmd("dolphin"), "Open Files")
+bind(mod .. " + E",              hl.dsp.exec_cmd("dolphin", { tile = true, maximize = true }), "Open Files")   -- full size (new windows float otherwise); Super+Shift+F un-maximizes
 bind(mod .. " + W",              hl.dsp.exec_cmd("chromium"), "Open Browser")
 bind(mod .. " + SHIFT + Return", hl.dsp.exec_cmd("kitty", { float = true, center = true, size = "900 560" }), "Open a Floating Terminal")   -- floating terminal
 bind(mod .. " + SHIFT + E",      hl.dsp.exec_cmd("dolphin", { float = true, center = true, size = "1100 700" }), "Open a Floating Files Explorer")   -- floating file manager
