@@ -5540,10 +5540,8 @@ Scope {
                 readonly property Item glassSrc: glassBackdrop.item ? glassBackdrop.item : ((snapFresh && screenSnap.hasContent) ? screenSnap : null)
                 HoverHandler {
                     id: barHover
-                    onHoveredChanged: { if (hovered && ui.pop === "") screenSnap.grab(); if (!hovered) tileGlassHold.restart(); }
+                    onHoveredChanged: if (hovered && ui.pop === "") screenSnap.grab()
                 }
-                readonly property bool tileGlassLive: barHover.hovered || ui.pop !== "" || tileGlassHold.running
-                Timer { id: tileGlassHold; interval: 800 }          // a tile's hover glass fades out after the pointer leaves
                 // refresh while the pointer rests on the bar with nothing open; a snapshot is "fresh" for 3 s
                 Timer { interval: 600; repeat: true; running: barHover.hovered && ui.pop === ""; onTriggered: screenSnap.grab() }
                 Timer { interval: 250; repeat: true; running: true; onTriggered: ui.snapFresh = (Date.now() - screenSnap.takenAt) < 3000 || (ui.pop !== "" && ui.snapFresh) }
@@ -5793,9 +5791,10 @@ Scope {
                     readonly property real m: 64                // refraction + blur reach around the strip
                     sourceItem: root.liquidActive ? ui.glassSrc : null
                     hideSource: true
-                    // only while a hover tile can show: the pointer on the bar, a menu open, or a tile still fading out. Kept live all
-                    // the time it re-blurred the bar's backdrop on every frame of the animated wallpaper (~7 % of a CPU core) for nothing
-                    live: ui.tileGlassLive
+                    // always live: the menu bar strip and the workspace pills are glass on this capture too, so they follow the animated
+                    // wallpaper (and a wallpaper change) at once. Live only while hovered, they kept the last frame: after switching to a
+                    // still wallpaper the bar went on showing the old video until a restart.
+                    live: true
                     visible: false
                     sourceRect: Qt.rect(-m, -m, ui.width + 2 * m, root.barH + 2 * m)
                 }
