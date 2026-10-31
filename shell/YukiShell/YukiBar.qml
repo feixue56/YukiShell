@@ -5437,13 +5437,17 @@ Scope {
                     function grab() { if (captureSource && typeof captureFrame === "function") { captureFrame(); takenAt = Date.now(); } }
                 }
                 property bool snapFresh: false
-                // a moment after a popover starts opening (its rect is known), measure what's behind it
+                // a moment after a popover starts opening (its rect is known), measure what's behind it: the area AROUND the panel with
+                // the panel left out, the same reading the live re-measuring uses (spotWin.measureLive). Reading the panel's own area
+                // while it was still fading in disagreed with that live reading over a mixed wallpaper, so a menu opened with dark text
+                // and turned white ~1 s later; with hysteresis the open reading also keeps the current colour unless the other one is
+                // clearly more readable.
                 Timer {
                     id: toneT; interval: 20
                     onTriggered: {
                         var r = ui.glassRect;
-                        if (r.width <= 0) return;
-                        root.measureTone(win.modelData.x + r.x + 64, win.modelData.y + r.y + 64, r.width - 128, r.height - 128);
+                        if (r.width <= 128) return;
+                        root.measureAround(win.modelData, Qt.rect(win.modelData.x + r.x + 64, win.modelData.y + r.y + 64, r.width - 128, r.height - 128), false);
                     }
                 }
                 // the bar changed size: the old whole-screen snapshot shows the windows where they WERE, so drop it, take a new one if
