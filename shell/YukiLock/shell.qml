@@ -1,13 +1,15 @@
 // YukiLock: a macOS 26/27-style lock screen for Quickshell, matching YukiShell's Liquid Glass.
 //
 //   qs -c YukiLock                         lock now (one-shot; started by hypridle via lock-via-ipc.sh)
-//   YUKILOCK_DAEMON=1 qs -c YukiLock        start unlocked for an IPC-triggered lock
+//   YUKILOCK_DAEMON=1 qs -c YukiLock        start unlocked and wait for an IPC-triggered lock (started at login; after an
+//                                          unlock it starts its own successor, so one is always ready and warmed up)
 //   YUKILOCK_PREVIEW=1 qs -c YukiLock       draw it as an overlay window instead of a real lock (for tweaking)
 //
 // Runs as its own process on purpose: a YukiShell crash can never take the lock with it, and lock-via-ipc.sh
 // relaunches this one if it dies (Hyprland's misc:allow_session_lock_restore lets the new instance take over).
 // Password check: PAM, /etc/pam.d/hyprlock (same stack hyprlock uses).
 import QtQuick
+import QtMultimedia
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
@@ -27,8 +29,20 @@ ShellRoot {
     // Default launch keeps the original behavior and locks immediately. In daemon mode, wait for IPC.
     property bool lockRequested: !daemonMode
     function requestLock() {
-        if (!preview) lockRequested = true;
+        if (preview || lockRequested) return;
+        // a waiting instance may have started hours ago: read the wallpaper and settings again, and lock on the monitor in use now
+        primary = "";
+        pickPrimary();
+        wallLookup.running = true;
+        infoLookup.running = true;
+        lockRequested = true;
     }
+    // Warm-up: the first video player a process creates blocks it for ~1 s while Qt Multimedia starts FFmpeg (whatever the
+    // decoder). A waiting instance pays that once, a few seconds after it starts, so the lock appears at once with the animated
+    // wallpaper already playing. The empty player decodes nothing and costs no CPU afterwards.
+    property bool warm: false
+    Timer { interval: 3000; running: root.daemonMode; onTriggered: if (!root.lockRequested) root.warm = true }
+    Loader { active: root.warm; sourceComponent: Item { MediaPlayer { } } }
     IpcHandler {
         target: "lockscreen"
         function state(): string {
@@ -121,9 +135,10 @@ ShellRoot {
             onStreamFinished: lockState.capsLock = text.trim() === "true"
         }
     }
-    Timer { interval: 700; repeat: true; running: true; triggeredOnStart: true; onTriggered: lockState.checkCaps() }
+    // only while the lock (or a preview) is up: a waiting instance does nothing
+    Timer { interval: 700; repeat: true; running: root.lockRequested || root.preview; triggeredOnStart: true; onTriggered: lockState.checkCaps() }
 
-    Timer { interval: 1000; running: true; repeat: true; triggeredOnStart: true; onTriggered: lockState.now = new Date() }
+    Timer { interval: 1000; running: root.lockRequested || root.preview; repeat: true; triggeredOnStart: true; onTriggered: lockState.now = new Date() }
     // preview-only test hook: YUKILOCK_TEST_MORPH=1 flips 12/24-hour every 1.5 s so the clock morph can be checked
     Timer { interval: 1500; repeat: true; running: root.preview && Quickshell.env("YUKILOCK_TEST_MORPH") === "1"; onTriggered: lockState.use24h = !lockState.use24h }
     Timer { id: idleTimer; interval: 9000; onTriggered: if (lockState.pass.length === 0 && !lockState.busy) lockState.engaged = false }
@@ -137,7 +152,10 @@ ShellRoot {
             else {
                 root.lockRequested = false;
                 // A WlSessionLock is single-use in practice: retire this process after unlock so
-                // the next IPC launch creates a fresh session-lock object.
+                // the next IPC launch creates a fresh session-lock object. A waiting instance starts its successor first
+                // (detached, once this one is gone), so the next lock is instant again.
+                if (root.daemonMode)
+                    Quickshell.execDetached(["sh", "-c", "sleep 0.6; YUKILOCK_DAEMON=1 exec qs -c YukiLock >/dev/null 2>&1"]);
                 quitTimer.start();
             }
         }
@@ -164,6 +182,7 @@ ShellRoot {
 
     // Resolve wallpaper paths independently of slower network/profile probes so the lock scene can decode them immediately.
     Process {
+        id: wallLookup
         running: true
         command: ["sh", "-c",
             // a picture chosen just for the lock screen (Settings -> Lock Screen -> Wallpaper) wins, and then no video plays
@@ -184,8 +203,9 @@ ShellRoot {
         }
     }
 
-    // --- one-shot lookups: real name, avatar, wifi, and other settings
+    // --- one-shot lookups: real name, avatar, wifi, and other settings (again when a waiting instance locks)
     Process {
+        id: infoLookup
         running: true
         command: ["sh", "-c",
             "n=$(getent passwd \"$USER\" | cut -d: -f5 | cut -d, -f1); printf '%s\\n' \"${n:-$USER}\"; "
@@ -214,7 +234,7 @@ ShellRoot {
                 var lang = (l[8] || "auto").trim();
                 Qt.uiLanguage = (lang === "auto" || lang === "null") ? "" : lang;
                 if (!Quickshell.env("YUKILOCK_CLOCK")) { try { lockState.clockCfg = JSON.parse((l[9] || "{}").trim() || "{}"); } catch (e) { } }
-                if (!root.preview) lockState.sound("lock");
+                if (!root.preview && root.lockRequested) lockState.sound("lock");
             }
         }
     }

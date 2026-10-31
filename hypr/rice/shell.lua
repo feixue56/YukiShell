@@ -4,6 +4,8 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("awww-daemon")
     -- Install/update Hypridle's before_sleep_cmd hook (lid close is covered when it suspends).
     hl.exec_cmd("sh ~/.config/quickshell/YukiLock/enable-sleep-lock.sh")
+    -- a YukiLock waiting in the background (warmed up), so Super+L locks at once with the animated wallpaper playing
+    hl.exec_cmd("env YUKILOCK_DAEMON=1 qs -c YukiLock")
     hl.exec_cmd("sh ~/.local/bin/yuki-start")
 end)
 -- The Settings window floats and centres itself when it opens, so it needs no window rule.

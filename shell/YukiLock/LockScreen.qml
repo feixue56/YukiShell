@@ -24,9 +24,6 @@ Item {
 
     // --- entrance: start once the wallpaper is decoded (or after a short timeout), so it never fades in from black
     Timer { id: showTimer; interval: 450; running: true; onTriggered: ls.shown = true }
-    // the wallpaper video waits until the fade-in (650 ms) is over, see wallVideo
-    property bool videoGo: false
-    Timer { running: ls.shown; interval: 700; onTriggered: ls.videoGo = true }
     Connections {
         target: wall
         function onStatusChanged() { if (wall.status === Image.Ready || wall.status === Image.Error) ls.shown = true; }
@@ -56,15 +53,13 @@ Item {
             scale: ls.leaving ? 1.06 : (ls.shown ? 1.0 : 1.09)
             Behavior on scale { NumberAnimation { duration: ls.leaving ? 520 : 650; easing.type: Easing.OutQuint } }
         }
-        // animated wallpaper: the same video YukiShell plays on the desktop, muted and looping. It starts only once the lock is
-        // on screen: creating the first video player in this process blocks for ~1 s (Qt Multimedia starting FFmpeg, whatever
-        // the decoder), and doing that up front held the whole lock back by that second. Until then the still picture underneath
-        // (the video's own first frame, from YukiShell) shows.
+        // animated wallpaper: the same video YukiShell plays on the desktop, muted and looping. It plays from the first frame:
+        // the waiting YukiLock has already started Qt Multimedia (shell.qml, warm), which otherwise held the lock back by ~1 s.
         Loader {
             id: wallVideo
             anchors.fill: wall
             scale: wall.scale
-            active: ls.st.wallpaperVideo !== "" && ls.videoGo
+            active: ls.st.wallpaperVideo !== ""
             sourceComponent: Item {
                 MediaPlayer {
                     source: "file://" + ls.st.wallpaperVideo
