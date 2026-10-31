@@ -6649,6 +6649,9 @@ Scope {
                     active: root.liquidBase
                     sourceComponent: Item {
                         id: bd
+                        // only ever drawn through the glass (bsrc hides it): until the glass exists (liquidActive comes ~350 ms after
+                        // liquidBase, at every start) it must not draw itself, or the raw wallpaper + window captures flash across the screen
+                        visible: root.liquidActive
                         x: 0
                         y: -(win.modelData.height - ui.height)
                         width: win.modelData.width
