@@ -1035,7 +1035,7 @@ Scope {
             readonly property color content: root.accentWash(glass ? (dark ? Qt.rgba(0.09, 0.09, 0.10, 0.58) : Qt.rgba(0.97, 0.97, 0.98, 0.62))
                                                    : Qt.color(dark ? "#1E1E1E" : "#F5F5F7"), 0.30, dark)
             readonly property color sidebar: root.accentWash(dark ? Qt.color("#292929") : Qt.color("#E9E9EC"), 0.30, dark)
-            // the pages are opaque (only the sidebar is translucent), so the cards are solid too
+            // the cards are solid (the sidebar and the page around them are frosted)
             readonly property color contentSolid: root.accentWash(dark ? Qt.color("#1E1E1E") : Qt.color("#F5F5F7"), 0.30, dark)
             readonly property color sidebarGlass: root.accentWash(dark ? Qt.rgba(0.17, 0.17, 0.18, 0.55) : Qt.rgba(0.94, 0.94, 0.96, 0.60), 0.35, dark)
             readonly property color card: root.accentWash(dark ? Qt.color("#2B2B2D") : Qt.color("#FFFFFF"), 0.30, dark)
@@ -1072,7 +1072,7 @@ Scope {
             width: parent.width / root.uiS; height: parent.height / root.uiS
             scale: root.uiS; transformOrigin: Item.TopLeft
             radius: 12
-            color: "transparent"        // the sidebar is translucent (blur of what is behind the window), the pages are opaque
+            color: "transparent"        // the sidebar and the pages are frosted: translucent over Hyprland's blur of what is behind the window
             border.width: 1
             border.color: pal.edgeOuter
 
@@ -1085,108 +1085,16 @@ Scope {
                 z: 900
             }
 
-            // Liquid Glass behind the whole window: the page area on the right is a slab of glass that refracts the wallpaper (and the
-            // animated wallpaper) exactly where the window sits, with the Dock's edge light along the window outline; the sidebar's
-            // translucent tint lies over the same glass. Hyprland's blur behind this window is xray, so the wallpaper is also what the
-            // rest of the desktop shows through it. Without Liquid Glass the page is the opaque one below.
-            Loader {
-                id: pageGlass
-                anchors.fill: parent
-                z: -1
-                active: pal.glass && prefsWindow.visible
-                sourceComponent: Item {
-                    id: sbg
-                    readonly property real m: 64       // backdrop margin around the window (refraction reach)
-                    readonly property real pad: 12     // shader padding
-                    readonly property rect g: Qt.rect(1, 1, frame.width - 2, frame.height - 2)     // the glass: inside the window border
-                    Item {
-                        id: prefsBackdrop
-                        parent: frame
-                        x: -sbg.m; y: -sbg.m
-                        z: -100
-                        width: frame.width + 2 * sbg.m
-                        height: frame.height + 2 * sbg.m
-                        Rectangle { anchors.fill: parent; color: "#141418" }
-                        Image {
-                            x: sbg.m - prefsGlassGeo.x
-                            y: sbg.m - prefsGlassGeo.y
-                            width: prefsGlassGeo.mw; height: prefsGlassGeo.mh
-                            source: root.fileUrl(root.wallpaperFor(prefsGlassGeo.mon))
-                            sourceSize.width: prefsGlassGeo.mw
-                            fillMode: Image.PreserveAspectCrop
-                            asynchronous: true; smooth: true
-                        }
-                        LiveWall {
-                            x: sbg.m - prefsGlassGeo.x
-                            y: sbg.m - prefsGlassGeo.y
-                            width: prefsGlassGeo.mw; height: prefsGlassGeo.mh
-                            video: root.bar ? root.bar.glassVideo : ""
-                            live: root.glassLive && prefsWindow.visible
-                            paused: !!root.bar && (root.bar.gaming || root.bar.wallUserPaused)
-                            clock: root.bar ? root.bar.wallClock : null
-                        }
-                    }
-                    ShaderEffectSource {
-                        id: sbSrc
-                        sourceItem: prefsBackdrop
-                        hideSource: true
-                        live: true
-                        visible: false
-                        textureSize: Qt.size(Math.round(prefsBackdrop.width / 2), Math.round(prefsBackdrop.height / 2))
-                    }
-                    // a little more frost than the menus: text sits right on this glass
-                    MultiEffect {
-                        id: sbBlurFx
-                        source: sbSrc
-                        width: sbSrc.textureSize.width; height: sbSrc.textureSize.height
-                        blurEnabled: true; blurMax: 48
-                        blur: Math.min(1, root.glassBlur * 1.5 * 1.4 * 0.5 / 48)
-                        autoPaddingEnabled: false
-                        visible: false
-                    }
-                    ShaderEffectSource { id: sbBlur; sourceItem: sbBlurFx; live: true; mipmap: true; visible: false }
-                    ShaderEffect {
-                        x: sbg.g.x - sbg.pad; y: sbg.g.y - sbg.pad
-                        width: sbg.g.width + 2 * sbg.pad
-                        height: sbg.g.height + 2 * sbg.pad
-                        fragmentShader: root.glassShaderUrl
-                        onStatusChanged: if (status === ShaderEffect.Error) root.glassState = "failed"
-                        property variant src: sbBlur
-                        property vector2d itemSize: Qt.vector2d(width, height)
-                        property vector2d glassSize: Qt.vector2d(sbg.g.width, sbg.g.height)
-                        property vector2d srcSize: Qt.vector2d(prefsBackdrop.width, prefsBackdrop.height)
-                        property vector2d srcOffset: Qt.vector2d(sbg.g.x - sbg.pad + sbg.m, sbg.g.y - sbg.pad + sbg.m)
-                        property real pad: sbg.pad
-                        property real radius: frame.radius - 1
-                        property real bezel: 24
-                        property real thickness: 30 * root.glassLiquid * 1.6
-                        property real dispersion: 0.06 * root.glassLiquid * 1.3
-                        property real magnify: 0.02 * root.glassLiquid
-                        property real rim: root.glassRim
-                        property real grain: root.glassGrain * 0.2
-                        property real blurPx: 1.5
-                        // firmer than the menus (page titles and section labels sit right on the glass), still clearly glass
-                        property real tintMix: 0.30 + root.glassOpacity * 0.35
-                        property vector4d accentTint: root.accentTintVec
-                        property real saturation: 1.25
-                        property real dark: pal.dark ? 1 : 0
-                        property real debug: root.glassDebug ? 1 : 0
-                        property real shadowAmt: 0
-                        property real rimTint: 0
-                        property real ringW: 0
-                        property real flatInner: 1
-                    }
-                }
-            }
-
-            // opaque page area: from the sidebar's right edge to the window edge (rounded on the right only)
-            Rectangle {
-                visible: pageGlass.status !== Loader.Ready
+            // page area: from the sidebar's right edge to the window edge (rounded on the right only). Frosted like the sidebar: the
+            // same translucent fill over Hyprland's blur of what is behind the window, drawn as ONE layer (the rounded body and the
+            // square left edge are opaque inside the layer, the layer carries the translucency) so they never add up to a darker band.
+            Item {
                 x: sidebar.x + sidebar.width; y: 1
                 width: parent.width - x - 1; height: parent.height - 2
-                radius: 11
-                color: pal.contentSolid
-                Rectangle { anchors.left: parent.left; width: 12; height: parent.height; color: parent.color }
+                layer.enabled: true
+                opacity: pal.sidebarGlass.a
+                Rectangle { anchors.fill: parent; radius: 11; color: Qt.rgba(pal.sidebarGlass.r, pal.sidebarGlass.g, pal.sidebarGlass.b, 1) }
+                Rectangle { anchors.left: parent.left; width: 12; height: parent.height; color: Qt.rgba(pal.sidebarGlass.r, pal.sidebarGlass.g, pal.sidebarGlass.b, 1) }
             }
 
             // Native Wayland resize handles for this frameless window.
