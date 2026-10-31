@@ -289,6 +289,9 @@ Scope {
     }
     // --- bar text colour: measure what is behind the bar strip (wallpaper + windows + the bar's own glass) ---
     function measureBar() {
+        // the bar's text, glyphs and logo are always white now (barTextDark), so what is behind the bar strip no longer decides
+        // anything: it is not measured any more (it was a grim + ImageMagick run every 1.2-4.8 s)
+        return;
         if (!autoContrast || !barEnabled || barToneProc.running) return;
         var sc = Quickshell.screens && Quickshell.screens.length ? Quickshell.screens[0] : null;
         if (!sc) return;
@@ -301,7 +304,7 @@ Scope {
     property int toneStable: 0
     property real toneLastV: -1
     property real toneLastSd: -1
-    Timer { interval: root.toneStable > 10 ? 4800 : (root.toneStable > 4 ? 2400 : 1200); repeat: true; running: root.autoContrast && root.barEnabled && !root.gaming; onTriggered: root.measureBar() }
+    // (the bar-strip poll is gone with measureBar's work; panels are still measured while they are open, see measureLive)
     Connections {
         target: root
         function onBarHeightChanged() { barToneT.restart(); }
@@ -784,9 +787,16 @@ Scope {
             }
         }
     }
+    // read once, then follow `gsettings monitor` (it prints a line only when the scheme changes; it used to be asked every 3 s)
     Timer {
-        interval: 3000; repeat: true; running: true; triggeredOnStart: true
+        interval: 1500; running: true
         onTriggered: if (!gsettingsSchemeProc.running) gsettingsSchemeProc.running = true
+    }
+    OwnedProcess {
+        id: gsettingsWatch
+        running: true
+        cmd: ["gsettings", "monitor", "org.gnome.desktop.interface", "color-scheme"]
+        stdout: SplitParser { onRead: line => { if (!gsettingsSchemeProc.running) gsettingsSchemeProc.running = true; } }
     }
     QtObject {
         id: bpal
@@ -2623,7 +2633,11 @@ Scope {
         settleTimer.restart();
     }
     Timer { id: settleTimer; interval: 900; onTriggered: { root.refreshWifi(); root.refreshBt(); root.refreshAirplane(); } }
-    Timer { interval: 6000; repeat: true; running: true; triggeredOnStart: true; onTriggered: { root.refreshWifi(); root.refreshBt(); root.refreshAirplane(); } }
+    // every 6 s while a panel shows them (Control Center, Wi-Fi / Bluetooth menus, Settings), every 20 s otherwise for the bar icons;
+    // opening a panel refreshes at once
+    readonly property bool radioUiOpen: popCount > 0 || (hub && hub.dock && hub.dock.prefsOpen === true)
+    onRadioUiOpenChanged: if (radioUiOpen) { refreshWifi(); refreshBt(); refreshAirplane(); }
+    Timer { interval: root.radioUiOpen ? 6000 : 20000; repeat: true; running: true; triggeredOnStart: true; onTriggered: { root.refreshWifi(); root.refreshBt(); root.refreshAirplane(); } }
 
     // brightness
     property real brightness: 0.5
@@ -2697,7 +2711,7 @@ Scope {
     // A laptop backlight is cheap to read and firmware keys change it behind our back, so it is polled quickly; an external monitor
     // (DDC/CI, cached for 30 s by yuki-brightness) or no brightness control at all is polled slowly. Opening Control Center refreshes it too.
     property bool brightLaptop: true
-    Timer { interval: root.brightLaptop ? 850 : 6000; repeat: true; running: true; onTriggered: root.refreshBrightness() }
+    Timer { interval: root.brightLaptop ? 850 : (root.radioUiOpen ? 6000 : 30000); repeat: true; running: true; onTriggered: root.refreshBrightness() }
     // --- Keyboard layout ---
     // Hyprland's event gives an immediate update; a small reconciliation poll handles dropped events and
     // keyboards whose active keymap changes without a usable activelayout payload.
@@ -2735,7 +2749,7 @@ Scope {
     })
     function refreshKeyboardLayout() { if (!kbdProc.running) kbdProc.running = true; }
     Timer {
-        interval: 1600; repeat: true
+        interval: 5000; repeat: true          // Hyprland's activelayout event updates at once; this only catches a missed one
         running: root.barEnabled && root.barWidgetEnabled("keyboard") && root.kbLayouts.length > 1
         onTriggered: root.refreshKeyboardLayout()
     }
@@ -2921,10 +2935,20 @@ Scope {
     }
     Timer { id: recKill; interval: 10000; onTriggered: root.recRun = false }      // it did not finish by itself: stop the process
     Timer { interval: 1000; repeat: true; running: root.recRun; onTriggered: root.recSecs++ }
-    // recorders orphaned by an earlier crash of this shell (their parent is gone) would keep recording: finish them once at start-up
+    // reapOrphans: helpers an earlier YukiShell started and left behind when it exited or crashed (their parent is gone, so init
+    // adopted them) are ended once at start-up: recorders (finished cleanly with SIGINT), Keep Awake inhibitors (which blocked sleep
+    // even with Keep Awake off), wallpaper-folder watchers and visualizers. Today's helpers die with the shell (OwnedProcess.qml).
     Process {
+        id: reapOrphans
         running: true
-        command: ["sh", "-c", "for p in $(pgrep -x wf-recorder); do pp=$(ps -o ppid= -p \"$p\" | tr -d ' '); c=$(cat /proc/$pp/comm 2>/dev/null); case \"$c\" in systemd|init) kill -INT \"$p\";; esac; done; exit 0"]
+        command: ["sh", "-c", [
+            'orph() { pp=$(ps -o ppid= -p "$1" 2>/dev/null | tr -d " "); [ -n "$pp" ] || return 1; [ "$pp" = 1 ] && return 0; c=$(cat /proc/$pp/comm 2>/dev/null); [ "$c" = systemd ] || [ "$c" = init ]; }',
+            'has() { tr "\\0" " " < /proc/$1/cmdline 2>/dev/null | grep -qF -- "$2"; }',
+            'for p in $(pgrep -x wf-recorder); do orph "$p" && kill -INT "$p"; done',
+            'for p in $(pgrep -x systemd-inhibit); do has "$p" "--who=yukibar" && orph "$p" && { pkill -P "$p"; kill "$p"; }; done',
+            'for p in $(pgrep -x inotifywait); do has "$p" "%e|%w%f" && orph "$p" && kill "$p"; done',
+            'for p in $(pgrep -x cava); do has "$p" "yukishell-cava.conf" && orph "$p" && kill "$p"; done',
+            'exit 0'].join("\n")]
     }
     function recTime() {
         var m = Math.floor(recSecs / 60), r = recSecs % 60;
@@ -2956,11 +2980,12 @@ Scope {
         else sh("dunstctl set-paused false 2>/dev/null || makoctl mode -r do-not-disturb 2>/dev/null || swaync-client -df 2>/dev/null");
     }
     property bool nightOn: false
-    Process { id: nightProc; command: ["hyprsunset", "-t", String(root.nightTemp)]; running: root.nightOn }
+    OwnedProcess { id: nightProc; cmd: ["hyprsunset", "-t", String(root.nightTemp)]; running: root.nightOn }
     property bool keepAwake: false
-    Process {
+    OwnedProcess {
         id: awakeProc
-        command: ["systemd-inhibit", "--what=idle:sleep", "--who=yukibar", "--why=Keep Awake", "sleep", "infinity"]
+        // the `sleep` under systemd-inhibit gets its own parent-death signal, so it never outlives the inhibitor either
+        cmd: ["systemd-inhibit", "--what=idle:sleep", "--who=yukibar", "--why=Keep Awake", "setpriv", "--pdeathsig", "TERM", "--", "sleep", "infinity"]
         running: root.keepAwake
     }
 
@@ -3165,6 +3190,10 @@ Scope {
         command: ["sh", "-c",
             "if ! command -v wl-paste >/dev/null 2>&1 || ! command -v cliphist >/dev/null 2>&1; then echo missing; exit 0; fi; "
             + "mkdir -p \"$HOME/.cache/yukibar/clip\"; "
+            // watchers an earlier YukiShell started and left behind (their parent is gone): they are ours, end them first, or they
+            // would count as "external" and this shell would never run its own
+            + "for p in $(pgrep -x wl-paste 2>/dev/null); do pp=$(ps -o ppid= -p \"$p\" | tr -d ' '); "
+            + "if [ \"$pp\" = 1 ] && tr '\\0' ' ' < /proc/$p/cmdline 2>/dev/null | grep -q '.cache/yukibar'; then kill \"$p\"; fi; done; "
             // look at real wl-paste processes only (`pgrep -f` also matched this very shell, so it always answered "external"
             // and the watchers below never started)
             + "ext=0; for p in $(pgrep -x wl-paste 2>/dev/null); do "
@@ -3177,8 +3206,8 @@ Scope {
             }
         }
     }
-    Process { id: clipWatchText; command: ["wl-paste", "--type", "text", "--watch", "sh", "-c", root.clipStoreCmd, "sh"] }
-    Process { id: clipWatchImg; command: ["wl-paste", "--type", "image", "--watch", "sh", "-c", root.clipStoreCmd, "sh"] }
+    OwnedProcess { id: clipWatchText; cmd: ["wl-paste", "--type", "text", "--watch", "sh", "-c", root.clipStoreCmd, "sh"] }
+    OwnedProcess { id: clipWatchImg; cmd: ["wl-paste", "--type", "image", "--watch", "sh", "-c", root.clipStoreCmd, "sh"] }
 
     function clipRefresh() {
         if (clipLoading) return;
@@ -4924,10 +4953,10 @@ Scope {
         wpWatchDebounce.restart();
     }
     Timer { id: wpWatchDebounce; onTriggered: root.wpRefresh() }
-    Process {
+    OwnedProcess {
         id: wpWatch
         running: root.wpWatchOn
-        command: ["inotifywait", "-m", "-r", "-q", "--format", "%e|%w%f", "-e", "close_write", "-e", "moved_to", "-e", "moved_from", "-e", "delete", "-e", "create"].concat(root.wpFolders)
+        cmd: ["inotifywait", "-m", "-r", "-q", "--format", "%e|%w%f", "-e", "close_write", "-e", "moved_to", "-e", "moved_from", "-e", "delete", "-e", "create"].concat(root.wpFolders)
         stdout: SplitParser { onRead: line => root.wpWatchHit(line) }
         onExited: {
             if (!root.wpWatchOn) return;                       // stopped on purpose (the folders changed)
@@ -5502,8 +5531,10 @@ Scope {
                 readonly property Item glassSrc: glassBackdrop.item ? glassBackdrop.item : ((snapFresh && screenSnap.hasContent) ? screenSnap : null)
                 HoverHandler {
                     id: barHover
-                    onHoveredChanged: if (hovered && ui.pop === "") screenSnap.grab()
+                    onHoveredChanged: { if (hovered && ui.pop === "") screenSnap.grab(); if (!hovered) tileGlassHold.restart(); }
                 }
+                readonly property bool tileGlassLive: barHover.hovered || ui.pop !== "" || tileGlassHold.running
+                Timer { id: tileGlassHold; interval: 800 }          // a tile's hover glass fades out after the pointer leaves
                 // refresh while the pointer rests on the bar with nothing open; a snapshot is "fresh" for 3 s
                 Timer { interval: 600; repeat: true; running: barHover.hovered && ui.pop === ""; onTriggered: screenSnap.grab() }
                 Timer { interval: 250; repeat: true; running: true; onTriggered: ui.snapFresh = (Date.now() - screenSnap.takenAt) < 3000 || (ui.pop !== "" && ui.snapFresh) }
@@ -5753,7 +5784,9 @@ Scope {
                     readonly property real m: 64                // refraction + blur reach around the strip
                     sourceItem: root.liquidActive ? ui.glassSrc : null
                     hideSource: true
-                    live: true
+                    // only while a hover tile can show: the pointer on the bar, a menu open, or a tile still fading out. Kept live all
+                    // the time it re-blurred the bar's backdrop on every frame of the animated wallpaper (~7 % of a CPU core) for nothing
+                    live: ui.tileGlassLive
                     visible: false
                     sourceRect: Qt.rect(-m, -m, ui.width + 2 * m, root.barH + 2 * m)
                 }

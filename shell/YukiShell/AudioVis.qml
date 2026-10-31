@@ -28,7 +28,10 @@ Scope {
         av.nwant = Object.keys(av.wanters).length;
     }
 
+    property string lastLine: ""
     function feed(line) {
+        if (line === av.lastLine) return;          // nothing moved (silence, a held note): don't redraw every visualizer for it
+        av.lastLine = line;
         var p = line.split(";"), out = [], n = Math.min(av.count, p.length);
         for (var i = 0; i < av.count; i++) {
             var v = i < n ? parseInt(p[i]) : 0;
@@ -47,13 +50,13 @@ Scope {
         stdout: StdioCollector { onStreamFinished: av.available = text.indexOf("yes") >= 0 }
     }
     Timer { id: retry; interval: 4000 }
-    Process {
+    OwnedProcess {
         id: cava
         running: av.wanted && av.available && !retry.running
         // the config is written next to the runtime files each time: mono, 128 bars, 60 frames/s, values 0..100 separated by ";".
         // 60 frames/s and light smoothing (noise_reduction 25; it was 30 frames/s and 60) so the bars jump with the beat instead of
         // gliding after it; much less smoothing makes them jittery
-        command: ["sh", "-c",
+        cmd: ["sh", "-c",
             "cfg=\"${XDG_RUNTIME_DIR:-/tmp}/yukishell-cava.conf\"; "
             + "printf '%s\\n' '[general]' \"bars = $1\" 'framerate = 60' '[input]' 'method = pipewire' '[output]' 'method = raw' 'channels = mono' 'mono_option = average' "
             + "'raw_target = /dev/stdout' 'data_format = ascii' 'ascii_max_range = 100' 'bar_delimiter = 59' 'frame_delimiter = 10' '[smoothing]' 'noise_reduction = 25' > \"$cfg\"; "
@@ -61,6 +64,7 @@ Scope {
         stdout: SplitParser { onRead: line => av.feed(line) }
         onExited: {
             av.bars = av.zeros();
+            av.lastLine = "";
             if (!av.wanted) return;                      // stopped on purpose
             if (++av.fails >= 4) av.available = false;   // it keeps dying: give up for this session
             else retry.restart();
