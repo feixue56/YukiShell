@@ -12,7 +12,6 @@ Item {
     readonly property bool playing: lw.wanted
     property bool got: false                     // a frame has arrived: the video covers the still picture underneath
 
-    onPlayingChanged: WallFeed.want(key, playing)
     Component.onCompleted: WallFeed.want(key, playing)
     Component.onDestruction: { WallFeed.release(key); if (f.lw) f.lw.showing = false; }
 

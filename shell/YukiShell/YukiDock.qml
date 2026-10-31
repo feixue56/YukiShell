@@ -1084,8 +1084,103 @@ Scope {
                 z: 900
             }
 
+            // Liquid Glass behind the whole window: the page area on the right is a slab of glass that refracts the wallpaper (and the
+            // animated wallpaper) exactly where the window sits, with the Dock's edge light along the window outline; the sidebar's
+            // translucent tint lies over the same glass. Hyprland's blur behind this window is xray, so the wallpaper is also what the
+            // rest of the desktop shows through it. Without Liquid Glass the page is the opaque one below.
+            Loader {
+                id: pageGlass
+                anchors.fill: parent
+                z: -1
+                active: pal.glass && prefsWindow.visible
+                sourceComponent: Item {
+                    id: sbg
+                    readonly property real m: 64       // backdrop margin around the window (refraction reach)
+                    readonly property real pad: 12     // shader padding
+                    readonly property rect g: Qt.rect(1, 1, frame.width - 2, frame.height - 2)     // the glass: inside the window border
+                    Item {
+                        id: prefsBackdrop
+                        parent: frame
+                        x: -sbg.m; y: -sbg.m
+                        z: -100
+                        width: frame.width + 2 * sbg.m
+                        height: frame.height + 2 * sbg.m
+                        Rectangle { anchors.fill: parent; color: "#141418" }
+                        Image {
+                            x: sbg.m - prefsGlassGeo.x
+                            y: sbg.m - prefsGlassGeo.y
+                            width: prefsGlassGeo.mw; height: prefsGlassGeo.mh
+                            source: root.fileUrl(root.wallpaperFor(prefsGlassGeo.mon))
+                            sourceSize.width: prefsGlassGeo.mw
+                            fillMode: Image.PreserveAspectCrop
+                            asynchronous: true; smooth: true
+                        }
+                        LiveWall {
+                            x: sbg.m - prefsGlassGeo.x
+                            y: sbg.m - prefsGlassGeo.y
+                            width: prefsGlassGeo.mw; height: prefsGlassGeo.mh
+                            video: root.bar ? root.bar.glassVideo : ""
+                            live: root.glassLive && prefsWindow.visible
+                            paused: !!root.bar && (root.bar.gaming || root.bar.wallUserPaused)
+                            clock: root.bar ? root.bar.wallClock : null
+                        }
+                    }
+                    ShaderEffectSource {
+                        id: sbSrc
+                        sourceItem: prefsBackdrop
+                        hideSource: true
+                        live: true
+                        visible: false
+                        textureSize: Qt.size(Math.round(prefsBackdrop.width / 2), Math.round(prefsBackdrop.height / 2))
+                    }
+                    // a little more frost than the menus: text sits right on this glass
+                    MultiEffect {
+                        id: sbBlurFx
+                        source: sbSrc
+                        width: sbSrc.textureSize.width; height: sbSrc.textureSize.height
+                        blurEnabled: true; blurMax: 48
+                        blur: Math.min(1, root.glassBlur * 1.5 * 1.4 * 0.5 / 48)
+                        autoPaddingEnabled: false
+                        visible: false
+                    }
+                    ShaderEffectSource { id: sbBlur; sourceItem: sbBlurFx; live: true; mipmap: true; visible: false }
+                    ShaderEffect {
+                        x: sbg.g.x - sbg.pad; y: sbg.g.y - sbg.pad
+                        width: sbg.g.width + 2 * sbg.pad
+                        height: sbg.g.height + 2 * sbg.pad
+                        fragmentShader: root.glassShaderUrl
+                        onStatusChanged: if (status === ShaderEffect.Error) root.glassState = "failed"
+                        property variant src: sbBlur
+                        property vector2d itemSize: Qt.vector2d(width, height)
+                        property vector2d glassSize: Qt.vector2d(sbg.g.width, sbg.g.height)
+                        property vector2d srcSize: Qt.vector2d(prefsBackdrop.width, prefsBackdrop.height)
+                        property vector2d srcOffset: Qt.vector2d(sbg.g.x - sbg.pad + sbg.m, sbg.g.y - sbg.pad + sbg.m)
+                        property real pad: sbg.pad
+                        property real radius: frame.radius - 1
+                        property real bezel: 24
+                        property real thickness: 30 * root.glassLiquid * 1.6
+                        property real dispersion: 0.06 * root.glassLiquid * 1.3
+                        property real magnify: 0.02 * root.glassLiquid
+                        property real rim: root.glassRim
+                        property real grain: root.glassGrain * 0.2
+                        property real blurPx: 1.5
+                        // firmer than the menus (page titles and section labels sit right on the glass), still clearly glass
+                        property real tintMix: 0.30 + root.glassOpacity * 0.35
+                        property vector4d accentTint: root.accentTintVec
+                        property real saturation: 1.25
+                        property real dark: pal.dark ? 1 : 0
+                        property real debug: root.glassDebug ? 1 : 0
+                        property real shadowAmt: 0
+                        property real rimTint: 0
+                        property real ringW: 0
+                        property real flatInner: 1
+                    }
+                }
+            }
+
             // opaque page area: from the sidebar's right edge to the window edge (rounded on the right only)
             Rectangle {
+                visible: pageGlass.status !== Loader.Ready
                 x: sidebar.x + sidebar.width; y: 1
                 width: parent.width - x - 1; height: parent.height - 2
                 radius: 11
@@ -1140,92 +1235,6 @@ Scope {
                     Rectangle { anchors.right: parent.right; width: 14; height: parent.height; color: Qt.rgba(pal.sidebarGlass.r, pal.sidebarGlass.g, pal.sidebarGlass.b, 1) }
                 }
                 Rectangle { visible: !sidebar.floating; anchors.right: parent.right; width: 1; height: parent.height; color: pal.sep }
-
-                // the glass slab: refracts the wallpaper exactly where the window sits (Hyprland's blur is xray, so
-                // that is also what the rest of the window shows, blurred)
-                Loader {
-                    anchors.fill: parent
-                    z: -1
-                    active: false       // Liquid Glass sidebar removed: Settings is plain transparent + frosted blur
-                    sourceComponent: Item {
-                        id: sbg
-                        readonly property real m: 64       // backdrop margin around the window (refraction reach)
-                        readonly property real pad: 12     // shader padding (drop shadow)
-                        Item {
-                            id: prefsBackdrop
-                            parent: frame
-                            x: -sbg.m; y: -sbg.m
-                            z: -100
-                            width: frame.width + 2 * sbg.m
-                            height: frame.height + 2 * sbg.m
-                            Rectangle { anchors.fill: parent; color: "#141418" }
-                            Image {
-                                x: sbg.m - prefsGlassGeo.x
-                                y: sbg.m - prefsGlassGeo.y
-                                width: prefsGlassGeo.mw; height: prefsGlassGeo.mh
-                                source: root.fileUrl(root.wallpaperFor(prefsGlassGeo.mon))
-                                sourceSize.width: prefsGlassGeo.mw
-                                fillMode: Image.PreserveAspectCrop
-                                asynchronous: true; smooth: true
-                            }
-                            LiveWall {
-                                x: sbg.m - prefsGlassGeo.x
-                                y: sbg.m - prefsGlassGeo.y
-                                width: prefsGlassGeo.mw; height: prefsGlassGeo.mh
-                                video: root.bar ? root.bar.glassVideo : ""
-                                live: root.glassLive && prefsWindow.visible
-                                paused: !!root.bar && (root.bar.gaming || root.bar.wallUserPaused)
-                                clock: root.bar ? root.bar.wallClock : null
-                            }
-                        }
-                        ShaderEffectSource {
-                            id: sbSrc
-                            sourceItem: prefsBackdrop
-                            hideSource: true
-                            live: true
-                            visible: false
-                            textureSize: Qt.size(Math.round(prefsBackdrop.width / 2), Math.round(prefsBackdrop.height / 2))
-                        }
-                        MultiEffect {
-                            id: sbBlurFx
-                            source: sbSrc
-                            width: sbSrc.textureSize.width; height: sbSrc.textureSize.height
-                            blurEnabled: true; blurMax: 48
-                            blur: Math.min(1, root.glassBlur * 1.4 * 0.5 / 48)
-                            autoPaddingEnabled: false
-                            visible: false
-                        }
-                        ShaderEffectSource { id: sbBlur; sourceItem: sbBlurFx; live: true; mipmap: true; visible: false }
-                        ShaderEffect {
-                            x: -sbg.pad; y: -sbg.pad
-                            width: sidebar.width + 2 * sbg.pad
-                            height: sidebar.height + 2 * sbg.pad
-                            fragmentShader: root.glassShaderUrl
-                            property variant src: sbBlur
-                            property vector2d itemSize: Qt.vector2d(width, height)
-                            property vector2d glassSize: Qt.vector2d(sidebar.width, sidebar.height)
-                            property vector2d srcSize: Qt.vector2d(prefsBackdrop.width, prefsBackdrop.height)
-                            property vector2d srcOffset: Qt.vector2d(sidebar.x - sbg.pad + sbg.m, sidebar.y - sbg.pad + sbg.m)
-                            property real pad: sbg.pad
-                            property real radius: sidebar.radius
-                            property real bezel: 24
-                            property real thickness: 30 * root.glassLiquid * 1.6
-                            property real dispersion: 0.06 * root.glassLiquid * 1.3
-                            property real magnify: 0.03 * root.glassLiquid
-                            property real rim: Math.max(0.5, root.glassRim)
-                            property real grain: root.glassGrain * 0.2
-                            property real blurPx: 1.5
-                            property real tintMix: root.glassOpacity * 0.5
-                            property vector4d accentTint: root.accentTintVec
-                            property real saturation: 1.25
-                            property real dark: root.dockDark ? 1 : 0
-                            property real debug: 0
-                            property real shadowAmt: 0.6
-                            property real rimTint: 0
-                            property real ringW: 0
-                        }
-                    }
-                }
 
                 // traffic lights
                 Item {
