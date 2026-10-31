@@ -217,16 +217,26 @@ Scope {
                 }
                 Item { width: 1; height: 20 }
 
-                // --- name ---
-                Text {
-                    width: parent.width
-                    horizontalAlignment: Text.AlignHCenter
-                    wrapMode: Text.Wrap
-                    maximumLineCount: 2
-                    elide: Text.ElideRight
-                    text: "YukiShell"
-                    color: pal.text
-                    font.family: root.fontForWeight(Font.Bold, root.fam); font.pixelSize: 24; font.weight: Font.Bold
+                // --- name, with the version next to it in a lighter weight (like "macOS Sequoia 15") ---
+                Item {
+                    width: parent.width; height: nameRow.height
+                    Row {
+                        id: nameRow
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        spacing: 6
+                        Text {
+                            id: nameTxt
+                            text: "YukiShell"
+                            color: pal.text
+                            font.family: root.fontForWeight(Font.Bold, root.fam); font.pixelSize: 24; font.weight: Font.Bold
+                        }
+                        Text {
+                            anchors.baseline: nameTxt.baseline
+                            text: Version.label
+                            color: pal.text3
+                            font.family: root.fontForWeight(Font.Normal, root.fam); font.pixelSize: 24; font.weight: Font.Normal
+                        }
+                    }
                 }
                 Item { width: 1; height: 3 }
                 Text {
