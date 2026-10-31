@@ -4,11 +4,12 @@
   cursors.py list                  JSON list of the installed cursor themes: [{id, name, dir, preview}]; preview is a PNG of the
                                    theme's arrow, extracted from its Xcursor file into ~/.cache/yukishell/cursors/ ("" if none)
   cursors.py install <folder>      copy a cursor theme folder (one with a "cursors" or "hyprcursors" folder inside, or holding one
-                                   such theme) into ~/.local/share/icons; prints the theme's id
+                                   such theme) into ~/.local/share/icons, or turn a Windows cursor pack (.cur / .ani, GIF
+                                   animations) into one (wincursor.py); prints the theme's id
   cursors.py apply <theme> <size>  use it now and from the next login: Hyprland (setcursor + the environment new apps get), GTK,
                                    KDE/Qt apps, X apps (the "default" theme), and ~/.config/yukishell/cursor for hypr/rice/look.lua
 """
-import json, os, shutil, struct, subprocess, sys, zlib
+import json, os, re, shutil, struct, subprocess, sys, zlib
 
 HOME = os.path.expanduser("~")
 DATA = os.environ.get("XDG_DATA_HOME", os.path.join(HOME, ".local/share"))
@@ -109,6 +110,22 @@ def list_themes():
 
 def install(src):
     src = os.path.abspath(os.path.expanduser(src))
+    if not is_theme(src) and not any(is_theme(os.path.join(src, x)) for x in os.listdir(src)):
+        # a Windows cursor pack (.cur / .ani, maybe GIF animations): made into a Linux theme by wincursor.py
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import wincursor
+        if wincursor.is_pack(src):
+            tmp = os.path.join(DATA, "icons", ".yukishell-converting")
+            if os.path.exists(tmp):
+                shutil.rmtree(tmp)
+            title = wincursor.convert(src, tmp)
+            tid = re.sub(r"[^A-Za-z0-9]+", "-", title).strip("-") or "Custom-Cursor"
+            dest = os.path.join(DATA, "icons", tid)
+            if os.path.exists(dest):
+                shutil.rmtree(dest)
+            os.rename(tmp, dest)
+            print(tid)
+            return
     if not is_theme(src):      # a folder that holds the theme one level down (what most downloads unpack to)
         subs = [os.path.join(src, s) for s in sorted(os.listdir(src)) if is_theme(os.path.join(src, s))]
         if not subs:

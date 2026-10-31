@@ -934,7 +934,7 @@ var strings = {
     "Cursor": "커서",
     "Cursor Theme": "커서 테마",
     "Use a custom cursor": "사용자 지정 커서 사용",
-    "Choose the folder of a cursor theme you downloaded (unpack it first). It is copied to ~/.local/share/icons.": "다운로드한 커서 테마의 폴더를 선택하세요(먼저 압축을 푸세요). ~/.local/share/icons에 복사됩니다.",
+    "Choose the folder of a cursor theme you downloaded (unpack it first). Windows cursor packs (.cur, .ani, with or without GIF animations) are converted. It is copied to ~/.local/share/icons.": "다운로드한 커서 테마의 폴더를 선택하세요(먼저 압축을 푸세요). Windows 커서 팩(.cur, .ani, GIF 애니메이션 포함 여부 무관)은 변환됩니다. ~/.local/share/icons에 복사됩니다.",
     "Add Cursor Theme…": "커서 테마 추가…",
     "Choose a cursor theme folder": "커서 테마 폴더 선택",
     "That folder has no cursor theme in it.": "그 폴더에는 커서 테마가 없습니다.",

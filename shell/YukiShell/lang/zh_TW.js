@@ -934,7 +934,7 @@ var strings = {
     "Cursor": "游標",
     "Cursor Theme": "游標主題",
     "Use a custom cursor": "使用自訂游標",
-    "Choose the folder of a cursor theme you downloaded (unpack it first). It is copied to ~/.local/share/icons.": "選擇你下載的游標主題資料夾（先解壓縮）。它會被複製到 ~/.local/share/icons。",
+    "Choose the folder of a cursor theme you downloaded (unpack it first). Windows cursor packs (.cur, .ani, with or without GIF animations) are converted. It is copied to ~/.local/share/icons.": "選擇你下載的游標主題資料夾（先解壓縮）。Windows 游標包（.cur、.ani，含或不含 GIF 動畫）會被轉換。它會被複製到 ~/.local/share/icons。",
     "Add Cursor Theme…": "加入游標主題…",
     "Choose a cursor theme folder": "選擇游標主題資料夾",
     "That folder has no cursor theme in it.": "該資料夾中沒有游標主題。",

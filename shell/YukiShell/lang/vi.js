@@ -892,7 +892,7 @@ var strings = {
     "Cursor": "Con trỏ",
     "Cursor Theme": "Chủ đề con trỏ",
     "Use a custom cursor": "Dùng con trỏ tùy chỉnh",
-    "Choose the folder of a cursor theme you downloaded (unpack it first). It is copied to ~/.local/share/icons.": "Chọn thư mục của chủ đề con trỏ bạn đã tải về (giải nén trước). Nó sẽ được sao chép vào ~/.local/share/icons.",
+    "Choose the folder of a cursor theme you downloaded (unpack it first). Windows cursor packs (.cur, .ani, with or without GIF animations) are converted. It is copied to ~/.local/share/icons.": "Chọn thư mục của chủ đề con trỏ bạn đã tải về (giải nén trước). Bộ con trỏ Windows (.cur, .ani, có hoặc không có ảnh GIF động) sẽ được chuyển đổi. Nó sẽ được sao chép vào ~/.local/share/icons.",
     "Add Cursor Theme…": "Thêm chủ đề con trỏ…",
     "Choose a cursor theme folder": "Chọn thư mục chủ đề con trỏ",
     "That folder has no cursor theme in it.": "Thư mục đó không có chủ đề con trỏ nào.",

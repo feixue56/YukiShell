@@ -944,7 +944,7 @@ var strings = {
     "Cursor": "Курсор",
     "Cursor Theme": "Тема курсора",
     "Use a custom cursor": "Свой курсор",
-    "Choose the folder of a cursor theme you downloaded (unpack it first). It is copied to ~/.local/share/icons.": "Выберите папку скачанной темы курсора (сначала распакуйте её). Она будет скопирована в ~/.local/share/icons.",
+    "Choose the folder of a cursor theme you downloaded (unpack it first). Windows cursor packs (.cur, .ani, with or without GIF animations) are converted. It is copied to ~/.local/share/icons.": "Выберите папку скачанной темы курсора (сначала распакуйте её). Наборы курсоров Windows (.cur, .ani, с GIF-анимацией или без) будут преобразованы. Она будет скопирована в ~/.local/share/icons.",
     "Add Cursor Theme…": "Добавить тему курсора…",
     "Choose a cursor theme folder": "Выберите папку темы курсора",
     "That folder has no cursor theme in it.": "В этой папке нет темы курсора.",

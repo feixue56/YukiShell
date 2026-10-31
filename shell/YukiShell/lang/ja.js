@@ -934,7 +934,7 @@ var strings = {
     "Cursor": "カーソル",
     "Cursor Theme": "カーソルテーマ",
     "Use a custom cursor": "カスタムカーソルを使う",
-    "Choose the folder of a cursor theme you downloaded (unpack it first). It is copied to ~/.local/share/icons.": "ダウンロードしたカーソルテーマのフォルダを選んでください（先に展開してください）。~/.local/share/icons にコピーされます。",
+    "Choose the folder of a cursor theme you downloaded (unpack it first). Windows cursor packs (.cur, .ani, with or without GIF animations) are converted. It is copied to ~/.local/share/icons.": "ダウンロードしたカーソルテーマのフォルダを選んでください（先に展開してください）。Windows のカーソルパック（.cur、.ani、GIF アニメ付きも可）は変換されます。~/.local/share/icons にコピーされます。",
     "Add Cursor Theme…": "カーソルテーマを追加…",
     "Choose a cursor theme folder": "カーソルテーマのフォルダを選択",
     "That folder has no cursor theme in it.": "そのフォルダにはカーソルテーマがありません。",

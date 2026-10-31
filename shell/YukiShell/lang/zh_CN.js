@@ -934,7 +934,7 @@ var strings = {
     "Cursor": "光标",
     "Cursor Theme": "光标主题",
     "Use a custom cursor": "使用自定义光标",
-    "Choose the folder of a cursor theme you downloaded (unpack it first). It is copied to ~/.local/share/icons.": "选择你下载的光标主题文件夹（先解压）。它会被复制到 ~/.local/share/icons。",
+    "Choose the folder of a cursor theme you downloaded (unpack it first). Windows cursor packs (.cur, .ani, with or without GIF animations) are converted. It is copied to ~/.local/share/icons.": "选择你下载的光标主题文件夹（先解压）。Windows 光标包（.cur、.ani，带或不带 GIF 动画）会被转换。它会被复制到 ~/.local/share/icons。",
     "Add Cursor Theme…": "添加光标主题…",
     "Choose a cursor theme folder": "选择光标主题文件夹",
     "That folder has no cursor theme in it.": "该文件夹中没有光标主题。",

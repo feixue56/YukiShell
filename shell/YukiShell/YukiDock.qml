@@ -5061,7 +5061,7 @@ Scope {
                     SRow {
                         t: pal
                         title: I18n.tr("Use a custom cursor")
-                        subtitle: curPane.msg !== "" ? curPane.msg : I18n.tr("Choose the folder of a cursor theme you downloaded (unpack it first). It is copied to ~/.local/share/icons.")
+                        subtitle: curPane.msg !== "" ? curPane.msg : I18n.tr("Choose the folder of a cursor theme you downloaded (unpack it first). Windows cursor packs (.cur, .ani, with or without GIF animations) are converted. It is copied to ~/.local/share/icons.")
                         SButton {
                             t: pal
                             text: I18n.tr("Add Cursor Theme…")
