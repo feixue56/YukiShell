@@ -184,7 +184,7 @@ Scope {
     function applyInput() {
         function b(v) { return v ? "true" : "false"; }
         Quickshell.execDetached(["hyprctl", "eval", "hl.config({ input = { repeat_rate = " + Math.round(kbRepeatRate) + ", repeat_delay = " + Math.round(kbRepeatDelay)
-            + ", sensitivity = " + mouseSens.toFixed(2) + ", accel_profile = \"" + (mouseAccel ? "" : "flat") + "\", natural_scroll = " + b(mouseNatural)
+            + ", sensitivity = " + mouseSens.toFixed(2) + ", accel_profile = \"" + (mouseAccel ? "adaptive" : "flat") + "\", natural_scroll = " + b(mouseNatural)
             + ", touchpad = { natural_scroll = " + b(tpNatural) + ", tap_to_click = " + b(tpTap) + ", disable_while_typing = " + b(tpDwt)
             + ", scroll_factor = " + tpScroll.toFixed(2) + " } } })"]);
     }
