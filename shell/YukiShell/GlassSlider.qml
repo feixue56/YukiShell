@@ -41,6 +41,21 @@ Item {
     property real glassGrain: 0.03
     property real glassTint: 0.42
     property color borderTint: "#8A9AB5"
+    // value bubble: the current value in a little pill above the knob, while the pointer is over the slider and always while it is
+    // being dragged (Settings turns it on; the Control Center sliders keep it off)
+    property bool showValue: false
+    property string valueSuffix: ""                    // e.g. " px", "×", "%"
+    property var valueText: undefined                   // optional function (value) -> string, for sliders whose value is not the shown number
+    property color bubbleColor: dark ? "#3A3A3C" : "#FFFFFF"
+    property color bubbleText: dark ? "#F5F5F7" : "#1D1D1F"
+    function fmtValue(v) {
+        if (typeof valueText === "function") return valueText(v);
+        var span = to - from;
+        if ((stepSize >= 1 || (stepSize <= 0 && span >= 10)) && Math.abs(from - Math.round(from)) < 1e-9) return Math.round(v) + valueSuffix;
+        if (valueSuffix === "" && from >= 0 && to <= 1) return Math.round(v * 100) + "%";
+        var d = stepSize > 0 ? Math.min(3, Math.max(0, Math.ceil(-Math.log(stepSize) / Math.LN10 - 1e-9))) : 2;
+        return String(Number(v.toFixed(d))) + valueSuffix;
+    }
 
     width: 230
     height: (leftLabel !== "" || rightLabel !== "") ? 40 : 22
@@ -198,6 +213,37 @@ Item {
                     }
                 }
             }
+        }
+    }
+
+    // --- value bubble ---
+    Item {
+        id: bubble
+        z: 10
+        readonly property bool on: s.showValue && s.enabled && (sma.containsMouse || sma.pressed)
+        opacity: on ? 1 : 0
+        visible: opacity > 0.01
+        Behavior on opacity { NumberAnimation { duration: on ? 120 : 220; easing.type: Easing.OutCubic } }
+        scale: on ? 1 : 0.85
+        Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutBack; easing.overshoot: 2.0 } }
+        transformOrigin: Item.Bottom
+        width: Math.max(28, bt.implicitWidth + 14); height: 22
+        // centred over the knob (follows it, jiggle included), never past the slider's ends
+        x: Math.max(-6, Math.min(s.width - width + 6, knob.x + knob.width / 2 - width / 2))
+        y: knob.y - height - 6 - 2 * s.pressT
+        Rectangle {
+            anchors.fill: parent
+            radius: 11
+            color: s.bubbleColor
+            border.width: 1; border.color: s.dark ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(0, 0, 0, 0.10)
+        }
+        Text {
+            id: bt
+            anchors.centerIn: parent
+            text: s.fmtValue(s.value)
+            color: s.bubbleText
+            font.family: s.fontFamily; font.pixelSize: 12; font.weight: Font.DemiBold
+            font.features: ({ "tnum": 1 })        // tabular figures: the pill doesn't jitter while the number changes
         }
     }
 

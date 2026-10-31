@@ -365,6 +365,9 @@ Scope {
         glassTint: root.glassOpacity
         borderTint: root.bar ? root.bar.menuBorderColor : "#8A9AB5"
         onGlassFailed: root.glassState = "failed"
+        showValue: true
+        bubbleColor: t.dark ? "#4A4A4E" : "#FFFFFF"
+        bubbleText: t.text
 
         // "Reset to default": every settings slider can name its default (resetValue, in the slider's own from..to units). While
         // the value differs from it, a small round button left of the track sends the default through moved().
@@ -3675,6 +3678,7 @@ Scope {
                             from: 0; to: 8; stepSize: 1
                             value: root.bar ? root.bar.windowBorder : 2
                             leftLabel: I18n.tr("Off"); rightLabel: "8 px"
+                            valueSuffix: " px"
                             resetValue: 2
                             onMoved: v => { if (root.bar) root.bar.windowBorder = Math.round(v); }
                         }
@@ -4736,7 +4740,7 @@ Scope {
                     }
                     SRow {
                         t: pal; title: I18n.tr("Delay until repeat")
-                        SSlider { t: pal; resetValue: 0.846; leftLabel: I18n.tr("Long"); rightLabel: I18n.tr("Short"); from: 0; to: 1; value: root.bar ? 1 - (root.bar.kbRepeatDelay - 150) / 650 : 0.6; onMoved: v => { if (root.bar) root.bar.kbRepeatDelay = Math.round(150 + (1 - v) * 650); } }
+                        SSlider { t: pal; resetValue: 0.846; leftLabel: I18n.tr("Long"); rightLabel: I18n.tr("Short"); from: 0; to: 1; valueText: v => Math.round(150 + (1 - v) * 650) + " ms"; value: root.bar ? 1 - (root.bar.kbRepeatDelay - 150) / 650 : 0.6; onMoved: v => { if (root.bar) root.bar.kbRepeatDelay = Math.round(150 + (1 - v) * 650); } }
                     }
                 }
                 SLabel { t: pal; text: I18n.tr("Layout: ") + "us" + ". Changes apply right away." }
@@ -5036,6 +5040,7 @@ Scope {
                             from: 1; to: 4; stepSize: 0.25
                             value: root.bar ? root.bar.cursorZoom : 1
                             leftLabel: I18n.tr("Off"); rightLabel: "4×"
+                            valueSuffix: "×"
                             resetValue: 1
                             onMoved: v => { if (root.bar) root.bar.cursorZoom = Math.round(v * 4) / 4; }
                         }
