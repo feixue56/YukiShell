@@ -202,7 +202,9 @@ Scope {
         function b(v) { return v ? "true" : "false"; }
         Quickshell.execDetached(["hyprctl", "eval", "hl.config({ cursor = { hide_on_key_press = " + b(cursorHideTyping) + ", inactive_timeout = " + cursorHideIdle.toFixed(1)
             + ", warp_on_change_workspace = " + (cursorWarpWs ? 1 : 0) + ", zoom_factor = " + Math.max(1, cursorZoom).toFixed(2)
-            + " }, input = { follow_mouse = " + (cursorFollowFocus ? 1 : 0) + " } })"]);
+            // closing a window: focus goes to the window under the pointer (the desktop if there is none, see DesktopFocus.qml),
+            // not to some other window that happened to be focused before
+            + " }, input = { follow_mouse = " + (cursorFollowFocus ? 1 : 0) + ", focus_on_close = " + (cursorFollowFocus ? 1 : 0) + " } })"]);
     }
     // --- Window borders follow the accent colour (Settings -> Appearance -> Accent) ---
     // Every window, the terminals included, gets the same border: the accent on the focused window, a faint accent on the others.
