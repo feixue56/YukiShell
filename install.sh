@@ -32,6 +32,7 @@ link "$here/shell/YukiLock"                    "$cfg/quickshell/YukiLock"
 link "$here/shell/bin/yuki-start"              "$HOME/.local/bin/yuki-start"
 link "$here/shell/bin/yuki-restart"            "$HOME/.local/bin/yuki-restart"
 link "$here/shell/bin/yuki-brightness"         "$HOME/.local/bin/yuki-brightness"
+link "$here/shell/bin/yukishell"               "$HOME/.local/bin/yukishell"
 link "$here/shell/scripts"                     "$cfg/hypr-yukishell/scripts"   # wallpaper, Game Mode, wallpaper pause, dynamic wallpaper
 [ -f "$cfg/hypr-yukishell/env" ] || { mkdir -p "$cfg/hypr-yukishell"; cp "$here/shell/env.example" "$cfg/hypr-yukishell/env"; }
 link "$here/qt/CatppuccinMauve.colors" "$HOME/.local/share/color-schemes/CatppuccinMauve.colors"

@@ -368,7 +368,7 @@ hypr-yukishell/
 │   │   ├── lang/              translations
 │   │   └── assets/            logo, credit pictures, small helpers
 │   ├── YukiLock/              the lock screen
-│   ├── bin/                   yuki-start, yuki-restart, yuki-brightness
+│   ├── bin/                   yuki-start, yuki-restart, yuki-brightness, yukishell (yukishell stats)
 │   ├── scripts/               wallpaper, Game Mode and sound helpers
 │   └── env.example
 ├── kitty/  fish/  fastfetch/  btop/  cava/
@@ -398,6 +398,12 @@ isn't using the Lua config. `tools/doctor` checks both.
 
 **How do I restart the shell?**
 `Super+Shift+R`, or `yuki-restart` in a terminal. Please don't use `qs kill`. Quickshell can crash on the way out, and then you end up with two shells.
+
+**How much does YukiShell use?**
+`yukishell stats` lists every YukiShell process (the shell, the waiting lock screen, the wallpaper player) and the helpers it
+started, with CPU, RAM, GPU load and video memory each, the shell's CPU split into rendering / QML / video decoding, the programs
+it launches in the background, cache sizes and any helpers an earlier session left behind. `-i 5` samples for 5 seconds,
+`-w` keeps refreshing, `--json` is for scripts.
 
 **It's using a lot of CPU / it's slow on my GPU.**
 Try Game Mode (`Super+G`) to see whether the effects are the cause. If it's an older GPU, see the environment variables above.
