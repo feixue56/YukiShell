@@ -223,7 +223,7 @@ Item {
         readonly property bool on: s.showValue && s.enabled && (sma.containsMouse || sma.pressed)
         opacity: on ? 1 : 0
         visible: opacity > 0.01
-        Behavior on opacity { NumberAnimation { duration: on ? 120 : 220; easing.type: Easing.OutCubic } }
+        Behavior on opacity { NumberAnimation { duration: bubble.on ? 120 : 220; easing.type: Easing.OutCubic } }
         scale: on ? 1 : 0.85
         Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutBack; easing.overshoot: 2.0 } }
         transformOrigin: Item.Bottom
