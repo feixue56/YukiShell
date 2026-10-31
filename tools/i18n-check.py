@@ -41,10 +41,10 @@ for f in sorted(shell.glob("*.qml")):
         raw = m.group(1) if m.group(1) is not None else m.group(2)
         used.setdefault(unescape(raw), f.name)
 
-# keyboard shortcut descriptions live in the Lua binds (hypr/rice/*.lua) and are translated by the Settings -> Keyboard list
+# keyboard shortcut descriptions live in the Lua binds (hypr/scripts/*.lua) and are translated by the Settings -> Keyboard list
 lua_desc = [re.compile(r'description = "([^"]+)"'), re.compile(r'\band "([^"]+)" or nil'),
             re.compile(r'^bind\(.*?,\s*"([^"]+)"(?:,\s*\{[^}]*\})?\)\s*(?:--.*)?$', re.M)]
-for f in sorted((root / "hypr" / "rice").glob("*.lua")):
+for f in sorted((root / "hypr" / "scripts").glob("*.lua")):
     text = f.read_text(encoding="utf-8")
     for rx in lua_desc:
         for m in rx.finditer(text):

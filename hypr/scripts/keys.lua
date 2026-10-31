@@ -1,6 +1,6 @@
 -- Rebindable keyboard shortcuts.
 --
---   local bind = require("rice.keys").bind
+--   local bind = require("scripts.keys").bind
 --   bind("SUPER + Return", hl.dsp.exec_cmd("kitty"), "Open Terminal")
 --
 -- It is hl.bind with a description (the description is the shortcut's name everywhere), and two extras:

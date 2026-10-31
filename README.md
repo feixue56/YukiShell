@@ -123,7 +123,7 @@ run `./install.sh` again too (the release notes say so). After a Qt update, run 
 
 Two things are personal to my machine and you'll probably want to change them:
 
-- **`hypr/rice/monitor.lua`**: my monitor is pinned to `HDMI-A-1` at 1920x1080@100. Put your own output name in (run `hyprctl monitors`).
+- **`hypr/scripts/monitor.lua`**: my monitor is pinned to `HDMI-A-1` at 1920x1080@100. Put your own output name in (run `hyprctl monitors`).
 - **`fastfetch/config.jsonc`**: `logo.source` points at a picture that isn't in this repo. Change it or delete the line.
 
 Then log out and back into Hyprland. The shell starts by itself (`yuki-start` keeps it running and restarts it if it crashes).
@@ -251,7 +251,7 @@ Most things are in **System Settings** (`Super+Z`). Here are the bits that live 
 
 ### Your monitor
 
-`hypr/rice/monitor.lua`:
+`hypr/scripts/monitor.lua`:
 
 ```lua
 hl.monitor({
@@ -279,11 +279,11 @@ Run `yuki-restart` afterwards.
 
 ### Your own keybinds
 
-Settings is the easy way. If you'd rather write them, add them to `hypr/rice/binds.lua` with the `bind` helper so they show up in Settings
+Settings is the easy way. If you'd rather write them, add them to `hypr/scripts/binds.lua` with the `bind` helper so they show up in Settings
 too:
 
 ```lua
-local bind = require("rice.keys").bind
+local bind = require("scripts.keys").bind
 
 bind("SUPER + B", hl.dsp.exec_cmd("firefox"), "Open Firefox")
 bind("SUPER + SHIFT + B", hl.dsp.exec_cmd("firefox --private-window"), "Private Firefox")
@@ -336,7 +336,7 @@ qs -c YukiShell ipc call widgets remove 2
 
 ### Colours
 
-The whole palette is in `hypr/rice/theme.lua`. The accent colour of the shell itself is in *Settings → Appearance*.
+The whole palette is in `hypr/scripts/theme.lua`. The accent colour of the shell itself is in *Settings → Appearance*.
 
 ## Things that conflict with it
 
@@ -359,7 +359,7 @@ If something's autostarting one of these (an old `exec-once`, a systemd user ser
 hypr-yukishell/
 ├── install.sh                 symlinks everything into place
 ├── hypr/
-│   ├── rice/                  Hyprland, in Lua
+│   ├── scripts/               Hyprland, in Lua
 │   │   ├── theme.lua          palette
 │   │   ├── monitor.lua        your screen (change this)
 │   │   ├── look.lua           gaps, borders, blur, animations
@@ -394,7 +394,7 @@ Where things end up on your system:
 | `~/.config/quickshell/YukiShell`, `YukiLock` | symlinks to `shell/` |
 | `~/.config/yukibar`, `yukidock`, `yukishell`, `yukilock`, `yukiwidgets` | your settings |
 | `~/.config/hypr-yukishell/env` | your environment variables |
-| `~/.config/yukishell/cursor` | the cursor theme and size from *Settings → Cursor*, read by `hypr/rice/look.lua` at login |
+| `~/.config/yukishell/cursor` | the cursor theme and size from *Settings → Cursor*, read by `hypr/scripts/look.lua` at login |
 | `~/.local/share/icons` | cursor themes you added in *Settings → Cursor* |
 | `~/.local/state/hypr-yukishell/YukiShell.log` | the shell's log |
 

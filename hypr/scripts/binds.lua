@@ -2,8 +2,8 @@
 local mod = "SUPER"
 
 -- Every bind with a description is listed, translated, in System Settings -> Keyboard -> Keyboard Shortcuts, where most of them can be changed
--- (rice/keys.lua has the details). A bind that belongs to a group of keys passes { fixed = true } and stays as it is.
-local bind = require("rice.keys").bind
+-- (scripts/keys.lua has the details). A bind that belongs to a group of keys passes { fixed = true } and stays as it is.
+local bind = require("scripts.keys").bind
 
 bind(mod .. " + Return",         hl.dsp.exec_cmd("kitty"), "Open Terminal")
 bind(mod .. " + E",              hl.dsp.exec_cmd("dolphin", { tile = true, maximize = true }), "Open Files")   -- full size (new windows float otherwise); Super+Shift+F un-maximizes

@@ -183,7 +183,7 @@ Scope {
     Timer { id: inputApplyT; interval: 150; onTriggered: root.applyInput() }
     // --- Cursor (Settings -> Cursor) ---
     // The theme and size go through assets/cursors.py (Hyprland, GTK, KDE/Qt and X apps, and ~/.config/yukishell/cursor, which
-    // hypr/rice/look.lua reads at login); the behaviours are applied live with `hyprctl eval`, like the input settings.
+    // hypr/scripts/look.lua reads at login); the behaviours are applied live with `hyprctl eval`, like the input settings.
     property string cursorTheme: "Bibata-Modern-Classic"
     property int cursorSize: 24
     property bool cursorHideTyping: false    // hide the pointer while typing
@@ -208,11 +208,11 @@ Scope {
     }
     // --- Window borders follow the accent colour (Settings -> Appearance -> Accent) ---
     // Every window, the terminals included, gets the same border: the accent on the focused window, a faint accent on the others.
-    // hypr/rice/theme.lua only sets the colours used before the shell starts; this is re-applied after every Hyprland config reload.
+    // hypr/scripts/theme.lua only sets the colours used before the shell starts; this is re-applied after every Hyprland config reload.
     property int windowBorder: 1            // border thickness in px (Settings -> Desktop & Dock -> Windows), 0 = no border
     onAccentChanged: if (settingsReady) borderApplyT.restart()
     onWindowBorderChanged: if (settingsReady) borderApplyT.restart()
-    // new windows open floating, centred (hypr/rice/rules.lua: FLOAT_NEW_RULE); off = they tile as before
+    // new windows open floating, centred (hypr/scripts/rules.lua: FLOAT_NEW_RULE); off = they tile as before
     property bool floatNewWindows: true
     onFloatNewWindowsChanged: if (settingsReady) borderApplyT.restart()
     function applyWindowRules() {
@@ -3003,7 +3003,7 @@ Scope {
     }
 
     // --- Menus ---
-    // Hyprland shortcuts shown next to menu items: read from the list hypr/rice/keys.lua writes (default keys) plus the user's own
+    // Hyprland shortcuts shown next to menu items: read from the list hypr/scripts/keys.lua writes (default keys) plus the user's own
     // choices from Settings -> Keyboard -> Keyboard Shortcuts, so a changed shortcut shows up in the menus too. hk("Lock Screen") -> "Super+L"
     property var bindKeys: ({})
     function parseBinds() {
@@ -3804,7 +3804,7 @@ Scope {
         }
     }
     IpcHandler {
-        // menu actions with a keyboard shortcut (hypr/rice/shell.lua)
+        // menu actions with a keyboard shortcut (hypr/scripts/shell.lua)
         target: "actions"
         function recording(): void { root.toggleRecording(); }
         function pickColor(): void { root.pickColor(); }

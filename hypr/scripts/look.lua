@@ -1,4 +1,4 @@
-local c = require("rice.theme")
+local c = require("scripts.theme")
 
 -- The cursor: Settings -> Cursor saves its theme and size in ~/.config/yukishell/cursor (two lines), read here at login.
 local cursorTheme, cursorSize = "Bibata-Modern-Classic", "24"

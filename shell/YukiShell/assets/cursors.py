@@ -7,7 +7,7 @@
                                    such theme) into ~/.local/share/icons, or turn a Windows cursor pack (.cur / .ani, GIF
                                    animations) into one (wincursor.py); prints the theme's id
   cursors.py apply <theme> <size>  use it now and from the next login: Hyprland (setcursor + the environment new apps get), GTK,
-                                   KDE/Qt apps, X apps (the "default" theme), and ~/.config/yukishell/cursor for hypr/rice/look.lua
+                                   KDE/Qt apps, X apps (the "default" theme), and ~/.config/yukishell/cursor for hypr/scripts/look.lua
 """
 import json, os, re, shutil, struct, subprocess, sys, zlib
 

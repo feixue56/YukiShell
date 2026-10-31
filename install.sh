@@ -14,7 +14,7 @@ link() {  # link <src> <dst>
     ln -sfn "$1" "$2"
 }
 
-link "$here/hypr/rice"                          "$cfg/hypr/rice"
+link "$here/hypr/scripts"                       "$cfg/hypr/scripts"
 link "$here/hypr/bin"                           "$cfg/hypr/bin"
 link "$here/kitty/kitty.conf"                   "$cfg/kitty/kitty.conf"
 link "$here/fastfetch/config.jsonc"             "$cfg/fastfetch/config.jsonc"
@@ -46,22 +46,28 @@ if [ ! -d "$HOME/.local/share/sounds/yukishell" ]; then
     python3 "$here/shell/scripts/yukishell-make-sounds.py" >/dev/null 2>&1 || echo "note: UI sounds not generated (install python-numpy and re-run)."
 fi
 
-# Hyprland: one require line, placed above any MacShell block so install.sh updates there never touch the rice.
+# Hyprland: one require block, placed above any MacShell block so install.sh updates there never touch the rice.
 lua="$cfg/hypr/hyprland.lua"
-if [ -f "$lua" ] && ! grep -q 'rice.theme\|"rice\.' "$lua"; then
+# installs from before hypr/rice was renamed to hypr/scripts: point the block at the new folder, drop the old link
+if [ -f "$lua" ] && grep -q '"rice\.' "$lua"; then
+    cp "$lua" "$lua.pre-scripts"
+    sed -i 's/"rice\." \.\. m/"scripts." .. m/; s/'"'"'rice\." \.\. m/'"'"'scripts." .. m/' "$lua"
+fi
+[ -L "$cfg/hypr/rice" ] && case "$(readlink "$cfg/hypr/rice")" in "$here"/*) rm -f "$cfg/hypr/rice" ;; esac
+if [ -f "$lua" ] && ! grep -q '"scripts\.' "$lua"; then
     cp "$lua" "$lua.pre-rice"
     { cat <<'LUA'
 -- Rice (managed by ~/hypr-yukishell)
 for _, m in ipairs({ "monitor", "look", "input", "ime", "binds", "rules", "shell" }) do
-    local ok, err = pcall(require, "rice." .. m)
-    if not ok then hl.exec_cmd("notify-send 'Hyprland rice' 'rice." .. m .. " failed: " .. tostring(err):gsub("'", "") .. "'") end
+    local ok, err = pcall(require, "scripts." .. m)
+    if not ok then hl.exec_cmd("notify-send 'Hyprland rice' 'scripts." .. m .. " failed: " .. tostring(err):gsub("'", "") .. "'") end
 end
 
 LUA
       cat "$lua.pre-rice"; } > "$lua"
 fi
 
-# Drop MacShell's own block from hyprland.lua; YukiShell is wired in rice/shell.lua instead.
+# Drop MacShell's own block from hyprland.lua; YukiShell is wired in scripts/shell.lua instead.
 if [ -f "$lua" ] && grep -q '>>> MacShell module' "$lua"; then
     cp "$lua" "$lua.pre-fork"
     python3 - "$lua" <<'PY'
@@ -87,7 +93,7 @@ if command -v kwriteconfig6 >/dev/null; then
     # KDE apps (Dolphin's file view) read colours from kdeglobals itself, so the scheme's groups have to be copied in
     python3 "$here/qt/apply-scheme.py" "$here/qt/CatppuccinMauve.colors" || true
 fi
-# Qt apps' theme without Plasma (QT_QPA_PLATFORMTHEME=qt6ct in hypr/rice/look.lua): the same colours, Breeze style, Papirus icons
+# Qt apps' theme without Plasma (QT_QPA_PLATFORMTHEME=qt6ct in hypr/scripts/look.lua): the same colours, Breeze style, Papirus icons
 mkdir -p "$cfg/qt6ct/colors"
 link "$here/qt/qt6ct/YukiShell.conf" "$cfg/qt6ct/colors/YukiShell.conf"
 printf '[Appearance]\ncolor_scheme_path=%s\ncustom_palette=true\nicon_theme=Papirus-Dark\nstandard_dialogs=default\nstyle=Breeze\n\n[Fonts]\ngeneral="Noto Sans,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"\nfixed="JetBrainsMono Nerd Font,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"\n' \

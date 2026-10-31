@@ -14,7 +14,7 @@ import "Fonts.js" as Fonts
 //     mode "folder" -> folders only; the callback gets the folder's path (the open one when nothing is selected)
 //   The callback is always called once: with "" when the window is closed or cancelled.
 //
-// It is an ordinary floating window ("YukiShell Picker", see hypr/rice/rules.lua), so it works from the Dock's Settings, from the
+// It is an ordinary floating window ("YukiShell Picker", see hypr/scripts/rules.lua), so it works from the Dock's Settings, from the
 // desktop widgets and from the wallpaper picker alike. Look and feel (dark / font / thumbnail size) come from the owner.
 Window {
     id: win

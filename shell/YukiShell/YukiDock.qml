@@ -53,7 +53,7 @@ Scope {
     }
     property string userName: Quickshell.env("USER") || ""
 
-    // --- Displays: which monitor is the main one (resolution / refresh / position live in hypr/rice/monitor.lua) ---
+    // --- Displays: which monitor is the main one (resolution / refresh / position live in hypr/scripts/monitor.lua) ---
     property var displays: ({ primary: "" })                   // the main display, saved in ~/.config/yukishell/displays.json
     property var monList: []                                  // hyprctl monitors (live)
     FileView {
@@ -69,7 +69,7 @@ Scope {
         command: ["hyprctl", "-j", "monitors"]
         stdout: StdioCollector { onStreamFinished: { try { root.monList = JSON.parse(text); } catch (e) {} } }
     }
-    // Resolution, refresh rate and position are NOT set from here: hypr/rice/monitor.lua owns them (this used to re-apply
+    // Resolution, refresh rate and position are NOT set from here: hypr/scripts/monitor.lua owns them (this used to re-apply
     // a saved mode at every start and on every change, which fought the rice's own monitor config).
     function applySavedPrimary() {
         if (displays.primary) root.monitorPrimary = displays.primary;
@@ -77,7 +77,7 @@ Scope {
     }
     property string monitorPrimary: ""
     // Settings -> Displays: try a mode right away, keep it only when confirmed (else it goes back after 15 s); a kept one is
-    // saved for hypr/rice/monitor.lua
+    // saved for hypr/scripts/monitor.lua
     property var modePending: null            // { name, mode, prev, pos, scale }
     property int modeLeft: 0
     function evalMode(name, mode, pos, scale) {
@@ -731,7 +731,7 @@ Scope {
         ]
 
         // Keyboard -> Keyboard Shortcuts: the binds Hyprland really has loaded (the ones with a description), read live, and editable.
-        //   ~/.cache/yukishell/keybinds.tsv      written by hypr/rice/keys.lua: every shortcut, its default keys, and whether it may be changed
+        //   ~/.cache/yukishell/keybinds.tsv      written by hypr/scripts/keys.lua: every shortcut, its default keys, and whether it may be changed
         //   ~/.config/yukishell/keybinds.tsv     the user's own choices, read by keys.lua when Hyprland loads its config (so it is applied by `hyprctl reload`)
         property var shortcuts: []          // rows: { desc, spec, keys (keycap texts), def, editable, changed }
         property var kbBinds: []            // what Hyprland has right now: { desc, spec, norm }
@@ -1017,7 +1017,7 @@ Scope {
             onTriggered: {
                 // the compositor maps the window a moment after it becomes visible: send the dispatches a few times
                 var sel = 'window = "title:^(' + prefsWindow.title + ')$"';
-                // float / centre / size are handled by the "yukishell-settings" window rule (hypr/rice/rules.lua): the window is born floating
+                // float / centre / size are handled by the "yukishell-settings" window rule (hypr/scripts/rules.lua): the window is born floating
                 // Hyprland draws the focus border (active/inactive colours, like every other window); its rounding (used for its
                 // shadow and the blur behind the sidebar) matches the window's own corner radius
                 Hyprland.dispatch('hl.dsp.window.set_prop({ prop = "rounding", value = "' + Math.round(frame.radius * root.uiS) + '", ' + sel + ' })');
@@ -4855,7 +4855,7 @@ Scope {
                 SLabel {
                     t: pal; visible: prefsWindow.shortcuts.length > 0
                     text: prefsWindow.kbCanEdit ? I18n.tr("Click a shortcut to change it. Shortcuts that belong to a group of keys (the workspace numbers, the arrows) and Alt + Tab stay as they are.")
-                                                : I18n.tr("Read from Hyprland as it is running. Change them in ~/hypr-yukishell/hypr/rice/binds.lua and shell.lua.")
+                                                : I18n.tr("Read from Hyprland as it is running. Change them in ~/hypr-yukishell/hypr/scripts/binds.lua and shell.lua.")
                 }
                 Component.onCompleted: prefsWindow.loadShortcuts()
             }
