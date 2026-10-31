@@ -5907,15 +5907,41 @@ Scope {
                         spacing: 0
                         readonly property var mon: Hyprland.monitorFor(perScreen.modelData)
                         readonly property int activeId: mon && mon.activeWorkspace ? mon.activeWorkspace.id : (Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : -1)
+                        // workspaces in use that sit next to each other share ONE background: the first of a run draws it across the run
+                        // (0 = this one is empty, or continues the run of the one before it)
+                        function runAt(i) {
+                            var ids = root.wsIds;
+                            if (!root.wsOccupied(ids[i]) || (i > 0 && root.wsOccupied(ids[i - 1]))) return 0;
+                            var n = 0;
+                            while (i + n < ids.length && root.wsOccupied(ids[i + n])) n++;
+                            return n;
+                        }
                         Repeater {
                             model: root.wsIds
                             delegate: Item {
                                 id: wsi
                                 required property var modelData
+                                required property int index
                                 readonly property bool cur: wsRow.activeId === modelData
                                 readonly property bool busy: root.wsOccupied(modelData)
+                                readonly property int run: { root.wsCounts; root.wsIds; return wsRow.runAt(index); }
                                 width: 22; height: 28
-                                BarHover { id: wsHl; dark: bpal.dark; area: wsMa; hot: wsMa.containsMouse; pressed: wsMa.pressed; open: wsi.cur; filled: wsi.busy }
+                                // the run's background (later workspaces in the row draw their labels on top of it)
+                                GlassHover {
+                                    id: wsRun
+                                    property int cells: 1
+                                    readonly property int want: wsi.run
+                                    onWantChanged: if (want > 0) cells = want
+                                    Component.onCompleted: if (want > 0) cells = want
+                                    x: 1; y: 3
+                                    width: cells * 22 - 2
+                                    height: 22
+                                    radius: 8
+                                    Behavior on width { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
+                                    dark: bpal.dark
+                                    filled: wsi.run > 0
+                                }
+                                BarHover { id: wsHl; dark: bpal.dark; area: wsMa; hot: wsMa.containsMouse; pressed: wsMa.pressed; open: wsi.cur }
                                 Text {
                                     anchors.centerIn: parent
                                     scale: wsi.cur ? 1 : wsHl.lift
