@@ -425,6 +425,7 @@ var strings = {
     "Not connected": "未连接",
     "Not paired": "未配对",
     "Not Playing": "未在播放",
+    "No Music Playing": "没有正在播放的音乐",
     "Notes": "备忘录",
     "Nothing here yet.": "这里还什么都没有。",
     "Notification": "通知",

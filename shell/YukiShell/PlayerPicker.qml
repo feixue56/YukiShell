@@ -30,6 +30,8 @@ Scope {
     readonly property var player: {
         var ps = Mpris.players.values, best = null, bs = -1;
         for (var i = 0; i < ps.length; i++) {
+            // playerctld only mirrors the other players and stays registered when none is open: alone it is not a player
+            if (ps[i].dbusName === "org.mpris.MediaPlayer2.playerctld") continue;
             var s = score(ps[i]);
             if (s > bs) { bs = s; best = ps[i]; }
         }

@@ -8,6 +8,8 @@ Item {
     property real r: 7
     // no cover (or it failed to load) but a player is there: show the player's icon instead of the note
     readonly property bool iconFallback: wd.hasPlayer && wd.appIcon !== "" && !wd.preview
+    // no player at all: just a white music note, no tile, no rim shading, no hairline
+    readonly property bool bare: !wd.hasPlayer && !wd.preview
 
     // --- idle placeholder look (the embossed music note, drawn live: no image file) ---
     property color idleBgTop: "#3b3b40"
@@ -45,6 +47,7 @@ Item {
             transformOrigin: Item.TopLeft
 
             Rectangle {   // gray background
+                visible: !art.bare
                 anchors.fill: parent
                 gradient: Gradient {
                     GradientStop { position: 0.0; color: art.idleBgTop }
@@ -66,8 +69,8 @@ Item {
                         strokeColor: "transparent"
                         fillGradient: LinearGradient {
                             x1: 0; y1: 0; x2: 0; y2: 512
-                            GradientStop { position: 0.0; color: art.noteTop }
-                            GradientStop { position: 1.0; color: art.noteBottom }
+                            GradientStop { position: 0.0; color: art.bare ? "white" : art.noteTop }
+                            GradientStop { position: 1.0; color: art.bare ? "white" : art.noteBottom }
                         }
                         PathSvg { path: art.notePath }
                     }
@@ -115,6 +118,7 @@ Item {
                 blur: art.rimBlur
                 maskEnabled: true
                 maskSource: noteSrc
+                visible: !art.bare
                 opacity: art.rimOpacity
             }
         }
@@ -197,6 +201,7 @@ Item {
         maskSource: artMask
     }
     Rectangle {   // hairline around the art
+        visible: !art.bare
         anchors.fill: parent
         radius: art.r
         color: "transparent"

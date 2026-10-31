@@ -515,12 +515,12 @@ Item {
         return t.replace(/^\(\d+\)\s+/, "").replace(/\s+[-\u2013\u2014|]\s+(YouTube( Music)?|Chromium|Google Chrome|Brave|Mozilla Firefox|Firefox|Vivaldi|Opera|Microsoft Edge)$/, "");
     }
     // What is shown when the player gives little or nothing:
-    //   no player at all        -> "Not Playing" / "Open a music app", the placeholder note
+    //   no player at all        -> "No Music Playing" / "Open a music app", a plain white note (no tile)
     //   player open, no track   -> "Not Playing" / the player's name, its icon as artwork
     //   no artist and no album  -> the player's name under the title
     //   no cover                -> the player's icon on the placeholder tile
     readonly property bool hasTrack: hasPlayer && (title !== "" || artist !== "" || album !== "" || playing)
-    readonly property string shownTitle: !hasPlayer ? I18n.tr("Not Playing")
+    readonly property string shownTitle: !hasPlayer ? I18n.tr("No Music Playing")
                                        : (title !== "" ? cleanTitle(title)
                                           : (hasTrack ? (artist !== "" ? artist : I18n.tr("Unknown Title")) : I18n.tr("Not Playing")))
     readonly property string shownSub: !hasPlayer ? I18n.tr("Open a music app")
@@ -606,7 +606,7 @@ Item {
             blur: 28 * w.k
             spread: -2 * w.k
             color: w.faceTint ? Qt.hsla(w.tintH, Math.min(0.75, w.tintS), w.dark ? 0.06 : 0.25, 0.75) : Qt.rgba(0, 0, 0, w.dark ? 0.55 : 0.28)
-            opacity: artItem.opacity * (w.hasPlayer ? 0.55 + 3.5 * (w.artB - 0.88) : 0.35)
+            opacity: artItem.bare ? 0 : artItem.opacity * (w.hasPlayer ? 0.55 + 3.5 * (w.artB - 0.88) : 0.35)
             transform: Scale { origin.x: artItem.width / 2; origin.y: artItem.height / 2; xScale: w.artB; yScale: w.artB }
         }
         PlayerArt {

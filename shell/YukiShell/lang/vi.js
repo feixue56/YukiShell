@@ -425,6 +425,7 @@ var strings = {
     "Not connected": "Chưa kết nối",
     "Not paired": "Chưa ghép nối",
     "Not Playing": "Không phát",
+    "No Music Playing": "Không có nhạc đang phát",
     "Notes": "Ghi chú",
     "Nothing here yet.": "Chưa có gì ở đây.",
     "Notification": "Thông báo",

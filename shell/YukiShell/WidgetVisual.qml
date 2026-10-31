@@ -7,7 +7,6 @@ import "I18n.js" as I18n
 
 Item {
     id: v
-    readonly property bool showTrack: host.player !== null && host.player !== undefined && host.playerQuiet !== true   // see title: below
     required property var host           // the YukiWidgets instance (data, glass state, wallpaper lookup)
 
     // the player's icon: its desktop entry, else its name ("chromium-browser" -> "chromium"); "" when the theme has none
@@ -155,22 +154,21 @@ Item {
                 fam: host.fontFamily
                 screenX: v.sx; screenY: v.sy
                 hasPlayer: host.player !== null
-                // v.showTrack false: nothing has played for a moment, so no track is shown (YukiWidgets.qml, playerQuiet)
-                title: v.showTrack ? host.player.trackTitle : ""
-                artist: v.showTrack ? host.player.trackArtist : ""
-                album: v.showTrack ? host.player.trackAlbum : ""
-                artUrl: v.showTrack ? host.player.trackArtUrl : ""
+                title: host.player ? host.player.trackTitle : ""
+                artist: host.player ? host.player.trackArtist : ""
+                album: host.player ? host.player.trackAlbum : ""
+                artUrl: host.player ? host.player.trackArtUrl : ""
                 appName: host.player ? host.player.identity : ""
                 appIcon: host.player ? v.playerIcon(host.player) : ""
                 playing: host.player ? host.player.isPlaying : false
-                paused: v.showTrack ? host.player.playbackState === MprisPlaybackState.Paused : false
+                paused: host.player ? host.player.playbackState === MprisPlaybackState.Paused : false
                 shuffle: (host.player && host.player.shuffleSupported) ? host.player.shuffle : false
                 canShuffle: host.player !== null && host.player.shuffleSupported
                 loop: (host.player && host.player.loopSupported)
                       ? (host.player.loopState === MprisLoopState.Track ? 1 : (host.player.loopState === MprisLoopState.Playlist ? 2 : 0)) : 0
                 canLoop: host.player !== null && host.player.loopSupported
-                position: (v.showTrack && host.player.positionSupported) ? host.player.position : 0
-                length: (v.showTrack && host.player.lengthSupported) ? host.player.length : 0
+                position: (host.player && host.player.positionSupported) ? host.player.position : 0
+                length: (host.player && host.player.lengthSupported) ? host.player.length : 0
                 canSeek: host.player !== null && host.player.canSeek && host.player.positionSupported && host.player.lengthSupported
                 visSrc: host.visSrc
                 visOn: host.visOn
@@ -184,7 +182,7 @@ Item {
                 motion: host.mwMotion
                 barStyle: host.mwBar
                 visMode: host.mwVisMode
-                lyrics: v.showTrack ? host.lyricsLines : []
+                lyrics: host.lyricsLines
                 lyricsState: host.lyricsState
                 lyricsSynced: host.lyricsSynced
                 onLyricsToggled: on => host.lyricsWanted = on

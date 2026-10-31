@@ -425,6 +425,7 @@ var strings = {
     "Not connected": "연결되지 않음",
     "Not paired": "페어링되지 않음",
     "Not Playing": "재생 중이 아님",
+    "No Music Playing": "재생 중인 음악 없음",
     "Notes": "메모",
     "Nothing here yet.": "아직 아무것도 없습니다.",
     "Notification": "알림",

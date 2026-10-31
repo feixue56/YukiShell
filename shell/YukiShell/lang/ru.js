@@ -597,6 +597,7 @@ var strings = {
     "Dark Mode": "Тёмный режим",
     "Now Playing": "Сейчас играет",
     "Not Playing": "Ничего не играет",
+    "No Music Playing": "Музыка не играет",
     "Screen Recording": "Запись экрана",
     "Screen Sharing": "Общий экран",
     "Microphone": "Микрофон",

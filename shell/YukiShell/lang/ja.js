@@ -425,6 +425,7 @@ var strings = {
     "Not connected": "未接続",
     "Not paired": "ペアリングされていません",
     "Not Playing": "再生していません",
+    "No Music Playing": "再生中の音楽はありません",
     "Notes": "メモ",
     "Nothing here yet.": "まだ何もありません。",
     "Notification": "通知",

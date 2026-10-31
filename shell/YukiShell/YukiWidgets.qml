@@ -400,13 +400,6 @@ Scope {
     // which player to show: see PlayerPicker.qml (same rule as the Menu Bar's media widget)
     PlayerPicker { id: playerPick }
     readonly property var player: playerPick.player
-    // nothing playing (paused, stopped) for a moment: the Player widget shows "Not Playing" with the app's name and icon instead of
-    // the paused track. Its buttons stay on that player, so play resumes it. The wait keeps it from flashing "Not Playing" between
-    // two songs, when players report Stopped for an instant.
-    readonly property bool playerPlaying: player !== null && player.isPlaying
-    property bool playerQuiet: !playerPlaying
-    onPlayerPlayingChanged: { if (playerPlaying) { quietT.stop(); playerQuiet = false; } else quietT.restart(); }
-    Timer { id: quietT; interval: 2500; onTriggered: root.playerQuiet = !root.playerPlaying }
     // MPRIS does not announce the playback position; ask for it once a second while something plays and a Player widget exists
     Timer {
         interval: root.lyricsWanted ? 250 : 1000        // quicker while lyrics are open, so lines change on time
