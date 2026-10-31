@@ -994,5 +994,12 @@ var strings = {
     "Icon": "Значок",
     "As typed in a terminal. Quote paths that contain spaces.": "Как в терминале. Пути с пробелами берите в кавычки.",
     "An icon name, like firefox, or a picture.": "Имя значка, например firefox, или картинка.",
-    "Run in a terminal": "Запускать в терминале"
+    "Run in a terminal": "Запускать в терминале",
+    "Workspace numbers": "Номера рабочих столов",
+    "Match the language": "Как язык интерфейса",
+    "Han": "Иероглифы",
+    "Japanese": "Японский",
+    "Korean": "Корейский",
+    "Roman": "Римские цифры",
+    "Numbers": "Цифры"
 };

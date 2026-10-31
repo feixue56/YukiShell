@@ -984,5 +984,12 @@ var strings = {
     "Icon": "아이콘",
     "As typed in a terminal. Quote paths that contain spaces.": "터미널에 입력하듯이 적습니다. 공백이 있는 경로는 따옴표로 묶으세요.",
     "An icon name, like firefox, or a picture.": "아이콘 이름(예: firefox) 또는 그림.",
-    "Run in a terminal": "터미널에서 실행"
+    "Run in a terminal": "터미널에서 실행",
+    "Workspace numbers": "작업 공간 번호",
+    "Match the language": "언어에 맞추기",
+    "Han": "한자",
+    "Japanese": "일본어",
+    "Korean": "한국어",
+    "Roman": "로마 숫자",
+    "Numbers": "숫자"
 };

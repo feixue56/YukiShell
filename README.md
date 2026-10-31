@@ -234,6 +234,7 @@ Besides the usual switches there are Lock Screen, Screenshot, Color Picker, Wall
 
 - Links you click in the shell (About, Help, Spotlight) take you to the browser window they opened in, even when it's on another workspace.
 - Any accent colour you want: presets, a palette, or type a hex / RGB code.
+- Workspace numbers your way: Han (一 二 三), Japanese (イチ ニ サン), Korean (일 이 삼), Roman (I II III), plain 1 2 3, or matching the interface language (*Settings → Menu Bar*).
 - Mouse settings including **acceleration on/off**.
 - Hardware you don't have isn't offered. No Wi-Fi card means no Wi-Fi tile.
 - Wallpapers from as many folders as you like, and new files show up by themselves.

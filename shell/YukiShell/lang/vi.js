@@ -942,5 +942,12 @@ var strings = {
     "Icon": "Biểu tượng",
     "As typed in a terminal. Quote paths that contain spaces.": "Như khi gõ trong terminal. Đặt đường dẫn có dấu cách trong dấu ngoặc kép.",
     "An icon name, like firefox, or a picture.": "Tên biểu tượng, như firefox, hoặc một ảnh.",
-    "Run in a terminal": "Chạy trong terminal"
+    "Run in a terminal": "Chạy trong terminal",
+    "Workspace numbers": "Số không gian làm việc",
+    "Match the language": "Theo ngôn ngữ",
+    "Han": "Chữ Hán",
+    "Japanese": "Tiếng Nhật",
+    "Korean": "Tiếng Hàn",
+    "Roman": "Số La Mã",
+    "Numbers": "Chữ số"
 };

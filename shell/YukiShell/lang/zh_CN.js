@@ -984,5 +984,12 @@ var strings = {
     "Icon": "图标",
     "As typed in a terminal. Quote paths that contain spaces.": "按在终端中输入的方式填写。含空格的路径请加引号。",
     "An icon name, like firefox, or a picture.": "图标名称（如 firefox）或一张图片。",
-    "Run in a terminal": "在终端中运行"
+    "Run in a terminal": "在终端中运行",
+    "Workspace numbers": "工作区编号",
+    "Match the language": "跟随语言",
+    "Han": "汉字",
+    "Japanese": "日语",
+    "Korean": "韩语",
+    "Roman": "罗马数字",
+    "Numbers": "数字"
 };

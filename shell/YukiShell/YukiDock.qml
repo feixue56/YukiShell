@@ -2309,6 +2309,18 @@ Scope {
                         SSwitch { t: pal; checked: root.bar ? root.bar.barWidgetEnabled("workspaces") : true; onToggled: v => { if (root.bar) root.bar.setBarWidget("workspaces", v); } }
                     }
                     SRow {
+                        t: pal; title: I18n.tr("Workspace numbers")
+                        visible: !root.bar || root.bar.barWidgetEnabled("workspaces")
+                        SPopUp {
+                            t: pal
+                            readonly property var keys: ["auto", "han", "katakana", "hangul", "roman", "numbers"]
+                            model: [I18n.tr("Match the language"), I18n.tr("Han") + "  \u4e00 \u4e8c \u4e09", I18n.tr("Japanese") + "  \u30a4\u30c1 \u30cb \u30b5\u30f3",
+                                    I18n.tr("Korean") + "  \uc77c \uc774 \uc0bc", I18n.tr("Roman") + "  I II III", I18n.tr("Numbers") + "  1 2 3"]
+                            current: Math.max(0, keys.indexOf(root.bar ? root.bar.wsNumerals : "han"))
+                            onPicked: i => { if (root.bar) root.bar.wsNumerals = keys[i]; }
+                        }
+                    }
+                    SRow {
                         t: pal; title: I18n.tr("System tray")
                         SSwitch { t: pal; checked: root.bar ? root.bar.showTray : true; onToggled: v => { if (root.bar) root.bar.showTray = v; } }
                     }

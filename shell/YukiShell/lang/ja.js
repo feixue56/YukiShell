@@ -984,5 +984,12 @@ var strings = {
     "Icon": "アイコン",
     "As typed in a terminal. Quote paths that contain spaces.": "ターミナルで入力するとおりに。空白を含むパスは引用符で囲みます。",
     "An icon name, like firefox, or a picture.": "アイコン名（firefox など）または画像。",
-    "Run in a terminal": "ターミナルで実行"
+    "Run in a terminal": "ターミナルで実行",
+    "Workspace numbers": "ワークスペース番号",
+    "Match the language": "言語に合わせる",
+    "Han": "漢数字",
+    "Japanese": "日本語",
+    "Korean": "韓国語",
+    "Roman": "ローマ数字",
+    "Numbers": "数字"
 };

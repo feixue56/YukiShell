@@ -453,7 +453,8 @@ Scope {
         "notifDnd", "dnd", "nightOn", "keepAwake", "notifBannerSecs", "notifMutedApps", "notifAppsSeen", "focusSchedule", "focusFrom", "focusTo",
         "focusFullscreen", "focusAllowUrgent", "lockShowNotifs", "lockWallpaper", "uiSoundVolume", "alertSound",
         "kbRepeatRate", "kbRepeatDelay", "mouseSens", "mouseNatural", "mouseAccel", "tpNatural", "tpTap", "tpDwt", "tpScroll",
-        "cursorTheme", "cursorSize", "cursorHideTyping", "cursorHideIdle", "cursorFollowFocus", "cursorWarpWs", "cursorZoom", "windowBorder", "floatNewWindows"]
+        "cursorTheme", "cursorSize", "cursorHideTyping", "cursorHideIdle", "cursorFollowFocus", "cursorWarpWs", "cursorZoom", "windowBorder", "floatNewWindows",
+        "wsNumerals"]
     // Optional bar widgets; tray and Spotlight use their existing showTray/showSearch settings.
     property var barWidgets: ["appleMenu", "appMenus", "workspaces", "volume", "keyboard", "notifications", "privacy", "controlCenter", "clock", "wifi", "bluetooth"]
     function barWidgetEnabled(id) { return barWidgets.indexOf(id) >= 0; }
@@ -4998,16 +4999,49 @@ Scope {
     }
 
     // --- WORKSPACES (centre of the bar) ---
-    // workspace numbers are shown as Chinese numerals (一 二 三 ... 十, then 十一 ... 二十 ...); the real workspace ids stay numeric
-    function zhNum(n) {
-        var d = ["", "\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u4e03", "\u516b", "\u4e5d"], ten = "\u5341";
-        if (n <= 0) return "" + n;
+    // Workspace numbers on the bar (Settings -> Menu Bar -> Workspace numbers); the real workspace ids stay numeric.
+    //   han      一 二 三 … 十, 十一 … 二十 …            katakana  イチ ニ サン … ジュウ, ジュウイチ …
+    //   hangul   일 이 삼 … 십, 십일 … 이십 …            roman     I II III IV …
+    //   numbers  1 2 3 …                                  auto      the interface language: Chinese -> han, Japanese -> katakana,
+    //                                                               Korean -> hangul, any other -> numbers
+    property string wsNumerals: "han"
+    readonly property string wsStyle: {
+        if (wsNumerals !== "auto") return wsNumerals;
+        var c = language === "auto" ? I18n.code() : language;
+        return c.indexOf("zh") === 0 ? "han" : c === "ja" ? "katakana" : c === "ko" ? "hangul" : "numbers";
+    }
+    // the same structure in all three: units, then "ten" (no "one" before ten: 十, ジュウ, 십), then units again
+    function cjkNum(n, d, ten) {
         if (n < 10) return d[n];
-        if (n === 10) return ten;
         if (n < 20) return ten + d[n - 10];
         if (n < 100) return d[Math.floor(n / 10)] + ten + d[n % 10];
         return "" + n;
     }
+    function zhNum(n) {
+        return cjkNum(n, ["", "\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u4e03", "\u516b", "\u4e5d"], "\u5341");
+    }
+    function kanaNum(n) {      // イチ ニ サン ヨン ゴ ロク ナナ ハチ キュウ, ten ジュウ
+        return cjkNum(n, ["", "\u30a4\u30c1", "\u30cb", "\u30b5\u30f3", "\u30e8\u30f3", "\u30b4", "\u30ed\u30af", "\u30ca\u30ca",
+                          "\u30cf\u30c1", "\u30ad\u30e5\u30a6"], "\u30b8\u30e5\u30a6");
+    }
+    function hangulNum(n) {    // 일 이 삼 사 오 육 칠 팔 구, ten 십
+        return cjkNum(n, ["", "\uc77c", "\uc774", "\uc0bc", "\uc0ac", "\uc624", "\uc721", "\uce60", "\ud314", "\uad6c"], "\uc2ed");
+    }
+    function romanNum(n) {
+        if (n >= 4000) return "" + n;
+        var v = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1], r = ["M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"], o = "";
+        for (var i = 0; i < v.length; i++) while (n >= v[i]) { o += r[i]; n -= v[i]; }
+        return o;
+    }
+    function wsLabel(n) {
+        if (n <= 0) return "" + n;                     // special workspaces keep their own (negative) id
+        var st = wsStyle;
+        return st === "katakana" ? kanaNum(n) : st === "hangul" ? hangulNum(n) : st === "roman" ? romanNum(n)
+             : st === "numbers" ? "" + n : zhNum(n);
+    }
+    // a cell is 22 px, wider when its label needs it (ジュウキュウ, XVIII); measured in the current workspace's bold weight
+    FontMetrics { id: wsFm; font.family: root.fontForWeight(Font.DemiBold, root.fontFamily); font.pixelSize: 13; font.weight: Font.DemiBold }
+    function wsCellW(n) { return Math.max(22, Math.ceil(wsFm.advanceWidth(wsLabel(n))) + 12); }
     function hlWorkspace(sel) {      // Hyprland 0.55+ (Lua) workspace switch
         Quickshell.execDetached(["hyprctl", "dispatch", "hl.dsp.focus({ workspace = \"" + sel + "\" })"]);
     }
@@ -6057,7 +6091,7 @@ Scope {
                                 readonly property bool cur: wsRow.activeId === modelData
                                 readonly property bool busy: root.wsOccupied(modelData)
                                 readonly property int run: { root.wsCounts; root.wsIds; return wsRow.runAt(index); }
-                                width: 22; height: 28
+                                width: root.wsCellW(modelData); height: 28
                                 // the run's background (later workspaces in the row draw their labels on top of it)
                                 GlassHover {
                                     id: wsRun
@@ -6066,7 +6100,7 @@ Scope {
                                     onWantChanged: if (want > 0) cells = want
                                     Component.onCompleted: if (want > 0) cells = want
                                     x: 1; y: 3
-                                    width: cells * 22 - 2
+                                    width: { var w = 0, ids = root.wsIds; for (var k = 0; k < cells; k++) w += root.wsCellW(ids[wsi.index + k] || 0); return w - 2; }
                                     height: 22
                                     radius: 8
                                     Behavior on width { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
@@ -6078,7 +6112,7 @@ Scope {
                                 Text {
                                     anchors.centerIn: parent
                                     scale: wsi.cur ? 1 : wsHl.lift
-                                    text: root.zhNum(wsi.modelData)
+                                    text: root.wsLabel(wsi.modelData)
                                     color: wsi.cur ? bpal.fg : (wsi.busy ? bpal.fg2 : bpal.fg3)
                                     font.family: root.fontForWeight(wsi.cur ? Font.DemiBold : Font.Normal, bpal.fam)
                                     font.pixelSize: 13

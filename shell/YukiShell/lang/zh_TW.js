@@ -984,5 +984,12 @@ var strings = {
     "Icon": "圖示",
     "As typed in a terminal. Quote paths that contain spaces.": "依在終端機中輸入的方式填寫。含空格的路徑請加引號。",
     "An icon name, like firefox, or a picture.": "圖示名稱（如 firefox）或一張圖片。",
-    "Run in a terminal": "在終端機中執行"
+    "Run in a terminal": "在終端機中執行",
+    "Workspace numbers": "工作區編號",
+    "Match the language": "跟隨語言",
+    "Han": "漢字",
+    "Japanese": "日語",
+    "Korean": "韓語",
+    "Roman": "羅馬數字",
+    "Numbers": "數字"
 };
