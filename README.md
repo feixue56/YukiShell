@@ -441,6 +441,13 @@ No. YukiShell doesn't read MacShell's folders and never runs its installer or up
 
 QML changes reload as soon as you save. The language files are cached, so restart the shell after editing those.
 
+The shaders (`*.frag`) ship ready-built as `*.frag.qsb`, so you don't need anything extra to get Liquid Glass. If you edit one, rebuild
+it with `qsb` from `qt6-shadertools` and commit both files:
+
+```sh
+/usr/lib/qt6/bin/qsb --qt6 -o shell/YukiShell/liquidglass.frag.qsb shell/YukiShell/liquidglass.frag
+```
+
 Before committing, run:
 
 ```sh
