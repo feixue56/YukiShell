@@ -210,11 +210,14 @@ Scope {
     property int windowBorder: 1            // border thickness in px (Settings -> Desktop & Dock -> Windows), 0 = no border
     onAccentChanged: if (settingsReady) borderApplyT.restart()
     onWindowBorderChanged: if (settingsReady) borderApplyT.restart()
+    onDesktopFocusedChanged: if (settingsReady) root.applyBorders()
     Timer { id: borderApplyT; interval: 150; onTriggered: root.applyBorders() }
     function applyBorders() {
         function hx(v) { var s = Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16); return s.length < 2 ? "0" + s : s; }
         var a = root.accent, rgb = hx(a.r) + hx(a.g) + hx(a.b);
-        Quickshell.execDetached(["hyprctl", "eval", "hl.config({ general = { border_size = " + Math.max(0, Math.min(8, Math.round(windowBorder))) + ", col = { active_border = \"rgba(" + rgb + "ff)\", inactive_border = \"rgba(" + rgb + "40)\" } } })"]);
+        // with the desktop holding the keyboard, Hyprland still draws the window it left as active: give it the inactive colour
+        var act = root.desktopFocused ? "40" : "ff";
+        Quickshell.execDetached(["hyprctl", "eval", "hl.config({ general = { border_size = " + Math.max(0, Math.min(8, Math.round(windowBorder))) + ", col = { active_border = \"rgba(" + rgb + act + ")\", inactive_border = \"rgba(" + rgb + "40)\" } } })"]);
     }
     function applyInput() {
         function b(v) { return v ? "true" : "false"; }
@@ -2124,7 +2127,9 @@ Scope {
         if (!e && DesktopEntries.heuristicLookup) e = DesktopEntries.heuristicLookup(appId);
         return e;
     }
-    readonly property var activeTl: ToplevelManager.activeToplevel
+    // the empty desktop has the keyboard (DesktopFocus.qml): no app is active, the menu bar names the Desktop
+    readonly property bool desktopFocused: hub ? hub.desktopFocused === true : false
+    readonly property var activeTl: desktopFocused ? null : ToplevelManager.activeToplevel
     readonly property string activeAppId: activeTl ? (activeTl.appId || "") : ""
     readonly property string appName: {
         if (activeAppId === "") return I18n.tr("Desktop");
@@ -5106,7 +5111,9 @@ Scope {
             var apps = root.swBuild();
             if (apps.length === 0) return;
             root.swApps = apps;
-            root.swIndex = 0;                // 0 = the app you are in, so the first TAB lands on the previous one
+            // 0 = the app you are in, so the first TAB lands on the previous one; from the desktop the first TAB lands on the
+            // app you were just in
+            root.swIndex = root.desktopFocused ? -1 : 0;
             root.swOpen = true;
         }
         var n = root.swApps.length;

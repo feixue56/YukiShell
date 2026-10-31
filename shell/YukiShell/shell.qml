@@ -103,6 +103,7 @@ ShellRoot {
 
         // the single settings window lives in YukiDock.qml; everything else reaches it through here
         property var bar: yukiBar
+        readonly property bool desktopFocused: desktopFocus.focused   // the pointer is on the empty desktop, which has the keyboard
         property var dock: yukiDock
         readonly property var vis: audioVis                     // audio spectrum for the visualizers (only runs while one is showing)
         property var widgets: yukiWidgets
@@ -402,6 +403,8 @@ ShellRoot {
     }
 
     AudioVis { id: audioVis }
+    // the empty desktop takes the keyboard focus when the pointer moves onto it (DesktopFocus.qml)
+    DesktopFocus { id: desktopFocus; enabled: sharedHub.bar ? sharedHub.bar.cursorFollowFocus !== false : true }
 
     // Startup speed: Quickshell hands its config to Qt through its own qs:@/ URLs, and Qt only keeps compiled QML on disk
     // (~/.cache/quickshell/qmlcache) for file:// URLs. So every start compiled all ~1.2 MB of QML again: 3.7 s before anything
