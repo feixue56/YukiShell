@@ -285,6 +285,8 @@ var strings = {
     "Hides whenever the workspace has a window open": "工作区有窗口打开时隐藏",
     "Windows": "窗口",
     "Border thickness": "边框粗细",
+    "Open windows floating": "新窗口浮动打开",
+    "New windows float, centred, instead of tiling. Super + Alt + Space switches one window.": "新窗口居中浮动，而不是平铺。Super + Alt + Space 切换单个窗口。",
     "The outline around every window, in the accent colour": "每个窗口周围的轮廓，使用强调色",
     "High Power": "高性能",
     "Highlights in the Dock menu and this window": "程序坞菜单和此窗口中的高亮",

@@ -212,8 +212,14 @@ Scope {
     property int windowBorder: 1            // border thickness in px (Settings -> Desktop & Dock -> Windows), 0 = no border
     onAccentChanged: if (settingsReady) borderApplyT.restart()
     onWindowBorderChanged: if (settingsReady) borderApplyT.restart()
+    // new windows open floating, centred (hypr/rice/rules.lua: FLOAT_NEW_RULE); off = they tile as before
+    property bool floatNewWindows: true
+    onFloatNewWindowsChanged: if (settingsReady) borderApplyT.restart()
+    function applyWindowRules() {
+        Quickshell.execDetached(["hyprctl", "eval", "if FLOAT_NEW_RULE then FLOAT_NEW_RULE:set_enabled(" + (floatNewWindows ? "true" : "false") + ") end"]);
+    }
     onDesktopFocusedChanged: if (settingsReady) root.applyBorders()
-    Timer { id: borderApplyT; interval: 150; onTriggered: root.applyBorders() }
+    Timer { id: borderApplyT; interval: 150; onTriggered: { root.applyBorders(); root.applyWindowRules(); } }
     function applyBorders() {
         function hx(v) { var s = Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16); return s.length < 2 ? "0" + s : s; }
         var a = root.accent, rgb = hx(a.r) + hx(a.g) + hx(a.b);
@@ -447,7 +453,7 @@ Scope {
         "notifDnd", "dnd", "nightOn", "keepAwake", "notifBannerSecs", "notifMutedApps", "notifAppsSeen", "focusSchedule", "focusFrom", "focusTo",
         "focusFullscreen", "focusAllowUrgent", "lockShowNotifs", "lockWallpaper", "uiSoundVolume", "alertSound",
         "kbRepeatRate", "kbRepeatDelay", "mouseSens", "mouseNatural", "mouseAccel", "tpNatural", "tpTap", "tpDwt", "tpScroll",
-        "cursorTheme", "cursorSize", "cursorHideTyping", "cursorHideIdle", "cursorFollowFocus", "cursorWarpWs", "cursorZoom", "windowBorder"]
+        "cursorTheme", "cursorSize", "cursorHideTyping", "cursorHideIdle", "cursorFollowFocus", "cursorWarpWs", "cursorZoom", "windowBorder", "floatNewWindows"]
     // Optional bar widgets; tray and Spotlight use their existing showTray/showSearch settings.
     property var barWidgets: ["appleMenu", "appMenus", "workspaces", "volume", "keyboard", "notifications", "privacy", "controlCenter", "clock", "wifi", "bluetooth"]
     function barWidgetEnabled(id) { return barWidgets.indexOf(id) >= 0; }

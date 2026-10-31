@@ -274,6 +274,8 @@ var strings = {
     "Hides whenever the workspace has a window open": "Скрывается, когда на рабочем столе открыто окно",
     "Windows": "Окна",
     "Border thickness": "Толщина рамки",
+    "Open windows floating": "Открывать окна плавающими",
+    "New windows float, centred, instead of tiling. Super + Alt + Space switches one window.": "Новые окна открываются плавающими по центру, а не плиткой. Super + Alt + Space переключает отдельное окно.",
     "The outline around every window, in the accent colour": "Контур вокруг каждого окна, акцентным цветом",
     "Always hidden until the pointer touches the screen edge": "Всегда скрыт, пока указатель не коснётся края экрана",
     "Always visible and reserves screen space": "Всегда виден и занимает место на экране",

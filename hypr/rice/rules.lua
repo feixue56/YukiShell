@@ -1,5 +1,10 @@
 hl.window_rule({ name = "suppress-maximize", match = { class = ".*" }, suppress_event = "maximize" })
 
+-- New windows open floating and centred instead of tiling (Settings -> Windows -> "Open windows floating", on by default).
+-- YukiShell switches this rule on / off (FLOAT_NEW_RULE:set_enabled, see applyWindowRules in YukiBar.qml); Super+Alt+Space still
+-- tiles or floats one window. The rules below can still give a window its own size.
+FLOAT_NEW_RULE = hl.window_rule({ name = "float-new-windows", match = { class = ".*" }, float = true, center = true })
+
 hl.window_rule({
     name  = "fix-xwayland-drags",
     match = { class = "^$", title = "^$", xwayland = true, float = true, fullscreen = false, pin = false },

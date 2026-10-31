@@ -285,6 +285,8 @@ var strings = {
     "Hides whenever the workspace has a window open": "工作區有視窗開啟時隱藏",
     "Windows": "視窗",
     "Border thickness": "邊框粗細",
+    "Open windows floating": "新視窗浮動開啟",
+    "New windows float, centred, instead of tiling. Super + Alt + Space switches one window.": "新視窗置中浮動，而不是平鋪。Super + Alt + Space 切換單一視窗。",
     "The outline around every window, in the accent colour": "每個視窗周圍的輪廓，使用強調色",
     "High Power": "高效能",
     "Highlights in the Dock menu and this window": "Dock 選單和此視窗中的強調顯示",

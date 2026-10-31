@@ -285,6 +285,8 @@ var strings = {
     "Hides whenever the workspace has a window open": "ウインドウがあるときは常に隠す",
     "Windows": "ウインドウ",
     "Border thickness": "枠線の太さ",
+    "Open windows floating": "ウインドウをフローティングで開く",
+    "New windows float, centred, instead of tiling. Super + Alt + Space switches one window.": "新しいウインドウはタイル配置せず、中央にフローティングで開きます。Super + Alt + Space で個別に切り替えられます。",
     "The outline around every window, in the accent colour": "すべてのウインドウの輪郭（アクセントカラー）",
     "High Power": "高パワー",
     "Highlights in the Dock menu and this window": "Dock のメニューとこのウインドウのハイライト",

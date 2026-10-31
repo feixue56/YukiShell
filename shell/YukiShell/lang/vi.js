@@ -285,6 +285,8 @@ var strings = {
     "Hides whenever the workspace has a window open": "Ẩn khi không gian làm việc có cửa sổ đang mở",
     "Windows": "Cửa sổ",
     "Border thickness": "Độ dày viền",
+    "Open windows floating": "Mở cửa sổ dạng nổi",
+    "New windows float, centred, instead of tiling. Super + Alt + Space switches one window.": "Cửa sổ mới mở dạng nổi, ở giữa màn hình, thay vì xếp ô. Super + Alt + Space chuyển từng cửa sổ.",
     "The outline around every window, in the accent colour": "Đường viền quanh mọi cửa sổ, theo màu nhấn",
     "High Power": "Hiệu năng cao",
     "Highlights in the Dock menu and this window": "Phần được tô sáng trong menu Dock và cửa sổ này",

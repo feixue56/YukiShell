@@ -285,6 +285,8 @@ var strings = {
     "Hides whenever the workspace has a window open": "작업 공간에 윈도우가 열려 있으면 가리기",
     "Windows": "윈도우",
     "Border thickness": "테두리 두께",
+    "Open windows floating": "창을 플로팅으로 열기",
+    "New windows float, centred, instead of tiling. Super + Alt + Space switches one window.": "새 창이 타일 대신 가운데에 떠서 열립니다. Super + Alt + Space로 창 하나를 전환합니다.",
     "The outline around every window, in the accent colour": "모든 윈도우의 윤곽선(강조 색상)",
     "High Power": "고성능",
     "Highlights in the Dock menu and this window": "Dock 메뉴 및 이 윈도우의 하이라이트",

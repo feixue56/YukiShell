@@ -3684,6 +3684,12 @@ Scope {
                             onMoved: v => { if (root.bar) root.bar.windowBorder = Math.round(v); }
                         }
                     }
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Open windows floating")
+                        subtitle: I18n.tr("New windows float, centred, instead of tiling. Super + Alt + Space switches one window.")
+                        SSwitch { t: pal; checked: root.bar ? root.bar.floatNewWindows : true; onToggled: v => { if (root.bar) root.bar.floatNewWindows = v; } }
+                    }
                 }
                 SLabel { t: pal; header: true; text: I18n.tr("Behavior") }
                 Loader { width: parent.width; sourceComponent: paneBehavior }

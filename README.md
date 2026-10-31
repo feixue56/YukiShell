@@ -134,7 +134,7 @@ menu bar show each item's shortcut next to it.
 | `Super+Q` | close window |
 | `Super+F` | fullscreen (press again to go back) |
 | `Super+Shift+F` | maximize, keeping the bar and gaps |
-| `Super+Alt+Space` | toggle floating |
+| `Super+Alt+Space` | toggle floating (new windows open floating, centred; Settings → Windows → Open windows floating) |
 | `Super+C` | centre a floating window |
 | `Super+Shift+P` | pin a floating window to every workspace |
 | `Super+M` / `Super+Shift+M` | minimize / show minimized windows |
