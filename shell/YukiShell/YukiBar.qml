@@ -1096,6 +1096,11 @@ Scope {
             } else if (k === "pause") {
                 rrect(4.2, 3.4, 3.4, 11.2, 0.7); ctx.fill();
                 rrect(10.4, 3.4, 3.4, 11.2, 0.7); ctx.fill();
+            } else if (k === "keyboard") {
+                // keyboard: outline, a row of keys, the space bar (kept sparse: it is drawn at ~16 px)
+                rrect(1.5, 3.8, 15, 10.4, 2.4); ctx.stroke();
+                for (var kr = 0; kr < 4; kr++) { circ(5.1 + kr * 2.6, 7.4, 0.85); ctx.fill(); }
+                line(6, 10.8, 12, 10.8);
             } else if (k === "livewall") {
                 // a picture frame with the state in it: bars while the animated wallpaper plays, a triangle while it is paused
                 rrect(1.8, 3.2, 14.4, 11.6, 2.6); ctx.stroke();
@@ -2761,6 +2766,17 @@ Scope {
         "turkish": "TR", "tr": "TR",
         "greek": "EL", "gr": "EL"
     })
+    // fcitx5's tray item: what the bar shows for the input method that is on. From its icon name (fcitx-pinyin, fcitx_bamboo, ...)
+    // or, for one not listed, the first letters of its name (the tray tooltip). A plain keyboard layout -> "" (keyboard glyph).
+    function imLabelFor(icon, name) {
+        var i = icon.toLowerCase(), n = name.toLowerCase();
+        if (i.indexOf("keyboard") >= 0 || n.indexOf("keyboard") === 0 || n === "") return "";
+        var known = [["pinyin", "\u62fc"], ["shuangpin", "\u53cc"], ["rime", "\u4e2d"], ["chewing", "\u6ce8"], ["zhuyin", "\u6ce8"],
+                     ["mozc", "\u3042"], ["anthy", "\u3042"], ["kkc", "\u3042"], ["skk", "\u3042"], ["hangul", "\ud55c"],
+                     ["bamboo", "VI"], ["unikey", "VI"], ["telex", "VI"]];
+        for (var k = 0; k < known.length; k++) if (i.indexOf(known[k][0]) >= 0 || n.indexOf(known[k][0]) >= 0) return known[k][1];
+        return name.replace(/[^A-Za-z]/g, "").substring(0, 2).toUpperCase() || name.substring(0, 1);
+    }
     function refreshKeyboardLayout() { if (!kbdProc.running) kbdProc.running = true; }
     Timer {
         interval: 5000; repeat: true          // Hyprland's activelayout event updates at once; this only catches a missed one
@@ -6152,11 +6168,33 @@ Scope {
                                 required property var modelData
                                 width: 26; height: 28
                                 BarHover { glass: ui.barTileGlass; id: trHl; dark: bpal.dark; area: trMa; hot: trMa.containsMouse; pressed: trMa.pressed; open: ui.pop === "tray" && ui.trayItem === tray.modelData }
+                                // fcitx5 (the input method): its own icon changes look with every input method (a grey symbolic
+                                // keyboard, a coloured Pinyin icon, the Bamboo logo), so the bar draws it in its own colour instead:
+                                // a keyboard while typing plain letters, a short label while an input method is on
+                                readonly property bool isIM: String(modelData.id).toLowerCase() === "fcitx"
+                                readonly property string imLabel: isIM ? root.imLabelFor(String(modelData.icon), String(modelData.tooltipTitle)) : ""
+                                Glyph {
+                                    visible: tray.isIM && tray.imLabel === ""
+                                    anchors.centerIn: parent
+                                    scale: trHl.lift
+                                    width: 17; height: 17
+                                    kind: "keyboard"
+                                    color: bpal.fg
+                                }
+                                Text {
+                                    visible: tray.isIM && tray.imLabel !== ""
+                                    anchors.centerIn: parent
+                                    scale: trHl.lift
+                                    text: tray.imLabel
+                                    color: bpal.fg
+                                    font.family: root.fontForWeight(Font.DemiBold, bpal.fam); font.pixelSize: 12; font.weight: Font.DemiBold
+                                }
                                 Image {
+                                    visible: !tray.isIM
                                     anchors.centerIn: parent
                                     scale: trHl.lift
                                     width: 16; height: 16
-                                    source: tray.modelData.icon
+                                    source: tray.isIM ? "" : tray.modelData.icon
                                     sourceSize: Qt.size(32, 32)
                                     fillMode: Image.PreserveAspectFit
                                     smooth: true
@@ -6217,8 +6255,8 @@ Scope {
                         // keyboard layout: click = next layout, right-click = pick from a list, scroll = cycle
                         Item {
                             id: kbBtn
-                            visible: root.barWidgetEnabled("keyboard") && root.kbLayouts.length !== 1
-                            width: root.barWidgetEnabled("keyboard") && root.kbLayouts.length !== 1 ? 34 : 0; height: 28
+                            visible: root.barWidgetEnabled("keyboard") && root.kbLayouts.length > 1
+                            width: root.barWidgetEnabled("keyboard") && root.kbLayouts.length > 1 ? 34 : 0; height: 28
                             BarHover { glass: ui.barTileGlass; id: kbHl; dark: bpal.dark; area: kbMouse; hot: kbMouse.containsMouse; pressed: kbMouse.pressed; open: ui.pop === "kb" }
                             Text {
                                 anchors.centerIn: parent
