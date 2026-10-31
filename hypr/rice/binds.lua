@@ -46,9 +46,6 @@ bind(mod .. " + SHIFT + Page_Down", hl.dsp.window.move({ workspace = "+1" }), "M
 bind(mod .. " + SHIFT + Page_Up",   hl.dsp.window.move({ workspace = "-1" }), "Move Window to Previous Workspace")
 bind(mod .. " + SHIFT + O",      hl.dsp.window.move({ monitor = "+1" }), "Move Window to Next Monitor")
 
-bind(mod .. " + S",         hl.dsp.workspace.toggle_special("magic"), "Scratchpad")
-bind(mod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:magic" }), "Send Window to Scratchpad")
-
 hl.bind(mod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
 hl.bind(mod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
 hl.bind(mod .. " + mouse:272",  hl.dsp.window.drag(),   { mouse = true })

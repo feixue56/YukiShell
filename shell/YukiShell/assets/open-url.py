@@ -53,7 +53,7 @@ for _ in range(5):
     if new:
         target = new[0]
         break
-    # the tab went to the most recently used window; a minimized / scratchpad one (special workspace) is skipped
+    # the tab went to the most recently used window; a minimized or hidden one (special workspace) is skipped
     shown = [c for c in wins if c.get("workspace", {}).get("id", -1) > 0] or wins
     target = min(shown, key=lambda c: c.get("focusHistoryID", 1 << 30), default=None)
 if target:

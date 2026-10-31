@@ -122,7 +122,7 @@ menu bar show each item's shortcut next to it.
 | `Super+C` | centre a floating window |
 | `Super+Shift+P` | pin a floating window to every workspace |
 | `Super+M` / `Super+Shift+M` | minimize / show minimized windows |
-| `Super+Alt+H` / `Super+Shift+H` | hide / show hidden windows |
+| `Super+Alt+H` | hide the window, or bring back the one hidden last exactly as it was |
 | `Super+Shift+Tab` | terminal and Dolphin see-through: solid → glass → clear |
 | `Super+Alt+D` | dashboard (fastfetch, clock, cava) |
 
@@ -140,13 +140,12 @@ menu bar show each item's shortcut next to it.
 | `Super+Shift+Arrows` | swap with the neighbouring window |
 | `Super+Ctrl+Arrows` | resize from the keyboard (hold it) |
 | `Super+Left / Right mouse` | drag / resize a window |
-| `Super+S`, `Super+Shift+S` | scratchpad, send the window to it |
 
 **Shell**
 
 | Keys | What it does |
 | --- | --- |
-| tap `Super` or `Super+Space` | Spotlight |
+| `Super+Space` | Spotlight |
 | `Super+V` / `Super+.` | clipboard history / emoji |
 | `Super+A` | Control Center |
 | `Super+,` | notifications |
