@@ -22,6 +22,9 @@ What you get:
 
 Mauve and pink accents, a lot of glass, and an animated wallpaper if you want one.
 
+The current version is **v1.3**: resizable widgets with a design for every shape, a much nicer music widget, the whole interface
+in your accent colour, and a Cursor settings pane. See [what's new](https://github.com/xuefeng1331/YukiShell/releases/tag/v1.3).
+
 ## Contents
 
 - [Requirements](#requirements)
@@ -92,6 +95,15 @@ What `install.sh` does:
 It's safe to run again whenever you pull new changes. Only want to see what's missing without touching anything? `./install.sh --doctor`.
 
 To undo it, delete the symlinks and rename the `*.pre-rice` files back.
+
+### Updating
+
+```sh
+cd ~/hypr-rice && git pull && hyprctl reload && yuki-restart
+```
+
+`hyprctl reload` picks up new shortcuts and the cursor settings, `yuki-restart` the shell. If a release adds new files to link,
+run `./install.sh` again too (the release notes say so).
 
 ## Before you log in
 
@@ -182,6 +194,25 @@ pauses it. Game Mode stops it on its own, and *Settings → Wallpaper → Pause 
 
 You can pin your own apps, or make a custom one with your own name, command and icon.
 
+**Widgets in any size you like.** Weather, Calendar, Clock, Now Playing and pictures sit on the desktop. In edit mode
+(*Settings → Widgets → Edit on Desktop*) drag them around, and drag a corner to resize them in grid cells, from 1×1 up to 4×4. Every
+shape gets its own design, not just a bigger copy: a tall card, a 4×1 strip and a wide 4×2 card each show the information their own way.
+For example, the clock becomes flip tiles, a sweeping seconds bar or an analog face, and the weather an hourly list, the week with
+range bars or a big "now" panel.
+
+**A music widget that looks the part.** The album art lights the card in its own colours, the cover crossfades between songs, and the
+title slides over when the track changes. With *Living artwork* the cover settles back when you pause and springs forward when the music
+starts. The audio visualizer (needs `cava`) has up to 128 columns. It glows along the bottom of the card or sits behind the
+controls, and it stays frozen while a song is paused. All of it is in *Settings → Widgets*.
+
+**Your accent colour, everywhere.** Turn on *Settings → Appearance → Tint the interface* and the panels, Control Center, Settings and
+widgets take your accent colour with white text. The icons, sliders and the widgets' Liquid Glass follow it too. One *Blur* slider sets
+how frosted all the glass is.
+
+**Your own cursor.** *Settings → Cursor* shows a preview of every installed cursor theme. You can add one you downloaded, change the size,
+and choose whether it hides while you type or when idle. There are also focus-follows-mouse, jump-to-window and magnifier switches. GTK,
+Qt/KDE and X apps follow along.
+
 **A Control Center you can rearrange.** Hit *Edit Controls*, drag things wherever you like on the grid and drag the corner to resize them.
 Besides the usual switches there are Lock Screen, Screenshot, Color Picker, Wallpapers, System Settings, a Microphone slider and Power Mode.
 
@@ -193,7 +224,7 @@ Besides the usual switches there are Lock Screen, Screenshot, Color Picker, Wall
 - Hardware you don't have isn't offered. No Wi-Fi card means no Wi-Fi tile.
 - Wallpapers from as many folders as you like, and new files show up by themselves.
 - Its own picture chooser with big thumbnails, so you don't need zenity or kdialog.
-- An audio visualizer behind the Now Playing widget (needs `cava`).
+- `Super+Alt+H` hides a window and brings it back exactly how it was: its workspace, floating or tiled, size and position, full screen.
 
 **Seven languages.** *Settings → General → Language* switches everything live: English, 简体中文, 繁體中文, 日本語, 한국어, Tiếng Việt and
 Русский. Dates follow the language too, including on the lock screen.
@@ -277,6 +308,18 @@ dynamic_background_opacity yes
 
 The glass setting of `Super+Shift+Tab` uses this number too.
 
+### Widgets from a script
+
+The desktop widgets answer to `qs -c YukiShell ipc call widgets …`:
+
+```sh
+qs -c YukiShell ipc call widgets edit true             # start / stop editing
+qs -c YukiShell ipc call widgets span 0 4 2            # make widget 0 (the first one placed) cover 4 x 2 cells
+qs -c YukiShell ipc call widgets move 0 40 60          # move it to the free spot nearest x 40, y 60
+qs -c YukiShell ipc call widgets add clock liquid small
+qs -c YukiShell ipc call widgets remove 2
+```
+
 ### Colours
 
 The whole palette is in `hypr/rice/theme.lua`. The accent colour of the shell itself is in *Settings → Appearance*.
@@ -312,7 +355,7 @@ hypr-rice/
 │   │   ├── binds.lua          window and workspace keys
 │   │   ├── rules.lua          window rules
 │   │   └── shell.lua          starts YukiShell, its keys, the lock key
-│   └── bin/                   dashboard, toggle-opacity, float-chromium
+│   └── bin/                   dashboard, toggle-opacity, float-chromium, hide-window
 ├── shell/
 │   ├── YukiShell/             the shell (Quickshell / QML)
 │   │   ├── shell.qml          entry point
@@ -337,6 +380,8 @@ Where things end up on your system:
 | `~/.config/quickshell/YukiShell`, `YukiLock` | symlinks to `shell/` |
 | `~/.config/yukibar`, `yukidock`, `yukishell`, `yukilock`, `yukiwidgets` | your settings |
 | `~/.config/hypr-rice/env` | your environment variables |
+| `~/.config/yukishell/cursor` | the cursor theme and size from *Settings → Cursor*, read by `hypr/rice/look.lua` at login |
+| `~/.local/share/icons` | cursor themes you added in *Settings → Cursor* |
 | `~/.local/state/hypr-rice/YukiShell.log` | the shell's log |
 
 ## Q&A
