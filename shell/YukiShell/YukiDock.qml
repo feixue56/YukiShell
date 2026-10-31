@@ -6790,14 +6790,17 @@ Scope {
                             for (var i = 0; i < root.monData.length; i++)
                                 if (root.monData[i].name === win.modelData.name) mon = root.monData[i];
                             if (!mon) return;
-                            var ws = [mon.activeWorkspace ? mon.activeWorkspace.id : -999];
-                            if (mon.specialWorkspace && mon.specialWorkspace.id !== 0) ws.push(mon.specialWorkspace.id);
+                            // workspaces on screen, by NAME: since Hyprland 0.57 a special workspace (special:hidden, where Super+Alt+H
+                            // keeps hidden windows) has no "id" in the JSON, and an empty monitor slot matched those windows (undefined ===
+                            // undefined), so hidden windows showed up in the glass
+                            var ws = [mon.activeWorkspace && mon.activeWorkspace.name ? mon.activeWorkspace.name : "\u0000none"];
+                            if (mon.specialWorkspace && mon.specialWorkspace.name) ws.push(mon.specialWorkspace.name);
                             var zoneTop = bd.height - win.height;
                             var want = {};
                             var cs = root.glassClients;
                             for (var c = 0; c < cs.length; c++) {
                                 var cl = cs[c];
-                                if (!cl.mapped || cl.hidden || cl.monitor !== mon.id || ws.indexOf(cl.workspace.id) < 0) continue;
+                                if (!cl.mapped || cl.hidden || cl.monitor !== mon.id || !cl.workspace || ws.indexOf(cl.workspace.name) < 0) continue;
                                 var x = cl.at[0] - mon.x, y = cl.at[1] - mon.y, w = cl.size[0], h = cl.size[1];
                                 if (x + w <= 0 || x >= bd.width || y + h <= zoneTop || y >= bd.height) continue;
                                 var z = cl.floating ? 100 - Math.min(cl.focusHistoryID, 90) : 0;   // floating on top, most recently focused highest

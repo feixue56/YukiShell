@@ -314,7 +314,7 @@ ShellRoot {
             var gk = [], j, c;
             for (j = 0; j < cl.length; j++) {
                 c = cl[j];
-                gk.push([c.address, c.at, c.size, c.workspace ? c.workspace.id : 0, c.monitor, c.floating, c.fullscreen, c.mapped, c.hidden]);
+                gk.push([c.address, c.at, c.size, c.workspace ? (c.workspace.name || c.workspace.id) : 0, c.monitor, c.floating, c.fullscreen, c.mapped, c.hidden]);
             }
             var mk = [];
             for (j = 0; j < mo.length; j++) mk.push([mo[j].name, mo[j].x, mo[j].y, mo[j].width, mo[j].height, mo[j].scale, mo[j].activeWorkspace ? mo[j].activeWorkspace.id : 0, mo[j].specialWorkspace ? mo[j].specialWorkspace.id : 0]);
