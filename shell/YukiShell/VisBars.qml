@@ -21,6 +21,8 @@ Item {
     // what is drawn: never thinner than 3 px a column, so a narrow tile with many columns does not smear into a block
     readonly property int n: Math.max(1, Math.min(count, Math.floor(width / 3)))
     property real barFill: 0.62               // width of a bar as a share of its slot
+    // soft: columns with (almost) no sound fade away instead of showing as dots, and the ends of the row fade out
+    property bool soft: false
     // paused: the bars stay where they were when the music stopped (and stop listening); they move again when it resumes
     property bool hold: false
     property var held: []
@@ -81,6 +83,7 @@ Item {
             readonly property real lvl: vb.level(index, vb.n)
             width: bw
             height: Math.max(bw, lvl * vb.height)
+            opacity: vb.soft ? Math.min(1, lvl / 0.06) * Math.pow(Math.sin(Math.PI * (index + 0.5) / vb.n), 0.6) : 1
             x: index * slot + (slot - bw) / 2
             y: vb.style === "mirror" ? (vb.height - height) / 2 : vb.height - height
             radius: bw / 2

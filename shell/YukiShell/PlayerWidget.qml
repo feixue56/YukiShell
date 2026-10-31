@@ -399,13 +399,16 @@ Item {
             NumberAnimation { target: glowDrift; property: "zoom"; to: 1.0; duration: 7000; easing.type: Easing.InOutSine }
         }
 
-        // ambient visualizer: crisp bars rising from the bottom edge, fading out towards the top
+        // ambient visualizer: crisp bars along the bottom of the card, in the room under the time labels (around the controls),
+        // so they never run through the title, the progress bar or the times; small: beside the cover. Silent columns vanish
+        // instead of leaving a row of dots, and both ends fade out.
         VisBars {
             id: ambVis
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            height: parent.height * (w.isSmall ? 0.3 : 0.34)
+            x: w.ambL * w.k
+            width: (w.ambR - w.ambL) * w.k
+            y: w.ambT * w.k
+            height: (w.ambB - w.ambT) * w.k
+            soft: true
             src: w.visSrc
             active: w.visOn && w.visMode === "ambient" && w.hasPlayer && (w.playing || w.paused || w.preview) && !w.editing
             hold: !w.playing && !w.preview          // paused: frozen where the music stopped
@@ -426,9 +429,10 @@ Item {
     VisBars {
         id: visual
         readonly property real sx0: (w.artX + w.artS + 14)                 // RU, small only
-        x: (w.isSmall ? sx0 : w.mx) * w.k
-        width: (w.isSmall ? w.wr - w.mx - sx0 : w.wr - 2 * w.mx) * w.k
-        y: (w.isSmall ? 77 : w.hr - 58) * w.k
+        // behind the controls row: the classic designs as before, the other shapes centred on their own row of controls
+        x: (w.isSmall ? sx0 : (w.alt ? w.ctlL + 14 : w.mx)) * w.k
+        width: (w.isSmall ? w.wr - w.mx - sx0 : (w.alt ? w.ctlR - w.ctlL - 28 : w.wr - 2 * w.mx)) * w.k
+        y: (w.isSmall ? 77 : (w.alt ? w.ctlCY - 23 : w.hr - 58)) * w.k
         height: (w.isSmall ? w.artY + w.artS - 77 : 46) * w.k
         src: w.visSrc
         active: w.visOn && w.visMode === "strip" && w.hasPlayer && (w.playing || w.paused || w.preview) && !w.editing
@@ -558,9 +562,10 @@ Item {
     readonly property real sideX: artX + artS + (isHero ? 40 : 26)
     readonly property real textX: isSmall || isTall ? w.mx : ((isMedium || alt) ? (isMedium ? w.mx + artS + 18 : sideX) : w.mx)
     // right edge of the title / subtitle
-    readonly property real textR: isStrip ? textX + Math.min(330, wr * 0.3) : (isHero ? wr - mx - 50 : wr - (mx - 17) - (isMedium ? 50 : 0))
+    // (scrolling text fades out within the card's margins, the same distance from either edge)
+    readonly property real textR: isStrip ? textX + Math.min(330, wr * 0.3) : (isHero ? wr - mx - 50 : wr - (mx - mqPad) - (isMedium ? 50 : 0))
     // room left of the text where scrolling text fades out: beside the cover (medium) it stays clear of the art
-    readonly property real mqPad: (isMedium || isStrip || isHero) ? 4 : 17
+    readonly property real mqPad: (isMedium || isStrip || isHero) ? 4 : 12
     // tall: the title block sits half way between the cover and the progress bar
     readonly property real tallMid: (artY + artS + barCY) / 2
     readonly property real titleCY: isSmall ? hr - 60 : isMedium ? artY + artS / 2 - 16 : isTall ? tallMid - 15
@@ -576,6 +581,12 @@ Item {
     readonly property real ctlL: isStrip ? textR + 10 : (isHero ? sideX - 25 : 0)
     readonly property real ctlR: isStrip ? wr - 50 : wr
     readonly property bool ctlSides: !isTall
+    // the ambient visualizer's room (RU): under the time labels down to the bottom edge, right of the cover where the cover
+    // reaches that low (strip / hero); small (no times): beside the cover, under the play button
+    readonly property real ambT: isSmall ? 77 : timeCY + 12
+    readonly property real ambB: isSmall ? artY + artS : hr
+    readonly property real ambL: isSmall ? artX + artS + 14 : (isStrip ? barL - 12 : (isHero ? sideX - 25 : 0))
+    readonly property real ambR: isSmall ? wr - mx : wr
     readonly property real titlePx: isSmall ? 21 : isTall ? 20 : isHero ? 36 : 24
     readonly property real subPx: isSmall ? 18 : isTall ? 17 : isHero ? 24 : 21
 

@@ -1,7 +1,6 @@
 // One line of text that scrolls when it is too long (like the Now Playing subtitle on macOS):
 // it rests for a moment, scrolls left in a loop, and fades out at both ends. Text that fits just sits still.
 import QtQuick
-import QtQuick.Effects
 
 Item {
     id: m
@@ -35,6 +34,7 @@ Item {
         anchors.fill: parent
         visible: false
         clip: true
+        layer.enabled: true
         Row {
             x: m.startPad + m.scrollX
             spacing: m.gap
@@ -60,24 +60,13 @@ Item {
         }
     }
 
-    Rectangle {   // soft left / right edges
-        id: edgeMask
+    // soft left / right edges while scrolling (hfade.frag: a real fade, not an on / off cut)
+    ShaderEffect {
         anchors.fill: parent
-        visible: false
-        layer.enabled: true
-        gradient: Gradient {
-            orientation: Gradient.Horizontal
-            GradientStop { position: 0.0; color: "transparent" }
-            GradientStop { position: Math.min(0.45, m.fade / Math.max(1, m.width)); color: "black" }
-            GradientStop { position: Math.max(0.55, 1 - m.fade / Math.max(1, m.width)); color: "black" }
-            GradientStop { position: 1.0; color: "transparent" }
-        }
-    }
-    MultiEffect {
-        anchors.fill: parent
-        source: strip
-        maskEnabled: m.overflow
-        maskSource: edgeMask
+        readonly property Item source: strip
+        readonly property real fadeLeft: m.overflow ? Math.min(0.45, m.fade / Math.max(1, m.width)) : 0
+        readonly property real fadeRight: m.overflow ? Math.min(0.45, m.fade / Math.max(1, m.width)) : 0
+        fragmentShader: Qt.resolvedUrl("hfade.frag.qsb")
     }
 
     onTextChanged: scrollX = 0
