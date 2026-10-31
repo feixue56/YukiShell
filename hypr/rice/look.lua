@@ -91,6 +91,10 @@ hl.curve("exit",    { type = "bezier", points = { {0.4, 0},    {1, 1}    } })
 hl.config({ animations = { enabled = true } })
 hl.animation({ leaf = "global",        enabled = true, speed = 10,  bezier = "smooth" })
 hl.animation({ leaf = "windows",       enabled = true, speed = 5.5, spring = "glide" })
+-- moving / resizing (tile <-> float, layout changes): a short curve with a definite end. The spring above takes ~0.7 s to settle and
+-- its last few pixels crept along one by one, so apps that re-lay-out on every size (Chromium, Electron) kept resizing their
+-- toolbar after the frame had visibly arrived. 0.35 s, no tail: the app gets fewer sizes and catches up with the frame.
+hl.animation({ leaf = "windowsMove",   enabled = true, speed = 3.5, bezier = "snap" })
 hl.animation({ leaf = "windowsIn",     enabled = true, speed = 5.5, spring = "pop", style = "popin 72%" })
 hl.animation({ leaf = "windowsOut",    enabled = true, speed = 3.2, bezier = "exit", style = "popin 92%" })
 hl.animation({ leaf = "fadeIn",        enabled = true, speed = 3.6, bezier = "fadeIO" })
