@@ -1452,7 +1452,7 @@ Scope {
                 height: 56
                 GlassSlab {                         // Liquid Glass pill behind the back / forward buttons
                     id: navPill
-                    x: 16; y: 12
+                    x: 24; y: 12                    // lines up with the page content below (paneLoader x: 24)
                     width: 64; height: 32
                     cornerR: 16
                     glass: root.settingsGlass
