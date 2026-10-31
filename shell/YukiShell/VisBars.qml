@@ -63,6 +63,14 @@ Item {
 
     // value (0..1) of slot i out of `n`: the source has 128 bands, a slot takes its share of them (half average, half peak, so a
     // beat in one band still shows when there are few columns)
+    // all bar heights for this frame, worked out in ONE pass (each bar used to call level() from its own bindings: 64 bars x 60 frames
+    // a second kept the main thread ~13 % busy while music played)
+    readonly property var levels: {
+        var out = [], n = vb.n;
+        if (vb.style === "wave") return out;
+        for (var i = 0; i < n; i++) out.push(vb.level(i, n));
+        return out;
+    }
     function level(i, n) {
         var d = vb.lv, m = d ? d.length : 0;
         if (m === 0) return 0;
@@ -80,10 +88,11 @@ Item {
             required property int index
             readonly property real slot: vb.width / vb.n
             readonly property real bw: Math.max(2, slot * vb.barFill)
-            readonly property real lvl: vb.level(index, vb.n)
+            readonly property real lvl: vb.levels[index] || 0
+            readonly property real edge: vb.soft ? Math.pow(Math.sin(Math.PI * (index + 0.5) / vb.n), 0.6) : 1   // fixed per bar: both ends fade
             width: bw
             height: Math.max(bw, lvl * vb.height)
-            opacity: vb.soft ? Math.min(1, lvl / 0.06) * Math.pow(Math.sin(Math.PI * (index + 0.5) / vb.n), 0.6) : 1
+            opacity: vb.soft ? Math.min(1, lvl / 0.06) * edge : 1
             x: index * slot + (slot - bw) / 2
             y: vb.style === "mirror" ? (vb.height - height) / 2 : vb.height - height
             radius: bw / 2

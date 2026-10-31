@@ -192,7 +192,8 @@ Scope {
         { name: "Orange",   c: "#ff9f0a" }, { name: "Yellow", c: "#ffd60a" },
         { name: "Green",    c: "#30d158" }, { name: "Graphite", c: "#8e8e93" }
     ]
-    property color accent: "#eeacbe"     // menu highlight (macOS blue)
+    property color accent: "#eeacbe"
+    readonly property bool prefsOpen: prefsWindow.visible      // Settings is on screen (the bar polls Wi-Fi / Bluetooth faster then)     // menu highlight (macOS blue)
     property bool accentUi: false        // the whole interface (glass, panels, cards) takes a shade of the accent; text stays white / black
     readonly property vector4d accentTintVec: Qt.vector4d(accent.r, accent.g, accent.b, accentUi ? 1 : 0)     // handed to the glass shaders (accentTint)
     // "Tint the interface": lean a surface colour toward the accent shade the glass shaders use (deep in dark mode, pale in light
