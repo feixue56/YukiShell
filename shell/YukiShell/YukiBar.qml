@@ -810,6 +810,29 @@ Scope {
         readonly property color cardBorder: dark ? Qt.rgba(1, 1, 1, 0.07) : Qt.rgba(0, 0, 0, 0.08)
         readonly property color switchOff: dark ? Qt.rgba(1, 1, 1, 0.22) : Qt.rgba(0, 0, 0, 0.16)
     }
+    // Spotlight: always white text and icons on dark glass, whatever is behind it (no auto contrast, no Light-mode dark text)
+    QtObject {
+        id: spotPal
+        readonly property bool dark: true
+        readonly property string fam: root.fontFamily
+        readonly property color accent: root.accent
+        readonly property color fg: "#FFFFFF"
+        readonly property color fg2: Qt.rgba(1, 1, 1, 0.62)
+        readonly property color ink: fg
+        readonly property color ink2: fg2
+        readonly property color fg3: Qt.rgba(1, 1, 1, 0.34)
+        readonly property color tile: Qt.rgba(1, 1, 1, 0.10)
+        readonly property color tileBorder: Qt.rgba(1, 1, 1, 0.16)
+        readonly property color btnOff: Qt.rgba(1, 1, 1, 0.20)
+        readonly property color btnHover: Qt.rgba(1, 1, 1, 0.30)
+        readonly property color hover: Qt.rgba(1, 1, 1, 0.14)
+        readonly property color sep: Qt.rgba(1, 1, 1, 0.14)
+        readonly property color track: Qt.rgba(1, 1, 1, 0.20)
+        readonly property color content: "#1E1E1E"
+        readonly property color card: root.accentWash(Qt.color("#2B2B2D"), 0.30, true)
+        readonly property color cardBorder: Qt.rgba(1, 1, 1, 0.07)
+        readonly property color switchOff: Qt.rgba(1, 1, 1, 0.22)
+    }
     QtObject {
         id: panelPal
         readonly property bool dark: root.panelDarkMode
@@ -9768,7 +9791,7 @@ Scope {
                     }
                     Rectangle {
                         anchors.fill: parent; radius: 14
-                        color: root.panelDarkMode ? Qt.rgba(0.16, 0.16, 0.18, 0.92) : Qt.rgba(0.97, 0.97, 0.98, 0.95)
+                        color: spotPal.dark ? Qt.rgba(0.16, 0.16, 0.18, 0.92) : Qt.rgba(0.97, 0.97, 0.98, 0.95)
                         border.width: 1; border.color: Qt.rgba(1, 1, 1, 0.18)
                     }
                     Image {
@@ -9782,7 +9805,7 @@ Scope {
                         anchors.fill: parent; anchors.margins: 12
                         text: clipGhost.en ? clipGhost.en.text : ""
                         wrapMode: Text.Wrap; elide: Text.ElideRight; maximumLineCount: 2
-                        color: root.panelTextWhite ? "white" : "#1d1d1f"; font.family: root.fontForWeight(Font.Normal, root.fontFamily); font.pixelSize: 13
+                        color: "white"; font.family: root.fontForWeight(Font.Normal, root.fontFamily); font.pixelSize: 13
                     }
                     SequentialAnimation {
                         id: wiggleClip; loops: Animation.Infinite
@@ -9861,7 +9884,7 @@ Scope {
                     frame: spotRoot
                     liquid: root.liquidActive
                     shaderUrl: root.glassShaderUrl
-                    dark: root.panelDarkMode
+                    dark: spotPal.dark
                     tint: root.glassOpacity
                     strength: root.glassLiquid               // full refraction, like the Dock / Control Center
                     rim: root.glassRim                       // same wallpaper-coloured rim + border line as the top-bar menus
@@ -9938,12 +9961,12 @@ Scope {
                             height: 48
                             GGlass { anchors.fill: parent; gx: spg; cornerR: 24; thickness: 22; strengthMul: 1.0; shadowAmt: 0.08 }
                             HoverHandler { id: pillHover }
-                            ContourGlow { cornerR: 24; hovered: pillHover.hovered; at: pillHover.point.position; glowColor: root.panelDarkMode ? "white" : root.accent }
-                            MenuBorder { amount: 0.5; anchors.fill: parent; cornerR: 24; dark: root.panelDarkMode; tint: root.menuBorderColor }
+                            ContourGlow { cornerR: 24; hovered: pillHover.hovered; at: pillHover.point.position; glowColor: spotPal.dark ? "white" : root.accent }
+                            MenuBorder { amount: 0.5; anchors.fill: parent; cornerR: 24; dark: spotPal.dark; tint: root.menuBorderColor }
                             Glyph {
                                 x: 18; anchors.verticalCenter: parent.verticalCenter
                                 width: 18; height: 18
-                                kind: "search"; color: panelPal.fg2
+                                kind: "search"; color: spotPal.fg2
                             }
                             // placeholder: blur-morphs between "Search" and the hovered button's name
                             MorphText {
@@ -9955,8 +9978,8 @@ Scope {
                                 duration: 460
                                 blurMax: 48
                                 text: ui.spHoverLabel !== "" ? ui.spHoverLabel : I18n.tr("Search")
-                                color: panelPal.fg2
-                                font.family: root.fontForWeight(Font.Normal, panelPal.fam); font.pixelSize: 17
+                                color: spotPal.fg2
+                                font.family: root.fontForWeight(Font.Normal, spotPal.fam); font.pixelSize: 17
                                 elide: Text.ElideRight
                             }
                             TextInput {
@@ -9965,10 +9988,10 @@ Scope {
                                 width: parent.width - 46 - 44          // constant width: the field never changes size while typing
                                 anchors.verticalCenter: parent.verticalCenter
                                 clip: true
-                                color: panelPal.fg
+                                color: spotPal.fg
                                 selectionColor: root.accent
                                 selectedTextColor: "white"
-                                font.family: root.fontForWeight(Font.Normal, panelPal.fam); font.pixelSize: 17
+                                font.family: root.fontForWeight(Font.Normal, spotPal.fam); font.pixelSize: 17
                                 horizontalAlignment: /[\u0590-\u08ff]/.test(text) ? Text.AlignRight : Text.AlignLeft
                                 onTextChanged: { if (!ui.spFull) { ui.spQuery = text; ui.spSel = 0; ui.armed = ""; if (/^(file|find)\s+/i.test(text)) root.updateFileSearch(text.replace(/^(file|find)\s+/i, "").trim()); } }
                                 Keys.onPressed: event => ui.spKey(event)
@@ -9985,10 +10008,10 @@ Scope {
                                 Behavior on opacity { NumberAnimation { duration: root.reduceMotion ? 0 : 140; easing.type: Easing.OutCubic } }
                                 Rectangle {
                                     anchors.fill: parent; radius: 11
-                                    color: root.panelDarkMode ? Qt.rgba(1, 1, 1, clearMa.containsMouse ? 0.24 : 0.14) : Qt.rgba(0, 0, 0, clearMa.containsMouse ? 0.16 : 0.09)
+                                    color: spotPal.dark ? Qt.rgba(1, 1, 1, clearMa.containsMouse ? 0.24 : 0.14) : Qt.rgba(0, 0, 0, clearMa.containsMouse ? 0.16 : 0.09)
                                     Behavior on color { ColorAnimation { duration: root.reduceMotion ? 0 : 120 } }
                                 }
-                                Glyph { anchors.centerIn: parent; width: 14; height: 14; kind: "close"; color: panelPal.fg2 }
+                                Glyph { anchors.centerIn: parent; width: 14; height: 14; kind: "close"; color: spotPal.fg2 }
                                 MouseArea {
                                     id: clearMa
                                     anchors.fill: parent
@@ -10039,7 +10062,7 @@ Scope {
                                         else if (ui.spHoverLabel === modelData.label) spHoverClear.restart();
                                     }
                                 }
-                                ContourGlow { cornerR: 24; hovered: btnHover.hovered; at: btnHover.point.position; glowColor: root.panelDarkMode ? "white" : root.accent }
+                                ContourGlow { cornerR: 24; hovered: btnHover.hovered; at: btnHover.point.position; glowColor: spotPal.dark ? "white" : root.accent }
                                 onClicked: {
                                     if (modelData.id === "apps") ui.spSetMode(ui.spMode === "apps" ? "home" : "apps");
                                     else if (modelData.id === "actions") ui.spSetMode(ui.spMode === "actions" ? "home" : "actions");
@@ -10082,7 +10105,7 @@ Scope {
                         // expands / contracts downward only: the pill above never moves
                         Behavior on height { NumberAnimation { duration: root.reduceMotion ? 0 : 220; easing.type: Easing.OutCubic } }
                         GGlass { anchors.fill: parent; gx: spg; cornerR: 26; thickness: 26; strengthMul: 1.0; shadowAmt: 0.10 }
-                        MenuBorder { amount: 0.5; anchors.fill: parent; cornerR: 26; dark: root.panelDarkMode; tint: root.menuBorderColor }
+                        MenuBorder { amount: 0.5; anchors.fill: parent; cornerR: 26; dark: spotPal.dark; tint: root.menuBorderColor }
                         Item {
                             x: 8; y: 8
                             width: parent.width - 16
@@ -10152,7 +10175,7 @@ Scope {
                                             anchors.centerIn: parent
                                             width: 20; height: 20
                                             kind: (rr.modelData && rr.modelData.glyph) ? rr.modelData.glyph : ""
-                                            color: rr.sel ? "white" : panelPal.fg
+                                            color: rr.sel ? "white" : spotPal.fg
                                         }
                                     }
                                     Text {
@@ -10163,8 +10186,8 @@ Scope {
                                                : parent.width - 54 - 16 - Math.min(rowSub.implicitWidth, parent.width * 0.4) - 12
                                         elide: Text.ElideRight
                                         text: rr.armedNow ? I18n.tr("Press Return again to confirm") : (rr.modelData ? rr.modelData.title : "")
-                                        color: rr.sel ? "white" : panelPal.fg
-                                        font.family: root.fontForWeight(Font.Normal, panelPal.fam); font.pixelSize: 14
+                                        color: rr.sel ? "white" : spotPal.fg
+                                        font.family: root.fontForWeight(Font.Normal, spotPal.fam); font.pixelSize: 14
                                     }
                                     Text {
                                         id: rowSub
@@ -10175,8 +10198,8 @@ Scope {
                                         width: rr.twoLine ? parent.width - 54 - 16 : Math.min(implicitWidth, parent.width * 0.4)
                                         elide: rr.twoLine ? Text.ElideMiddle : Text.ElideRight
                                         text: rr.modelData ? rr.modelData.sub : ""
-                                        color: rr.sel ? Qt.rgba(1, 1, 1, 0.8) : panelPal.fg2
-                                        font.family: root.fontForWeight(Font.Normal, panelPal.fam); font.pixelSize: rr.twoLine ? 11 : 12
+                                        color: rr.sel ? Qt.rgba(1, 1, 1, 0.8) : spotPal.fg2
+                                        font.family: root.fontForWeight(Font.Normal, spotPal.fam); font.pixelSize: rr.twoLine ? 11 : 12
                                     }
                                     MouseArea {
                                         anchors.fill: parent
@@ -10188,7 +10211,7 @@ Scope {
                             }
                         }
                         }
-                        LiquidScrollBar { flick: resFlick; compact: true; alwaysVisible: true; anchors.right: parent.right; anchors.rightMargin: 2; anchors.top: parent.top; anchors.topMargin: 6; anchors.bottom: parent.bottom; anchors.bottomMargin: 6; dark: root.panelDarkMode }
+                        LiquidScrollBar { flick: resFlick; compact: true; alwaysVisible: true; anchors.right: parent.right; anchors.rightMargin: 2; anchors.top: parent.top; anchors.topMargin: 6; anchors.bottom: parent.bottom; anchors.bottomMargin: 6; dark: spotPal.dark }
                         }
                     }
 
@@ -10215,7 +10238,7 @@ Scope {
                         height: 64 + (items.length > 0 ? shown * rowH + 14 : 118)
                         Behavior on height { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
                         GGlass { anchors.fill: parent; gx: spg; cornerR: 32; thickness: 34; strengthMul: 1.0; shadowAmt: 0.22 }
-                        MenuBorder { amount: 0.5; anchors.fill: parent; cornerR: 32; dark: root.panelDarkMode; tint: root.menuBorderColor }
+                        MenuBorder { amount: 0.5; anchors.fill: parent; cornerR: 32; dark: spotPal.dark; tint: root.menuBorderColor }
 
                         Item {
                             id: clipHeader
@@ -10234,8 +10257,8 @@ Scope {
                                 x: 46
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: I18n.tr("Clipboard")
-                                color: panelPal.fg
-                                font.family: root.fontForWeight(Font.Medium, panelPal.fam); font.pixelSize: 24; font.weight: Font.Medium
+                                color: spotPal.fg
+                                font.family: root.fontForWeight(Font.Medium, spotPal.fam); font.pixelSize: 24; font.weight: Font.Medium
                             }
                             TextInput {
                                 id: clipInput
@@ -10243,10 +10266,10 @@ Scope {
                                 width: parent.width - x - 48
                                 anchors.verticalCenter: parent.verticalCenter
                                 clip: true
-                                color: panelPal.fg
+                                color: spotPal.fg
                                 selectionColor: root.accent
                                 selectedTextColor: "white"
-                                font.family: root.fontForWeight(Font.Normal, panelPal.fam); font.pixelSize: 24
+                                font.family: root.fontForWeight(Font.Normal, spotPal.fam); font.pixelSize: 24
                                 onTextChanged: { if (ui.spMode === "clip") { ui.spQuery = text; ui.spSel = 0; } }
                                 Keys.onPressed: event => ui.spKey(event)
                             }
@@ -10302,12 +10325,12 @@ Scope {
                                         visible: cr.modelData.kind === "text" || cr.modelData.kind === "url"
                                         anchors.fill: parent
                                         radius: 10
-                                        color: cr.sel ? Qt.rgba(1, 1, 1, 0.22) : (root.panelDarkMode ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(0, 0, 0, 0.06))
+                                        color: cr.sel ? Qt.rgba(1, 1, 1, 0.22) : (spotPal.dark ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(0, 0, 0, 0.06))
                                         Glyph {
                                             anchors.centerIn: parent
                                             width: 20; height: 20
                                             kind: cr.modelData.kind === "url" ? "link" : "doc"
-                                            color: cr.sel ? "white" : panelPal.fg2
+                                            color: cr.sel ? "white" : spotPal.fg2
                                         }
                                     }
                                     Rectangle {
@@ -10320,7 +10343,7 @@ Scope {
                                     Item {
                                         visible: cr.modelData.kind === "image"
                                         anchors.fill: parent
-                                        Rectangle { anchors.fill: parent; radius: 10; color: root.panelDarkMode ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(0, 0, 0, 0.06) }
+                                        Rectangle { anchors.fill: parent; radius: 10; color: spotPal.dark ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(0, 0, 0, 0.06) }
                                         Image {
                                             anchors.fill: parent
                                             source: cr.modelData.kind === "image" ? cr.modelData.thumb : ""
@@ -10349,16 +10372,16 @@ Scope {
                                     width: parent.width - 62 - 56
                                     elide: Text.ElideRight
                                     text: cr.modelData ? cr.modelData.title : ""
-                                    color: cr.sel ? "white" : panelPal.fg
-                                    font.family: root.fontForWeight(Font.Normal, panelPal.fam); font.pixelSize: 14
+                                    color: cr.sel ? "white" : spotPal.fg
+                                    font.family: root.fontForWeight(Font.Normal, spotPal.fam); font.pixelSize: 14
                                 }
                                 Text {
                                     x: 62; y: 31
                                     width: parent.width - 62 - 56
                                     elide: Text.ElideRight
                                     text: cr.modelData ? cr.modelData.sub : ""
-                                    color: cr.sel ? Qt.rgba(1, 1, 1, 0.8) : panelPal.fg2
-                                    font.family: root.fontForWeight(Font.Normal, panelPal.fam); font.pixelSize: 12
+                                    color: cr.sel ? Qt.rgba(1, 1, 1, 0.8) : spotPal.fg2
+                                    font.family: root.fontForWeight(Font.Normal, spotPal.fam); font.pixelSize: 12
                                 }
                                 Glyph {
                                     visible: cr.sel
@@ -10406,16 +10429,16 @@ Scope {
                                 width: parent.width
                                 horizontalAlignment: Text.AlignHCenter
                                 text: clipPanel.emptyTitle
-                                color: panelPal.fg
-                                font.family: root.fontForWeight(Font.Medium, panelPal.fam); font.pixelSize: 15; font.weight: Font.Medium
+                                color: spotPal.fg
+                                font.family: root.fontForWeight(Font.Medium, spotPal.fam); font.pixelSize: 15; font.weight: Font.Medium
                             }
                             Text {
                                 width: parent.width
                                 horizontalAlignment: Text.AlignHCenter
                                 wrapMode: Text.WordWrap
                                 text: clipPanel.emptySub
-                                color: panelPal.fg2
-                                font.family: root.fontForWeight(Font.Normal, panelPal.fam); font.pixelSize: 12
+                                color: spotPal.fg2
+                                font.family: root.fontForWeight(Font.Normal, spotPal.fam); font.pixelSize: 12
                             }
                         }
 
@@ -10430,7 +10453,7 @@ Scope {
                             width: 250
                             height: 3 * 40 + 12
                             GGlass { anchors.fill: parent; gx: spg; cornerR: 20; thickness: 26; strengthMul: 1.0; shadowAmt: 0.26 }
-                            MenuBorder { amount: 0.5; anchors.fill: parent; cornerR: 20; dark: root.panelDarkMode; tint: root.menuBorderColor }
+                            MenuBorder { amount: 0.5; anchors.fill: parent; cornerR: 20; dark: spotPal.dark; tint: root.menuBorderColor }
                             Column {
                                 x: 6; y: 6
                                 width: parent.width - 12
@@ -10451,7 +10474,7 @@ Scope {
                                             visible: cm.modelData === "auto" && root.clipAutoPaste
                                             x: 12; anchors.verticalCenter: parent.verticalCenter
                                             width: 16; height: 16
-                                            kind: "check"; color: cmMa.containsMouse ? "white" : panelPal.fg
+                                            kind: "check"; color: cmMa.containsMouse ? "white" : spotPal.fg
                                         }
                                         Text {
                                             x: 38
@@ -10459,8 +10482,8 @@ Scope {
                                             text: cm.modelData === "auto" ? I18n.tr("Paste Automatically")
                                                   : (cm.modelData === "del" ? I18n.tr("Delete Selected")
                                                   : (cm.armedNow ? I18n.tr("Click again to confirm") : I18n.tr("Clear History")))
-                                            color: cmMa.containsMouse ? "white" : ((cm.modelData === "clear") ? "#FF453A" : panelPal.fg)
-                                            font.family: root.fontForWeight(Font.Normal, panelPal.fam); font.pixelSize: 14
+                                            color: cmMa.containsMouse ? "white" : ((cm.modelData === "clear") ? "#FF453A" : spotPal.fg)
+                                            font.family: root.fontForWeight(Font.Normal, spotPal.fam); font.pixelSize: 14
                                         }
                                         MouseArea {
                                             id: cmMa
@@ -10500,7 +10523,7 @@ Scope {
                         readonly property var cur: items[Math.min(ui.spSel, items.length - 1)]
                         height: 64 + 42 + gridRows * cell + 46
                         GGlass { anchors.fill: parent; gx: spg; cornerR: 32; thickness: 34; strengthMul: 1.0; shadowAmt: 0.22 }
-                        MenuBorder { amount: 0.5; anchors.fill: parent; cornerR: 32; dark: root.panelDarkMode; tint: root.menuBorderColor }
+                        MenuBorder { amount: 0.5; anchors.fill: parent; cornerR: 32; dark: spotPal.dark; tint: root.menuBorderColor }
 
                         Item {
                             x: 20
@@ -10518,8 +10541,8 @@ Scope {
                                 x: 46
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: I18n.tr("Emoji")
-                                color: panelPal.fg
-                                font.family: root.fontForWeight(Font.Medium, panelPal.fam); font.pixelSize: 24; font.weight: Font.Medium
+                                color: spotPal.fg
+                                font.family: root.fontForWeight(Font.Medium, spotPal.fam); font.pixelSize: 24; font.weight: Font.Medium
                             }
                             TextInput {
                                 id: emojiInput
@@ -10527,10 +10550,10 @@ Scope {
                                 width: parent.width - x
                                 anchors.verticalCenter: parent.verticalCenter
                                 clip: true
-                                color: panelPal.fg
+                                color: spotPal.fg
                                 selectionColor: root.accent
                                 selectedTextColor: "white"
-                                font.family: root.fontForWeight(Font.Normal, panelPal.fam); font.pixelSize: 24
+                                font.family: root.fontForWeight(Font.Normal, spotPal.fam); font.pixelSize: 24
                                 onTextChanged: { if (ui.spMode === "emoji") { ui.spQuery = text; ui.spSel = 0; } }
                                 Keys.onPressed: event => ui.spKey(event)
                             }
@@ -10625,31 +10648,31 @@ Scope {
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                             text: ui.spQuery.trim() !== "" ? I18n.tr("No Results") : I18n.tr("No recently used emoji")
-                            color: panelPal.fg2
-                            font.family: root.fontForWeight(Font.Normal, panelPal.fam); font.pixelSize: 14
+                            color: spotPal.fg2
+                            font.family: root.fontForWeight(Font.Normal, spotPal.fam); font.pixelSize: 14
                         }
 
                         // footer: name of the highlighted emoji
                         Item {
                             x: 20; y: parent.height - 46
                             width: parent.width - 40; height: 46
-                            Rectangle { width: parent.width; height: 1; color: panelPal.sep }
+                            Rectangle { width: parent.width; height: 1; color: spotPal.sep }
                             Text {
                                 x: 4
                                 anchors.verticalCenter: parent.verticalCenter
                                 width: parent.width - 180
                                 elide: Text.ElideRight
                                 text: emojiPanel.cur ? (emojiPanel.cur[0] + "  " + emojiPanel.cur[1]) : ""
-                                color: panelPal.fg2
-                                font.family: root.fontForWeight(Font.Normal, panelPal.fam); font.pixelSize: 13
+                                color: spotPal.fg2
+                                font.family: root.fontForWeight(Font.Normal, spotPal.fam); font.pixelSize: 13
                             }
                             Text {
                                 anchors.right: parent.right
                                 anchors.rightMargin: 4
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: root.clipAutoPaste ? I18n.tr("Return to insert") : I18n.tr("Return to copy")
-                                color: panelPal.fg3
-                                font.family: root.fontForWeight(Font.Normal, panelPal.fam); font.pixelSize: 12
+                                color: spotPal.fg3
+                                font.family: root.fontForWeight(Font.Normal, spotPal.fam); font.pixelSize: 12
                             }
                         }
                     }
@@ -10666,7 +10689,7 @@ Scope {
                         width: spot.width
                         height: Math.min(64 + appsCol.height + 14, 520)
                         GGlass { anchors.fill: parent; gx: spg; cornerR: 32; thickness: 34; strengthMul: 1.0; shadowAmt: 0.22 }
-                        MenuBorder { amount: 0.5; anchors.fill: parent; cornerR: 32; dark: root.panelDarkMode; tint: root.menuBorderColor }
+                        MenuBorder { amount: 0.5; anchors.fill: parent; cornerR: 32; dark: spotPal.dark; tint: root.menuBorderColor }
 
                         Item {
                             id: appsHeader
@@ -10676,15 +10699,15 @@ Scope {
                             Glyph {
                                 anchors.verticalCenter: parent.verticalCenter
                                 width: 24; height: 24
-                                kind: "appstore"; color: panelPal.fg2
+                                kind: "appstore"; color: spotPal.fg2
                             }
                             Text {
                                 x: 40 + 3
                                 anchors.verticalCenter: parent.verticalCenter
                                 visible: appsInput.text === ""
                                 text: I18n.tr("Applications")
-                                color: panelPal.fg3
-                                font.family: root.fontForWeight(Font.Normal, panelPal.fam); font.pixelSize: 24
+                                color: spotPal.fg3
+                                font.family: root.fontForWeight(Font.Normal, spotPal.fam); font.pixelSize: 24
                             }
                             TextInput {
                                 id: appsInput
@@ -10692,10 +10715,10 @@ Scope {
                                 width: parent.width - 40 - 48
                                 anchors.verticalCenter: parent.verticalCenter
                                 clip: true
-                                color: panelPal.fg
+                                color: spotPal.fg
                                 selectionColor: root.accent
                                 selectedTextColor: "white"
-                                font.family: root.fontForWeight(Font.Normal, panelPal.fam); font.pixelSize: 24
+                                font.family: root.fontForWeight(Font.Normal, spotPal.fam); font.pixelSize: 24
                                 onTextChanged: { if (ui.spMode === "apps") { ui.spQuery = text; ui.spSel = 0; } }
                                 Keys.onPressed: event => ui.spKey(event)
                             }
@@ -10736,15 +10759,15 @@ Scope {
                                         readonly property int shown: expanded ? modelData.apps.length : Math.min(5, modelData.apps.length)
                                         width: appsCol.width
 
-                                        Rectangle { width: parent.width; height: 1; color: panelPal.sep }
+                                        Rectangle { width: parent.width; height: 1; color: spotPal.sep }
                                         Item {
                                             width: parent.width
                                             height: 38
                                             Text {
                                                 anchors.verticalCenter: parent.verticalCenter
                                                 text: I18n.tr(sec.modelData.name)
-                                                color: panelPal.fg
-                                                font.family: root.fontForWeight(Font.Bold, panelPal.fam); font.pixelSize: 13; font.weight: Font.Bold
+                                                color: spotPal.fg
+                                                font.family: root.fontForWeight(Font.Bold, spotPal.fam); font.pixelSize: 13; font.weight: Font.Bold
                                             }
                                             Text {
                                                 visible: !sec.searching && sec.modelData.apps.length > 5
@@ -10752,7 +10775,7 @@ Scope {
                                                 anchors.verticalCenter: parent.verticalCenter
                                                 text: sec.expanded ? I18n.tr("Show Less") : I18n.tr("Show More")
                                                 color: root.accent
-                                                font.family: root.fontForWeight(Font.Bold, panelPal.fam); font.pixelSize: 12; font.weight: Font.Bold
+                                                font.family: root.fontForWeight(Font.Bold, spotPal.fam); font.pixelSize: 12; font.weight: Font.Bold
                                                 MouseArea {
                                                     anchors.fill: parent
                                                     anchors.margins: -6
@@ -10774,7 +10797,7 @@ Scope {
                                                         anchors.fill: parent
                                                         anchors.margins: 2
                                                         radius: 16
-                                                        color: cma.containsMouse ? panelPal.hover : "transparent"
+                                                        color: cma.containsMouse ? spotPal.hover : "transparent"
                                                     }
                                                     Image {
                                                         anchors.horizontalCenter: parent.horizontalCenter
@@ -10793,8 +10816,8 @@ Scope {
                                                         horizontalAlignment: Text.AlignHCenter
                                                         elide: Text.ElideRight
                                                         text: cell.e.name
-                                                        color: panelPal.fg
-                                                        font.family: root.fontForWeight(Font.Normal, panelPal.fam); font.pixelSize: 12
+                                                        color: spotPal.fg
+                                                        font.family: root.fontForWeight(Font.Normal, spotPal.fam); font.pixelSize: 12
                                                     }
                                                     MouseArea {
                                                         id: cma
@@ -10815,8 +10838,8 @@ Scope {
                                     horizontalAlignment: Text.AlignHCenter
                                     verticalAlignment: Text.AlignVCenter
                                     text: I18n.tr("No Results")
-                                    color: panelPal.fg2
-                                    font.family: root.fontForWeight(Font.Normal, panelPal.fam); font.pixelSize: 14
+                                    color: spotPal.fg2
+                                    font.family: root.fontForWeight(Font.Normal, spotPal.fam); font.pixelSize: 14
                                 }
                             }
                         }
