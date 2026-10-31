@@ -162,7 +162,7 @@ Scope {
     property bool glassLive: true
     readonly property bool glassRT: glassLive
     property real glassBlur: 5            // Liquid Glass backdrop blur radius, px (settings slider)
-    readonly property real dockBlurBoost: 8    // extra px of blur added on top of glassBlur for the Dock glass only
+    readonly property real dockBlurBoost: 0    // extra px of blur on top of glassBlur for the Dock glass (0: the Blur slider alone decides)
     property bool glassDebug: false       // settings.json only: draw the raw Liquid Glass backdrop texture
     property string wallpaperPath: ""    // optional override for the wallpaper the Liquid Glass refracts
     property real glassOpacity: 0.42     // 0 = fully clear; below the layerrule's ignore_alpha (0.2) the blur turns off
@@ -1164,7 +1164,7 @@ Scope {
                             source: sbSrc
                             width: sbSrc.textureSize.width; height: sbSrc.textureSize.height
                             blurEnabled: true; blurMax: 48
-                            blur: Math.min(1, root.glassBlur * 1.4 * 0.5 / 48 + 0.25)
+                            blur: Math.min(1, root.glassBlur * 1.4 * 0.5 / 48)
                             autoPaddingEnabled: false
                             visible: false
                         }
@@ -3928,6 +3928,30 @@ Scope {
                     }
                     SRow {
                         t: pal
+                        title: I18n.tr("Columns")
+                        SSlider {
+                            t: pal
+                            from: 8; to: 48; stepSize: 1
+                            value: root.bar ? root.bar.visCount : 24
+                            leftLabel: "8"; rightLabel: "48"
+                            resetValue: 24
+                            onMoved: v => { if (root.bar) root.bar.visCount = Math.round(v); }
+                        }
+                    }
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Bar width")
+                        SSlider {
+                            t: pal
+                            from: 0.2; to: 1; stepSize: 0.02
+                            value: root.bar ? root.bar.visWidth : 0.62
+                            leftLabel: I18n.tr("Thin"); rightLabel: I18n.tr("Wide")
+                            resetValue: 0.62
+                            onMoved: v => { if (root.bar) root.bar.visWidth = Math.round(v * 100) / 100; }
+                        }
+                    }
+                    SRow {
+                        t: pal
                         title: I18n.tr("Also in the Control Center")
                         subtitle: I18n.tr("Next to the cover of the Now Playing tile")
                         SSwitch {
@@ -3948,7 +3972,8 @@ Scope {
                             demo: !(root.bar && root.bar.player && root.bar.player.isPlaying)
                             style: root.bar ? root.bar.visStyle : "bars"
                             gain: root.bar ? root.bar.visGain : 1
-                            count: 36
+                            count: root.bar ? root.bar.visCount : 24
+                            barFill: root.bar ? root.bar.visWidth : 0.62
                             readonly property color base: (root.bar && root.bar.visColor === "accent") ? pal.accent : pal.text
                             colorTop: Qt.rgba(base.r, base.g, base.b, 0.75)
                             colorBottom: Qt.rgba(base.r, base.g, base.b, 0.12)
@@ -6692,7 +6717,7 @@ Scope {
                             property color edgeCol: root.bar ? root.bar.menuBorderColor : "#8A9AB5"
                             Behavior on edgeCol { ColorAnimation { duration: 450; easing.type: Easing.OutCubic } }
                             // blurring at half resolution is visually identical for radii >= 8 px and costs a quarter of the GPU work
-                            // the Dock gets extra blur on top of the shared Blur slider (dockBlurBoost px), so it is frosted even at the default setting
+                            // the Dock's blur is the shared Blur slider (plus dockBlurBoost px, 0 by default)
                             readonly property real eb: root.glassBlur + root.dockBlurBoost
                             readonly property real ds: eb >= 8 ? 0.5 : 1.0
                             readonly property real bn: eb * 1.5 * ds / 64.0

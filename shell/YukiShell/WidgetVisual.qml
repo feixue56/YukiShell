@@ -161,6 +161,8 @@ Item {
                 visStyle: host.visStyle
                 visColor: host.visColor
                 visGain: host.visGain
+                visCount: host.visCount
+                visWidth: host.visWidth
                 visAccent: host.visAccent
                 glowAmt: host.mwGlow
                 motion: host.mwMotion

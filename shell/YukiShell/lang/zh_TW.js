@@ -929,6 +929,8 @@ var strings = {
     "Ambient": "氛圍",
     "Strip": "條帶",
     "Ambient: a soft glow along the bottom of the music widget. Strip: bars behind its controls.": "氛圍：沿音樂小工具底部的柔和光暈。條帶：控制項後方的柱條。",
+    "Columns": "欄數",
+    "Bar width": "柱條寬度",
     "Bars": "長條",
     "Mirror": "鏡像",
     "Wave": "波形",

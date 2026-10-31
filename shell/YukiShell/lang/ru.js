@@ -939,6 +939,8 @@ var strings = {
     "Ambient": "Фоновая",
     "Strip": "Полоса",
     "Ambient: a soft glow along the bottom of the music widget. Strip: bars behind its controls.": "Фоновая: мягкое свечение вдоль нижнего края музыкального виджета. Полоса: столбики за кнопками управления.",
+    "Columns": "Столбцы",
+    "Bar width": "Ширина столбиков",
     "Bars": "Столбики",
     "Mirror": "Зеркало",
     "Wave": "Волна",

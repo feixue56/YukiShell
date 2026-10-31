@@ -929,6 +929,8 @@ var strings = {
     "Ambient": "アンビエント",
     "Strip": "ストリップ",
     "Ambient: a soft glow along the bottom of the music widget. Strip: bars behind its controls.": "アンビエント：ミュージックウィジェットの下端に沿った柔らかな光。ストリップ：コントロールの後ろのバー。",
+    "Columns": "列数",
+    "Bar width": "バーの幅",
     "Bars": "バー",
     "Mirror": "ミラー",
     "Wave": "ウェーブ",

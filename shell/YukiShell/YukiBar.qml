@@ -371,6 +371,8 @@ Scope {
     property string visStyle: "bars"          // bars | mirror | wave
     property string visColor: "art"           // art (from the cover) | white | accent
     property real visGain: 1.0                // how tall the bars get
+    property int visCount: 24                 // how many columns (the music widget and the Control Center tile)
+    property real visWidth: 0.62              // bar width as a share of its column (0.2 thin .. 1 touching)
     // the Now Playing widget (Settings -> Widgets -> Music Widget)
     property real mwGlow: 0.6                 // the album art lights the card from behind (0 = off)
     property bool mwMotion: true              // living artwork: the cover settles back when paused, the glow drifts while playing
@@ -397,7 +399,7 @@ Scope {
         "barStyle", "barGlass", "glassRim", "glassGrain", "glassLiquid", "glassBlur", "barBgOpacity", "glassRealtime", "liveWallGlass", "wallPauseCovered", "wallUserPaused", "showWallButton", "glassDebug", "wallpaperPath", "use24h", "language", "showDate",
         "showSeconds", "showBatteryPercent", "showTray", "showSearch",
         "spotlightEnabled", "reduceMotion", "ccEnabled", "notificationsEnabled", "clockAppEnabled", "ccStyle", "barLogoMode", "barCustomLogoPath", "barWidgets", "weekStartsMonday", "terminal", "launcher",
-        "filesCmd", "clipboardCmd", "appUsage", "clipHistory", "clipAutoPaste", "emojiRecent", "screenshotDir", "screenshotSave", "screenshotClipboard", "screenshotNotify", "nightTemp", "ccControls", "ccSizes", "ccPos", "ccRowH", "ccGapPx", "ccOnColor", "ccMigRec", "visOn", "visStyle", "visColor", "visGain", "visInCC", "mwGlow", "mwMotion", "mwBar", "mwVisMode", "wallpaperDir", "wallpaperDirs", "wallpaperFavs", "wallpaperCmd", "wallpaperVideo", "wpRestorePath", "uiSounds", "gamingMode", "gamingAuto", "ccMigGame", "lockArtBackground",
+        "filesCmd", "clipboardCmd", "appUsage", "clipHistory", "clipAutoPaste", "emojiRecent", "screenshotDir", "screenshotSave", "screenshotClipboard", "screenshotNotify", "nightTemp", "ccControls", "ccSizes", "ccPos", "ccRowH", "ccGapPx", "ccOnColor", "ccMigRec", "visOn", "visStyle", "visColor", "visGain", "visCount", "visWidth", "visInCC", "mwGlow", "mwMotion", "mwBar", "mwVisMode", "wallpaperDir", "wallpaperDirs", "wallpaperFavs", "wallpaperCmd", "wallpaperVideo", "wpRestorePath", "uiSounds", "gamingMode", "gamingAuto", "ccMigGame", "lockArtBackground",
         "lockClockStyle", "switcherStyle", "lockClockFont", "lockClockWeight", "lockClockMaterial", "lockClockIntensity", "lockClockTint", "lockClockDate", "autoContrast", "wallpaperAppearance", "wpPairLight", "wpPairDark",
         "notifDnd", "dnd", "nightOn", "keepAwake", "notifBannerSecs", "notifMutedApps", "notifAppsSeen", "focusSchedule", "focusFrom", "focusTo",
         "focusFullscreen", "focusAllowUrgent", "lockShowNotifs", "lockWallpaper", "uiSoundVolume", "alertSound",
@@ -1343,7 +1345,7 @@ Scope {
         property real fullW: pop.width
         property real fullH: pop.height
         property bool fromCC: false                 // opened from the Control Center: keeps the global blur setting
-        readonly property real topBarBlur: 42       // opened from the top bar: the stronger blur of the old version
+        readonly property real topBarBlur: root.glassBlur   // menus from the top bar follow the Blur slider like everything else
         property alias ctx: pgc
         readonly property real m: 64 * root.barPopupScale
         ShaderEffectSource {
@@ -8398,7 +8400,8 @@ Scope {
                                 active: root.visOn && root.visInCC && np.pl !== null && np.pl !== undefined && np.pl.isPlaying
                                 style: root.visStyle
                                 gain: root.visGain
-                                count: 18
+                                count: Math.max(6, Math.round(root.visCount * 0.75))     // the tile is narrower than the widget
+                                barFill: root.visWidth
                                 // the same colours as the Now Playing widget: the cover's (ArtTint, same formula), the accent, or plain
                                 ArtTint { id: npTint; source: artImg.source }
                                 readonly property color base: (root.visColor === "accent" || root.accentUi) ? root.accentInk
@@ -9746,8 +9749,8 @@ Scope {
                     ringW: 0.9
                     whiteEdge: false
                     grain: root.glassGrain
-                    blur: 15                                // Spotlight has its own blur: it ignores the global blur slider
-                    blurMul: 10.0                   // strong smooth blur (two stacked Gaussian passes); lower to see more refraction, raise to frost more
+                    blur: root.glassBlur                    // the Blur slider, like the other glass
+                    blurMul: 2.0                    // a little more than the small panels: Spotlight is big and sits over busy windows
                     debug: root.glassDebug
                     onFailed: root.glassState = "failed"
                 }

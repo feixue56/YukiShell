@@ -55,6 +55,8 @@ Item {
     property string visStyle: "bars"         // bars | mirror | wave
     property string visColor: "art"          // art | white | accent
     property real visGain: 1.0
+    property int visCount: 24                // columns (Settings -> Widgets -> Audio Visualizer)
+    property real visWidth: 0.62             // bar width as a share of its column
     property color visAccent: "#0A84FF"
     // Settings -> Widgets -> Music Widget
     property real glowAmt: 0.6               // cover glow: the album art lights the card from behind (0 = off)
@@ -362,8 +364,8 @@ Item {
             blur: 1.0
             saturation: 0.35
             brightness: w.dark ? -0.08 : 0.12
-            // over Liquid Glass it stays lighter, so the glass still shows
-            opacity: (w.glowWanted && ambArt.status === Image.Ready) ? w.glowT * w.glowAmt * (w.style === "liquid" ? 0.7 : (w.dark ? 0.85 : 0.7)) : 0
+            // over Liquid Glass it stays light, so the refraction and the wallpaper keep showing through clearly
+            opacity: (w.glowWanted && ambArt.status === Image.Ready) ? w.glowT * w.glowAmt * (w.style === "liquid" ? 0.4 : (w.dark ? 0.85 : 0.7)) : 0
             Behavior on opacity { NumberAnimation { duration: 500; easing.type: Easing.OutCubic } }
         }
         // the slow drift while music plays (Living artwork): a lazy turn and a gentle breathe
@@ -383,26 +385,24 @@ Item {
             NumberAnimation { target: glowDrift; property: "zoom"; to: 1.0; duration: 7000; easing.type: Easing.InOutSine }
         }
 
-        // ambient visualizer: the spectrum as a soft, blurred glow rising from the bottom edge
+        // ambient visualizer: crisp bars rising from the bottom edge, fading out towards the top
         VisBars {
             id: ambVis
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.bottom: parent.bottom
-            height: parent.height * (w.isSmall ? 0.36 : 0.42)
+            height: parent.height * (w.isSmall ? 0.3 : 0.34)
             src: w.visSrc
             active: w.visOn && w.visMode === "ambient" && w.hasPlayer && (w.playing || w.preview) && !w.editing
             demo: w.preview
             style: w.visStyle
             gain: w.visGain
-            count: w.isSmall ? 10 : 18
-            barFill: 0.95
+            count: w.isSmall ? Math.max(4, Math.round(w.visCount / 2)) : w.visCount
+            barFill: w.visWidth
             readonly property color base: visual.base
-            colorTop: Qt.rgba(base.r, base.g, base.b, w.dark ? 0.6 : 0.5)
-            colorBottom: Qt.rgba(base.r, base.g, base.b, 0.18)
-            // blurred until the bars melt into one glow that swells with the music
-            layer.enabled: opacity > 0.01
-            layer.effect: MultiEffect { blurEnabled: true; blurMax: 64; blur: 1.0; autoPaddingEnabled: false }
+            // faint, so the buttons in front of it stay easy to read
+            colorTop: Qt.rgba(base.r, base.g, base.b, w.dark ? 0.34 : 0.28)
+            colorBottom: Qt.rgba(base.r, base.g, base.b, 0.04)
         }
     }
 
@@ -420,8 +420,8 @@ Item {
         demo: w.preview
         style: w.visStyle
         gain: w.visGain
-        count: w.isSmall ? 5 : 28
-        barFill: w.isSmall ? 0.7 : 0.62
+        count: w.isSmall ? 5 : w.visCount
+        barFill: w.visWidth
         readonly property color base: (w.visColor === "accent" || w.accentUi) ? w.inkC
                                        : (w.visColor === "art" && w.faceTint ? Qt.hsla(w.tintH, Math.min(0.95, w.tintS * 1.15 + 0.2), w.dark ? 0.70 : 0.42, 1)
                                           : (w.dark ? Qt.rgba(1, 1, 1, 1) : Qt.rgba(0, 0, 0, 1)))

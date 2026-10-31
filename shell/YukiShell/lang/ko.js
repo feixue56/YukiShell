@@ -929,6 +929,8 @@ var strings = {
     "Ambient": "앰비언트",
     "Strip": "스트립",
     "Ambient: a soft glow along the bottom of the music widget. Strip: bars behind its controls.": "앰비언트: 음악 위젯 아래쪽을 따라 흐르는 부드러운 빛. 스트립: 컨트롤 뒤의 막대.",
+    "Columns": "열 수",
+    "Bar width": "막대 너비",
     "Bars": "막대",
     "Mirror": "대칭",
     "Wave": "파형",

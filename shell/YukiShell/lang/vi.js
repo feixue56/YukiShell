@@ -887,6 +887,8 @@ var strings = {
     "Ambient": "Ánh nền",
     "Strip": "Dải",
     "Ambient: a soft glow along the bottom of the music widget. Strip: bars behind its controls.": "Ánh nền: ánh sáng dịu dọc đáy tiện ích âm nhạc. Dải: các thanh phía sau nút điều khiển.",
+    "Columns": "Số cột",
+    "Bar width": "Độ rộng thanh",
     "Bars": "Thanh",
     "Mirror": "Đối xứng",
     "Wave": "Sóng",
