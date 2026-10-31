@@ -5244,6 +5244,7 @@ Scope {
 
                 property string pop: ""          // "", apple, app, file, edit, view, window, help, cc, cal
                 property real menuX: 0
+                property real calSrcW: 0          // width of the clock the calendar grows out of
                 property var menuModel: []
                 property string armed: ""
                 property int calYear: 2026
@@ -6335,7 +6336,7 @@ Scope {
                                 verticalAlignment: Text.AlignVCenter
                                 anchors.verticalCenterOffset: 0.5
                             }
-                            MouseArea { id: clockMa; anchors.fill: parent; hoverEnabled: true; onClicked: ui.openPop("cal", 0) }
+                            MouseArea { id: clockMa; anchors.fill: parent; hoverEnabled: true; onClicked: { ui.calSrcW = clockBtn.width; ui.openPop("cal", clockBtn.mapToItem(ui, 0, 0).x); } }
                         }
                     }
                 }
@@ -8000,53 +8001,74 @@ Scope {
                 }
 
                 // --- calendar ---
+                // The same morph as the Wi-Fi menu: ONE glass shape grows out of the clock into the full calendar, springing a
+                // touch past its size and settling, starting out of focus and sharpening; the dates fade up into place a beat
+                // later. Closing folds it back into the clock and blurs it out.
                 Item {
                     id: cal
                     z: 10
-                    width: 310
-                    height: calCol.height + 28
-                    x: Math.max(6, ui.width - width - 8)
-                    y: root.barH + 6
-                    opacity: ui.pop === "cal" ? 1 : 0
-                    visible: opacity > 0
-                    scale: root.barPopupScale * (ui.pop === "cal" ? 1 : 0.96)
-                    transformOrigin: Item.TopRight
-                    Behavior on opacity { NumberAnimation { duration: 110 } }
-                    Behavior on scale { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+                    readonly property real ps: root.barPopupScale
+                    readonly property real fullW: 310
+                    readonly property real fullH: calCol.height + 28
+                    // the rectangle it grows from: the clock in the menu bar (screen px)
+                    readonly property real srcW: Math.max(26, ui.calSrcW)
+                    readonly property real srcH: 22
+                    readonly property real srcX: Math.min(ui.menuX, ui.width - srcW)
+                    readonly property real srcY: Math.max(0, (root.barH - 22) / 2)
+                    // the rectangle it grows into: under the clock's end of the bar
+                    readonly property real dstX: Math.max(6, ui.width - fullW * ps - 8)
+                    readonly property real dstY: root.barH + 6
 
-                    LGlass {
-                        anchors.fill: parent
-                        backdrop: ui.glassSrc
-                        shaderUrl: root.glassShaderUrl
-                        liquid: root.liquidActive
-                        dark: root.effDark
-                        bx: cal.x; by: cal.y
-                        cornerR: 24
-                        // the same Liquid Glass as the Control Center tiles: your blur / strength / translucency settings,
-                        // clear and refracting (it used to be a heavily frosted pane: a fixed 42 px blur, 55 % strength)
-                        tint: root.glassOpacity
-                        thickness: 22
-                        strength: root.glassLiquid
-                        rim: root.glassRim
-                        grain: root.glassGrain
-                        blur: root.glassBlur
-                        debug: root.glassDebug
-                        onShaderError: root.glassState = "failed"
-                        shadowAmt: 0
-                        flatInner: 1
-                        rimTint: 1
-                        ringW: 0
+                    readonly property bool opening: ui.pop === "cal"
+                    property real openT: opening ? 1 : 0
+                    Behavior on openT {
+                        id: calOpenB
+                        // the speed follows where the animation is heading (set before it starts)
+                        NumberAnimation {
+                            duration: calOpenB.targetValue > 0.5 ? 540 : 220
+                            easing.type: calOpenB.targetValue > 0.5 ? Easing.OutBack : Easing.InOutCubic
+                            easing.overshoot: 0.7
+                        }
                     }
-                    MenuBorder {
-                        z: 2
-                        anchors.fill: parent
-                        cornerR: 24
-                        dark: root.effDark
-                        tint: root.menuBorderColor
+                    readonly property real t: Math.max(0, Math.min(1, openT))
+                    readonly property real contentT: Math.max(0, Math.min(1, (openT - 0.28) / 0.55))
+
+                    width: (srcW + (fullW * ps - srcW) * openT) / ps
+                    height: (srcH + (fullH * ps - srcH) * openT) / ps
+                    x: srcX + (dstX - srcX) * openT
+                    y: srcY + (dstY - srcY) * openT
+                    opacity: Math.min(1, t * 4)
+                    visible: openT > 0.002
+                    scale: ps
+                    transformOrigin: Item.TopLeft
+
+                    // morph blur: only while the animation runs, so the open calendar is drawn directly (crisp text)
+                    readonly property real blurAmt: Math.pow(1 - t, 1.3)
+                    readonly property bool morphing: openT > 0.002 && Math.abs(openT - 1) > 0.002
+                    layer.enabled: morphing
+                    layer.smooth: true
+                    layer.effect: MultiEffect {
+                        blurEnabled: true
+                        blurMax: 48
+                        blur: cal.blurAmt * 0.9
+                        autoPaddingEnabled: true
                     }
+
+                    // the same Liquid Glass as the Wi-Fi menu and the Control Center tiles (your blur / strength / translucency)
+                    PopGlassCtx { id: calGlass; pop: cal; frame: ui; source: ui.glassSrc; fullW: cal.fullW; fullH: cal.fullH }
+                    GGlass { anchors.fill: parent; gx: calGlass.ctx; cornerR: Math.min(24, 8 + 16 * cal.t); thickness: 22; shadowAmt: 0; flatInner: 1 }
+                    MenuBorder { z: 2; anchors.fill: parent; cornerR: Math.min(24, 8 + 16 * cal.t); dark: calGlass.ctx.dark; tint: calGlass.ctx.borderTint; amount: 1 }
+                    MouseArea { anchors.fill: parent }          // clicks on empty glass don't close it
+
+                    // the dates keep their full size and are revealed by the growing glass (clipped), fading in and settling up
+                    Item {
+                    anchors.fill: parent
+                    anchors.margins: 1
+                    clip: true
                     Column {
                         id: calCol
-                        x: 16; y: 14
+                        x: 15; y: 13 + 10 * (1 - cal.contentT)
+                        opacity: cal.contentT
                         width: parent.width - 32
                         spacing: 8
 
@@ -8122,6 +8144,7 @@ Scope {
                                 }
                             }
                         }
+                    }
                     }
                 }
 
