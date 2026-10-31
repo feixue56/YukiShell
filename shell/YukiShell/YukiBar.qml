@@ -1406,7 +1406,7 @@ Scope {
             dark: root.effDark
             tint: root.glassOpacity
             strength: root.glassLiquid
-            rim: root.glassRim * 0.25
+            rim: root.glassRim
             rimTint: 1
             ringW: 0
             borderTint: root.menuBorderColor
@@ -8124,7 +8124,7 @@ Scope {
                         // macOS style: the panel is the glass, so each control only keeps a faint shape on top of it
                         tint: root.ccStyle === "macos" ? root.glassOpacity * 0.30 : root.glassOpacity
                         strength: root.ccStyle === "macos" ? root.glassLiquid * 0.30 : root.glassLiquid
-                        rim: root.ccStyle === "macos" ? root.glassRim * 0.10 : root.glassRim * 0.25
+                        rim: root.ccStyle === "macos" ? root.glassRim * 0.4 : root.glassRim
                         rimTint: 1
                         ringW: 0                            // the border is the QML CornerBorder now (see component CornerBorder)
                         borderTint: root.menuBorderColor

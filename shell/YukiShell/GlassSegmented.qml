@@ -273,7 +273,7 @@ Item {
                     thickness: Math.round(g.kh0 * 0.7)
                     strengthMul: g.lensStrength
                     liquid: g.glassLiquid
-                    rim: g.glassRim * 0.25
+                    rim: g.glassRim                 // the same edge light as the Dock (liquidglass.frag)
                     grain: g.glassGrain
                     tint: g.glassTint
                     shadowAmt: 0.5

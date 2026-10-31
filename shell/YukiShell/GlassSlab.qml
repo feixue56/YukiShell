@@ -25,7 +25,7 @@ Item {
     property real thickness: 16         // same meaning as GGlass.thickness in YukiBar.qml
     property real strengthMul: 1.0
     property real liquid: 1.0           // the global "Liquid strength" setting
-    property real rim: 0.1125           // Control Center value: glassRim * 0.25
+    property real rim: 0.45             // the default Rim: the same edge light as the Dock
     property real grain: 0.03
     property real tint: 0.42            // the global translucency setting (glassOpacity)
     property real tintMul: 1.0

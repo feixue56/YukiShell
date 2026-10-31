@@ -149,33 +149,31 @@ void main()
 
     vec3 col = blurredDisp(ps, disp, dispersion * 0.6, rad);
 
-    // --- colour grading: vibrancy, tint, milky lift ---
+    // --- colour: vibrancy, then an ADAPTIVE tint (as the Dock: more tint where the backdrop would fight the text) ---
     float l = dot(col, vec3(0.2126, 0.7152, 0.0722));
     col = mix(vec3(l), col, saturation);
+    float lw    = smoothstep(0.30, 0.80, l);
+    float adapt = mix(0.78, 1.28, mix(1.0 - lw, lw, dark));
     vec3 tintC = mix(vec3(1.0), vec3(0.09, 0.09, 0.10), dark);
-    col = mix(col, tintC, tintMix);
+    col = mix(col, tintC, clamp(tintMix * adapt, 0.0, 1.0));
     col += mix(0.055, 0.020, dark);
 
-    // --- depth: soft top sheen, darker lower inner edge ---
+    // --- depth: soft light from above (clear glass, no darker inner edge: the same as the shell's Dock) ---
     float ty = clamp((q.y + hs.y) / glassSize.y, 0.0, 1.0);
-    col += (1.0 - ty) * mix(0.040, 0.030, dark);
-    col *= 1.0 - 0.12 * exp(-t / 6.0) * clamp(g.y, 0.0, 1.0);
-    col *= 1.0 - 0.10 * exp(-t / (bz * 0.45));          // thick glass absorbs light toward the edge (heavier feel)
+    col += (1.0 - ty) * mix(0.040, 0.034, dark);
 
-    // --- specular rim, light from the top-left ---
-    vec2  L      = normalize(vec2(-0.55, -0.83));
-    float facing = dot(g, L);
-    float spec   = pow(max(facing, 0.0), 1.6) + 0.55 * pow(max(-facing, 0.0), 2.2);
-    float hair   = exp(-t / 1.1);
-    float wide   = exp(-t / 5.0);
-    float edgeHi = hair * (0.18 + 0.78 * spec) + wide * 0.10 * (0.30 + spec);
-    edgeHi *= rim * mix(0.85, 1.0, dark);
-    col += edgeHi * vec3(0.96, 0.98, 1.0);
-
-    // meniscus: a soft second highlight inside the rim, like surface tension pulling the liquid together
-    float mx  = (t - bz * 0.5) / (bz * 0.2 + 1.0);
-    float men = exp(-mx * mx);
-    col += men * 0.07 * (0.35 + spec) * rim * vec3(0.96, 0.98, 1.0);
+    // --- edge light, measured from the real macOS Dock (the same as the shell's glass) ---
+    // a thin bright line along the top (+18%) and bottom (+30%) that fades out around the corners, only a whisper on the straight
+    // sides (+2.5%), and a short glow just inside the top / bottom edge, all scaled from the glass's own colour.
+    // rim = 0.5 (Glass.qml's default) is full strength.
+    float rs    = clamp(rim / 0.5, 0.0, 3.0);
+    float aY    = pow(abs(g.y), 1.5);                               // 0 on the sides, 1 on the top / bottom
+    float wT    = smoothstep(-0.3, 0.3, -g.y);                      // 1 on the top, 0 on the bottom
+    float lineA = 0.025 + aY * mix(0.275, 0.155, wT);
+    float poolA = aY * mix(0.10, 0.055, wT);
+    float kk    = (t - 0.7) / 0.55;
+    float fE    = (lineA * exp(-(kk * kk)) + poolA * exp(-t / mix(3.0, 4.5, wT))) * rs;
+    col = col * (1.0 + fE) + vec3(fE * 0.10);
 
     // fine triangular-distribution grain, same on every channel so it reads as texture, not colour noise
     float gn = hash12(gl_FragCoord.xy) + hash12(gl_FragCoord.xy * 1.7 + 17.0) - 1.0;

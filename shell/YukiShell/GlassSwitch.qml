@@ -151,7 +151,7 @@ Item {
                     thickness: Math.round(s.kh0 * 1.1)         // scales with the knob
                     strengthMul: 0.85
                     liquid: s.glassLiquid
-                    rim: s.glassRim * 0.25
+                    rim: s.glassRim                 // the same edge light as the Dock (liquidglass.frag)
                     grain: s.glassGrain
                     tint: s.glassTint
                     shadowAmt: 0.5

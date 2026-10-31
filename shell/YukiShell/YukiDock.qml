@@ -1540,7 +1540,7 @@ Scope {
                     baseColor: pal.dark ? "#3C3C40" : "#FBFBFD"
                     thickness: 14; strengthMul: 0.6        // same glass as the Control Center buttons
                     liquid: root.glassLiquid
-                    rim: root.glassRim * 0.25
+                    rim: root.glassRim
                     grain: root.glassGrain
                     tint: root.glassOpacity
                     shadowAmt: 0; flatInner: 1

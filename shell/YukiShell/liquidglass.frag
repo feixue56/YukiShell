@@ -9,7 +9,7 @@
 //   * a convex "squircle" bezel profile turns that into a surface normal
 //   * Snell's law (refract) turns the normal into a lateral shift of the sampled backdrop
 //   * the backdrop is sampled per colour channel (dispersion) through a small disk blur
-//   * saturation / tint / milky lift, then specular rim, inner depth shading and a soft drop shadow
+//   * saturation / adaptive tint / milky lift, then the Dock's measured edge light and a soft drop shadow
 
 layout(location = 0) in vec2 qt_TexCoord0;
 layout(location = 0) out vec4 fragColor;
@@ -153,9 +153,11 @@ void main()
 
     vec3 col = blurredDisp(ps, disp, dispersion * 0.6, rad);
 
-    // --- colour grading: vibrancy, tint, milky lift ---
+    // --- colour: vibrancy, then an ADAPTIVE tint (as the Dock: more tint where the backdrop would fight the text / icons) ---
     float l = dot(col, vec3(0.2126, 0.7152, 0.0722));
     col = mix(vec3(l), col, saturation);
+    float lw    = smoothstep(0.30, 0.80, l);
+    float adapt = mix(0.78, 1.28, mix(1.0 - lw, lw, dark));
     vec3 tintC = mix(vec3(1.0), vec3(0.09, 0.09, 0.10), dark);
     // accent-tinted interface (accentTint.a = 1): the tint leans to a deep shade of the accent in dark mode (white text stays
     // readable on it) or a pale one in light mode, and a light wash of that shade covers the glass even when it is very clear
@@ -164,58 +166,30 @@ void main()
     vec3 accTint = mix(mix(accentTint.rgb, vec3(1.0), 0.70), accentTint.rgb * 0.40, dark);
     tintC = mix(tintC, accTint, accentTint.a);
     col = mix(col, col * mix(accentTint.rgb, vec3(1.0), 0.35) * 1.25, accentTint.a);
-    col = mix(col, tintC, tintMix * (1.0 - 0.45 * accentTint.a));
+    col = mix(col, tintC, clamp(tintMix * (1.0 - 0.45 * accentTint.a) * adapt, 0.0, 1.0));
     col = mix(col, accTint, accentTint.a * 0.08);
     // dark mode: a bright backdrop (a full moon, a white window) must not lift the tinted glass so far that white text sinks in
     float lt = dot(col, vec3(0.2126, 0.7152, 0.0722));
     col *= mix(1.0, min(1.0, 0.42 / max(lt, 1e-3)), 0.85 * dark * accentTint.a);
     col += mix(0.055, 0.020, dark);
 
-    // --- depth: soft top sheen, darker lower inner edge ---
+    // --- depth: soft light from above (clear glass, no darker inner edge: the same as the Dock) ---
     float ty = clamp((q.y + hs.y) / glassSize.y, 0.0, 1.0);
-    col += (1.0 - ty) * mix(0.040, 0.030, dark);
-    float innerK = 1.0 - clamp(flatInner, 0.0, 1.0);
-    col *= 1.0 - 0.12 * exp(-t / 6.0) * clamp(g.y, 0.0, 1.0) * innerK;
-    col *= 1.0 - 0.10 * exp(-t / (bz * 0.45)) * innerK;          // thick glass absorbs light toward the edge (heavier feel)
+    col += (1.0 - ty) * mix(0.040, 0.034, dark);
 
-    // colour of the rim / border: white, or (rimTint) a brighter shade of what the glass looks like at this spot
-    vec3 rimCol = mix(vec3(0.96, 0.98, 1.0), clamp(col * 1.5 + 0.12, 0.0, 1.0), rimTint);
-
-    // --- specular rim, light from the top-left ---
-    vec2  L      = normalize(vec2(-0.55, -0.83));
-    float facing = dot(g, L);
-    float spec   = pow(max(facing, 0.0), 1.6) + 0.55 * pow(max(-facing, 0.0), 2.2);
-    float hair   = exp(-t / 1.1);
-    float wide   = exp(-t / 5.0);
-    float edgeHi = hair * (0.18 + 0.78 * spec) + wide * 0.10 * (0.30 + spec);
-    edgeHi *= rim * mix(0.85, 1.0, dark);
-    col += edgeHi * rimCol;
-
-    // meniscus: a soft second highlight inside the rim, like surface tension pulling the liquid together
-    float mx  = (t - bz * 0.5) / (bz * 0.2 + 1.0);
-    float men = exp(-mx * mx);
-    col += men * 0.07 * (0.35 + spec) * rim * rimCol;
-
-    // thin border line right at the edge (anti-aliased), brighter on the lit side
-    if (ringW > 0.0) {
-        float ring = 1.0 - smoothstep(ringW * 0.5, ringW * 0.5 + 1.0, t);
-        col = mix(col, rimCol, ring * (0.55 + 0.35 * clamp(facing * 0.5 + 0.5, 0.0, 1.0)));
-    }
-
-    // ringW < 0: "corner light" border. A line (|ringW| px) that runs all the way round the glass and fades out only at the
-    // top-right and bottom-left corners, and takes a bright shade of the backdrop colour at that spot (dynamic: it follows what
-    // is behind the glass). Used by the Control Center; everything else keeps ringW >= 0 and is unchanged.
-    if (ringW < 0.0) {
-        float rw   = -ringW;
-        float ring = 1.0 - smoothstep(rw * 0.5, rw * 0.5 + 1.0, t);
-        float glow = exp(-t / (rw * 2.2)) * 0.30;
-        float fall = max(r * 3.0, 26.0);
-        float wTR  = pow(clamp(1.0 - length(q - vec2( hs.x, -hs.y)) / fall, 0.0, 1.0), 1.2);
-        float wBL  = pow(clamp(1.0 - length(q - vec2(-hs.x,  hs.y)) / fall, 0.0, 1.0), 1.2);
-        float cw   = 1.0 - max(wTR, wBL);
-        vec3  ringCol = clamp(col * 2.0 + 0.18, 0.0, 1.0);
-        col = mix(col, ringCol, clamp((ring + glow) * cw, 0.0, 1.0) * 0.95);
-    }
+    // --- edge light, measured from the real macOS Dock (the same as dockglass.frag) ---
+    // a thin bright line along the top (+18%) and bottom (+30%) that fades out around the corners, only a whisper on the straight
+    // sides (+2.5%), and a short glow just inside the top / bottom edge. All of it scales from the glass's own colour (the blurred
+    // backdrop behind it), so the edge takes the colour of what is behind the glass. rim = 0.45 (the default Rim) is full strength.
+    // (rimTint, ringW and flatInner are kept in the uniform block for older callers; the edge light replaces all three.)
+    float rs    = clamp(rim / 0.45, 0.0, 3.0);
+    float aY    = pow(abs(g.y), 1.5);                               // 0 on the sides, 1 on the top / bottom
+    float wT    = smoothstep(-0.3, 0.3, -g.y);                      // 1 on the top, 0 on the bottom
+    float lineA = 0.025 + aY * mix(0.275, 0.155, wT);
+    float poolA = aY * mix(0.10, 0.055, wT);
+    float kk    = (t - 0.7) / 0.55;
+    float fE    = (lineA * exp(-(kk * kk)) + poolA * exp(-t / mix(3.0, 4.5, wT))) * rs;
+    col = col * (1.0 + fE) + vec3(fE * 0.10);
 
     // fine triangular-distribution grain, same on every channel so it reads as texture, not colour noise
     float gn = hash12(gl_FragCoord.xy) + hash12(gl_FragCoord.xy * 1.7 + 17.0) - 1.0;

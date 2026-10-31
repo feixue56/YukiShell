@@ -178,7 +178,7 @@ Item {
                     thickness: 16
                     strengthMul: 0.85
                     liquid: s.glassLiquid
-                    rim: s.glassRim * 0.25
+                    rim: s.glassRim                 // the same edge light as the Dock (liquidglass.frag)
                     grain: s.glassGrain
                     tint: s.glassTint
                     shadowAmt: 0.5
