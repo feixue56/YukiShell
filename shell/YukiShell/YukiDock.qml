@@ -3932,9 +3932,9 @@ Scope {
                         title: I18n.tr("Columns")
                         SSlider {
                             t: pal
-                            from: 8; to: 48; stepSize: 1
+                            from: 8; to: 128; stepSize: 1
                             value: root.bar ? root.bar.visCount : 24
-                            leftLabel: "8"; rightLabel: "48"
+                            leftLabel: "8"; rightLabel: "128"
                             resetValue: 24
                             onMoved: v => { if (root.bar) root.bar.visCount = Math.round(v); }
                         }

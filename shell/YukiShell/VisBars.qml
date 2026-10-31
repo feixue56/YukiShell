@@ -17,7 +17,9 @@ Item {
     property color colorTop: "white"
     property color colorBottom: Qt.rgba(1, 1, 1, 0.15)
     property real gain: 1.0
-    property int count: 32                    // how many bars (the wave always uses all 32 points)
+    property int count: 32                    // how many bars (the wave always uses 32 points)
+    // what is drawn: never thinner than 3 px a column, so a narrow tile with many columns does not smear into a block
+    readonly property int n: Math.max(1, Math.min(count, Math.floor(width / 3)))
     property real barFill: 0.62               // width of a bar as a share of its slot
     // paused: the bars stay where they were when the music stopped (and stop listening); they move again when it resumes
     property bool hold: false
@@ -57,22 +59,26 @@ Item {
         }
     }
 
-    // value (0..1) of slot i out of `n`
+    // value (0..1) of slot i out of `n`: the source has 128 bands, a slot takes its share of them (half average, half peak, so a
+    // beat in one band still shows when there are few columns)
     function level(i, n) {
         var d = vb.lv, m = d ? d.length : 0;
         if (m === 0) return 0;
-        var v = d[Math.min(m - 1, Math.floor(i * m / n))] * vb.gain;
+        var a = Math.min(m - 1, Math.floor(i * m / n)), b = Math.max(a + 1, Math.min(m, Math.floor((i + 1) * m / n)));
+        var sum = 0, peak = 0;
+        for (var k = a; k < b; k++) { sum += d[k]; peak = Math.max(peak, d[k]); }
+        var v = (0.5 * sum / (b - a) + 0.5 * peak) * vb.gain;
         return Math.min(1, Math.pow(Math.max(0, v), 0.85));
     }
 
     // --- bars / mirror ---
     Repeater {
-        model: vb.style === "wave" ? 0 : vb.count
+        model: vb.style === "wave" ? 0 : vb.n
         delegate: Rectangle {
             required property int index
-            readonly property real slot: vb.width / vb.count
+            readonly property real slot: vb.width / vb.n
             readonly property real bw: Math.max(2, slot * vb.barFill)
-            readonly property real lvl: vb.level(index, vb.count)
+            readonly property real lvl: vb.level(index, vb.n)
             width: bw
             height: Math.max(bw, lvl * vb.height)
             x: index * slot + (slot - bw) / 2

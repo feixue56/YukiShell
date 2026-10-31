@@ -11,12 +11,12 @@ import Quickshell.Io
 Scope {
     id: av
 
-    readonly property int count: 32
+    readonly property int count: 128               // the most columns a visualizer can show (Settings -> Columns)
     property var bars: av.zeros()                  // newest frame: `count` numbers 0..1
     property bool available: true
     readonly property bool wanted: nwant > 0
 
-    function zeros() { var z = []; for (var i = 0; i < 32; i++) z.push(0); return z; }
+    function zeros() { var z = []; for (var i = 0; i < av.count; i++) z.push(0); return z; }
 
     // who is looking: want("some-key", true) while shown, want("some-key", false) when not
     property var wanters: ({})
@@ -50,7 +50,7 @@ Scope {
     Process {
         id: cava
         running: av.wanted && av.available && !retry.running
-        // the config is written next to the runtime files each time: mono, 32 bars, 60 frames/s, values 0..100 separated by ";".
+        // the config is written next to the runtime files each time: mono, 128 bars, 60 frames/s, values 0..100 separated by ";".
         // 60 frames/s and light smoothing (noise_reduction 25; it was 30 frames/s and 60) so the bars jump with the beat instead of
         // gliding after it; much less smoothing makes them jittery
         command: ["sh", "-c",
