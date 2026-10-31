@@ -40,12 +40,11 @@ hl.window_rule({
     size = "1120 740",
 })
 
--- Liquid-glass kitty, like the Dock: clear glass (light blur, a light dark fill from kitty.conf) and the Dock's edge light
--- instead of the accent border: bright along the top and bottom edges, faint down the sides.
+-- Liquid-glass kitty, like the Dock: clear glass (light blur, a light dark fill from kitty.conf). Its border is the same accent
+-- border as every other window (YukiShell sets it from the accent colour, see applyBorders in YukiBar.qml).
 hl.window_rule({
     name  = "glass-kitty",
     match = { class = "^(kitty|dash-.*)$" },
-    border_color = { colors = { "rgba(ffffffb0)", "rgba(ffffff1c)", "rgba(ffffff14)", "rgba(ffffff1c)", "rgba(ffffff80)" }, angle = 90 },
     opacity  = "1.0 override 1.0 override",
     xray     = false,
     rounding = 20,

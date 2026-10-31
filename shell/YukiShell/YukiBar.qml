@@ -204,6 +204,16 @@ Scope {
             + ", warp_on_change_workspace = " + (cursorWarpWs ? 1 : 0) + ", zoom_factor = " + Math.max(1, cursorZoom).toFixed(2)
             + " }, input = { follow_mouse = " + (cursorFollowFocus ? 1 : 0) + " } })"]);
     }
+    // --- Window borders follow the accent colour (Settings -> Appearance -> Accent) ---
+    // Every window, the terminals included, gets the same border: the accent on the focused window, a faint accent on the others.
+    // hypr/rice/theme.lua only sets the colours used before the shell starts; this is re-applied after every Hyprland config reload.
+    onAccentChanged: if (settingsReady) borderApplyT.restart()
+    Timer { id: borderApplyT; interval: 150; onTriggered: root.applyBorders() }
+    function applyBorders() {
+        function hx(v) { var s = Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16); return s.length < 2 ? "0" + s : s; }
+        var a = root.accent, rgb = hx(a.r) + hx(a.g) + hx(a.b);
+        Quickshell.execDetached(["hyprctl", "eval", "hl.config({ general = { col = { active_border = \"rgba(" + rgb + "ff)\", inactive_border = \"rgba(" + rgb + "40)\" } } })"]);
+    }
     function applyInput() {
         function b(v) { return v ? "true" : "false"; }
         Quickshell.execDetached(["hyprctl", "eval", "hl.config({ input = { repeat_rate = " + Math.round(kbRepeatRate) + ", repeat_delay = " + Math.round(kbRepeatDelay)
@@ -2782,7 +2792,7 @@ Scope {
                 var lay = d.substring(c + 1).trim();
                 root.kbSetActive(lay, undefined);
                 kbEventRefresh.restart();
-            } else if (event.name === "configreloaded") root.refreshKeyboardLayout();
+            } else if (event.name === "configreloaded") { root.refreshKeyboardLayout(); if (root.settingsReady) borderApplyT.restart(); }
         }
     }
 
@@ -4168,6 +4178,7 @@ Scope {
             root.settingsReady = true;
             inputApplyT.restart();
             cursorApplyT.restart();
+            borderApplyT.restart();
             if (root.barStyle === "liquid") root.startGlass();
         }
         onLoadFailed: { root.ccMigRec = true; root.settingsReady = true; if (root.barStyle === "liquid") root.startGlass(); }
