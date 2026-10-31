@@ -723,7 +723,9 @@ Scope {
     // light/dark by itself. Menus and Spotlight keep their glass tint but flip their text when the measured backdrop would make the
     // normal colour unreadable (panelTone). Colours cross-fade (ptk / btk: 1 = white text, 0 = dark text).
     property int barTone: 0                   // measured behind the bar strip: 1 bright, -1 dark, 0 not measured yet
-    readonly property bool barTextDark: barTone === 1 ? true : (barTone === -1 ? false : !darkMode)
+    // the bar's text, glyphs and logo are always white (no longer flipped dark over a bright wallpaper or in Light mode); the bar's
+    // glass follows it with its dark tint, which keeps white text readable over bright backdrops. barTone is still measured for it.
+    readonly property bool barTextDark: false
     property real btk: barTextDark ? 0 : 1
     Behavior on btk { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
     function mixb(l, d) { return Qt.rgba(l.r + (d.r - l.r) * btk, l.g + (d.g - l.g) * btk, l.b + (d.b - l.b) * btk, l.a + (d.a - l.a) * btk); }
