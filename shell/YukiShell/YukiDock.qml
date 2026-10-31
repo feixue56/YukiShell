@@ -1035,6 +1035,14 @@ Scope {
             readonly property string fam: root.fontFamily
             readonly property color accent: root.accent
             readonly property bool glass: root.liquidActive
+            // the glass settings, for the pop-up menus (MenuGlass.qml)
+            readonly property bool glassReady: root.settingsGlass
+            readonly property url shaderUrl: root.glassShaderUrl
+            readonly property real gLiquid: root.glassLiquid
+            readonly property real gRim: root.glassRim
+            readonly property real gGrain: root.glassGrain
+            readonly property real gTint: root.glassOpacity
+            readonly property real gBlur: root.glassBlur
             readonly property color content: root.accentWash(glass ? (dark ? Qt.rgba(0.09, 0.09, 0.10, 0.58) : Qt.rgba(0.97, 0.97, 0.98, 0.62))
                                                    : Qt.color(dark ? "#1E1E1E" : "#F5F5F7"), 0.30, dark)
             readonly property color sidebar: root.accentWash(dark ? Qt.color("#292929") : Qt.color("#E9E9EC"), 0.30, dark)

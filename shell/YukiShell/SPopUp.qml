@@ -68,14 +68,7 @@ Item {
                 NumberAnimation { property: "scale"; to: 0.97; duration: 180; easing.type: Easing.OutCubic }
             }
         }
-        background: Item {
-            RectangularShadow { anchors.fill: parent; radius: 12; blur: 24; offset.y: 8; color: Qt.rgba(0, 0, 0, 0.35) }
-            Rectangle {
-                anchors.fill: parent; radius: 12
-                color: pu.t.dark ? Qt.rgba(0.16, 0.16, 0.18, 0.985) : Qt.rgba(0.98, 0.98, 0.99, 0.99)
-                border.width: 1; border.color: pu.t.dark ? Qt.rgba(1, 1, 1, 0.13) : Qt.rgba(0, 0, 0, 0.10)
-            }
-        }
+        background: MenuGlass { t: pu.t; from: pu; open: menu.visible; cornerR: 12 }
         contentItem: Flickable {
             clip: true
             contentHeight: menuCol.height

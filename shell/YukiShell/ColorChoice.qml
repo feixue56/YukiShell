@@ -110,14 +110,7 @@ Item {
                 NumberAnimation { property: "scale"; to: 0.97; duration: 150; easing.type: Easing.OutCubic }
             }
         }
-        background: Item {
-            RectangularShadow { anchors.fill: parent; radius: 12; blur: 22; offset.y: 6; color: Qt.rgba(0, 0, 0, 0.35) }
-            Rectangle {
-                anchors.fill: parent; radius: 12
-                color: cc.t.dark ? Qt.rgba(0.16, 0.16, 0.18, 0.985) : Qt.rgba(0.98, 0.98, 0.99, 0.99)
-                border.width: 1; border.color: cc.t.dark ? Qt.rgba(1, 1, 1, 0.13) : Qt.rgba(0, 0, 0, 0.10)
-            }
-        }
+        background: MenuGlass { t: cc.t; from: cc; open: pop.visible; cornerR: 12 }
         contentItem: Column {
             spacing: 10
             Grid {
