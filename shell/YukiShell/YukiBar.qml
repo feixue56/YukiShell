@@ -8425,6 +8425,7 @@ Scope {
                                 width: parent.width - x - 14; height: art.height
                                 src: root.hub ? root.hub.vis : null
                                 active: root.visOn && root.visInCC && np.pl !== null && np.pl !== undefined
+                                        && (np.pl.isPlaying || np.pl.playbackState === MprisPlaybackState.Paused)
                                 hold: !np.pl || !np.pl.isPlaying     // paused: frozen where the music stopped
                                 style: root.visStyle
                                 gain: root.visGain

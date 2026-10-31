@@ -161,6 +161,7 @@ Item {
                 appName: host.player ? host.player.identity : ""
                 appIcon: host.player ? v.playerIcon(host.player) : ""
                 playing: host.player ? host.player.isPlaying : false
+                paused: host.player ? host.player.playbackState === MprisPlaybackState.Paused : false
                 shuffle: (host.player && host.player.shuffleSupported) ? host.player.shuffle : false
                 canShuffle: host.player !== null && host.player.shuffleSupported
                 loop: (host.player && host.player.loopSupported)

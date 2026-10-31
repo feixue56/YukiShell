@@ -39,6 +39,7 @@ Item {
     property string appName: ""              // the player's own name ("Chromium", "Spotify"): fallback text
     property string appIcon: ""              // its icon (file path): fallback artwork when the track has no cover
     property bool playing: false
+    property bool paused: false              // paused (not stopped): the visualizer stays frozen where the song stopped
     property real position: 0                // seconds
     property real length: 0                  // seconds (0 = unknown)
 
@@ -406,7 +407,7 @@ Item {
             anchors.bottom: parent.bottom
             height: parent.height * (w.isSmall ? 0.3 : 0.34)
             src: w.visSrc
-            active: w.visOn && w.visMode === "ambient" && w.hasPlayer && !w.editing
+            active: w.visOn && w.visMode === "ambient" && w.hasPlayer && (w.playing || w.paused || w.preview) && !w.editing
             hold: !w.playing && !w.preview          // paused: frozen where the music stopped
             demo: w.preview
             style: w.visStyle
@@ -430,7 +431,7 @@ Item {
         y: (w.isSmall ? 77 : w.hr - 58) * w.k
         height: (w.isSmall ? w.artY + w.artS - 77 : 46) * w.k
         src: w.visSrc
-        active: w.visOn && w.visMode === "strip" && w.hasPlayer && !w.editing
+        active: w.visOn && w.visMode === "strip" && w.hasPlayer && (w.playing || w.paused || w.preview) && !w.editing
         hold: !w.playing && !w.preview
         demo: w.preview
         style: w.visStyle
