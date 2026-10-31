@@ -37,6 +37,9 @@ link "$here/shell/scripts"                     "$cfg/hypr-yukishell/scripts"   #
 link "$here/qt/CatppuccinMauve.colors" "$HOME/.local/share/color-schemes/CatppuccinMauve.colors"
 link "$here/chromium/chromium-flags.conf" "$cfg/chromium-flags.conf"
 
+# the YukiVideo plugin: one video decoder for the animated wallpaper in all the glass (optional; needs cmake + Qt 6 dev files)
+"$here/tools/build-plugins" >/dev/null 2>&1 || echo "note: YukiVideo plugin not built (install cmake and the Qt 6 dev packages, then run tools/build-plugins)."
+
 # UI sound effects are synthesized (needs python-numpy); skipped quietly if it is missing
 if [ ! -d "$HOME/.local/share/sounds/yukishell" ]; then
     python3 "$here/shell/scripts/yukishell-make-sounds.py" >/dev/null 2>&1 || echo "note: UI sounds not generated (install python-numpy and re-run)."

@@ -9,6 +9,9 @@
 // `clock` (bar.wallClock) is mpvpaper's playback position: the copy lines itself up with it, so the glass shows the very frame the desktop
 // shows instead of running seconds ahead or behind (every player used to start from 0 at its own moment).
 // One window needs one LiveWall: the desktop widgets and the widget copies in the bar's backdrop show their part of it through a WallSlice.
+// With the YukiVideo plugin (tools/build-plugins) a LiveWall has no player at all: the shell's ONE WallPlayer decodes the video and
+// every window shows its frames (LiveWallFeed.qml), so all the glass shows the same frame for a single decoder. Without the plugin
+// LiveWallFeed.qml does not load and each LiveWall plays the video itself (everything below about decoders is that fallback).
 import QtQuick
 import QtMultimedia
 
@@ -55,9 +58,18 @@ Item {
     Timer { id: stopT; onTriggered: lw.active = false }
     Timer { id: startT; onTriggered: lw.active = lw.wanted }
 
+    // the shared video (YukiVideo plugin); an Error status means the plugin is missing: then this LiveWall runs its own player
+    readonly property bool shared: feed.status !== Loader.Error
+    Loader {
+        id: feed
+        anchors.fill: parent
+        active: lw.available
+        Component.onCompleted: setSource(Qt.resolvedUrl("LiveWallFeed.qml"), { lw: lw })
+    }
+
     Loader {
         anchors.fill: parent
-        active: lw.active
+        active: lw.active && !lw.shared
         sourceComponent: Item {
             id: box
             // frozen on its last frame while paused, going again the moment it is resumed

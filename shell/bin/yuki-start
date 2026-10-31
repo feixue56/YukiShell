@@ -44,6 +44,8 @@ login_shell=$(getent passwd "$(id -un)" 2>/dev/null | cut -d: -f7)
 [ -n "$login_shell" ] && [ -x "$login_shell" ] && export SHELL="$login_shell"
 export XDG_SESSION_DESKTOP="${XDG_SESSION_DESKTOP:-Hyprland}"
 export QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-wayland}"
+# YukiShell's own QML plugins (tools/build-plugins: one video decoder for all the glass); without them the shell still works
+export QML_IMPORT_PATH="${XDG_DATA_HOME:-$HOME/.local/share}/yukishell/qml${QML_IMPORT_PATH:+:$QML_IMPORT_PATH}"
 # graphics settings this script picked by itself after crashes (lowest priority), then your own settings, which win
 if [ -f "$AUTO" ]; then set -a; . "$AUTO"; set +a; fi
 if [ -f "$CONF/hypr-yukishell/env" ]; then set -a; . "$CONF/hypr-yukishell/env"; set +a

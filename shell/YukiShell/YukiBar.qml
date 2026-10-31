@@ -4011,6 +4011,12 @@ Scope {
     property string glassProxyFor: ""          // the video the build process is working on right now
     readonly property int glassProxyWidth: 720
     readonly property int glassProxyFps: 60       // a cap (-fpsmax): 24/30 fps clips keep their own rate
+    // the one player of the animated wallpaper for all the glass (needs the YukiVideo plugin; without it each LiveWall plays its own)
+    Loader {
+        id: wallPlayer
+        Component.onCompleted: setSource(Qt.resolvedUrl("WallPlayer.qml"), { host: root })
+        onStatusChanged: if (status === Loader.Error) console.log("[yukibar] YukiVideo plugin not installed: every window plays the glass video itself (tools/build-plugins)")
+    }
     readonly property string glassVideo: {
         if (!liveWallGlass || wallpaperVideo === "") return "";
         var p = glassProxy[wallpaperVideo];

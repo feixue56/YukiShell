@@ -90,7 +90,9 @@ What `install.sh` does:
    `<name>.pre-rice` once, so nothing of yours is deleted.
 2. Adds **one `require` line** to `~/.config/hypr/hyprland.lua` (a backup goes to `hyprland.lua.pre-rice`).
 3. Sets the GTK, Qt and btop themes and generates the UI sounds.
-4. Runs `tools/doctor` at the end.
+4. Builds the small **YukiVideo** plugin (`tools/build-plugins`), so the animated wallpaper inside all the glass runs on one video
+   decoder instead of one per window. It needs `cmake` and the Qt 6 development files; without it the shell still works.
+5. Runs `tools/doctor` at the end.
 
 It's safe to run again whenever you pull new changes. Only want to see what's missing without touching anything? `./install.sh --doctor`.
 
@@ -103,7 +105,7 @@ cd ~/hypr-yukishell && git pull && hyprctl reload && yuki-restart
 ```
 
 `hyprctl reload` picks up new shortcuts and the cursor settings, `yuki-restart` the shell. If a release adds new files to link,
-run `./install.sh` again too (the release notes say so).
+run `./install.sh` again too (the release notes say so). After a Qt update, run `tools/build-plugins` again.
 
 ## Before you log in
 
