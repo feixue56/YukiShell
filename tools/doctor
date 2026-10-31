@@ -39,6 +39,7 @@ row optional wtype          wtype                "typing emoji from Spotlight"
 row optional fcitx5         fcitx5               "Vietnamese / Chinese typing (plus fcitx5-bamboo, fcitx5-chinese-addons)"
 row optional dolphin        dolphin              "Super+E file manager"
 row optional chromium       chromium             "Super+W browser"
+row optional qt6ct          qt6ct                "the theme of Qt apps such as Dolphin (with breeze)"
 row optional python3        python               "UI sound generator, installer helpers"
 # mpv only talks to media widgets / keys through the mpv-mpris plugin (a file, not a command)
 if command -v mpv >/dev/null 2>&1 && ! ls /etc/mpv/scripts/mpris.so /usr/share/mpv/scripts/mpris.so "${XDG_CONFIG_HOME:-$HOME/.config}"/mpv/scripts/mpris.so >/dev/null 2>&1; then

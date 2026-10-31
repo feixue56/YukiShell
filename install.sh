@@ -22,7 +22,7 @@ link "$here/btop/themes/mocha-glass.theme"      "$cfg/btop/themes/mocha-glass.th
 link "$here/cava/config"                        "$cfg/cava/config"
 link "$here/cava/dashboard.conf"               "$cfg/cava/dashboard.conf"
 link "$here/fish/config.fish"                   "$cfg/fish/config.fish"
-for f in cll ll; do link "$here/fish/functions/$f.fish" "$cfg/fish/functions/$f.fish"; done
+for f in cll ll warp; do link "$here/fish/functions/$f.fish" "$cfg/fish/functions/$f.fish"; done
 for v in 3 4; do
     link "$here/gtk-$v.0/gtk.css"      "$cfg/gtk-$v.0/gtk.css"
     link "$here/gtk-$v.0/settings.ini" "$cfg/gtk-$v.0/settings.ini"
@@ -75,6 +75,8 @@ fi
 sed -i 's/^color_theme = .*/color_theme = "mocha-glass"/; s/^theme_background = .*/theme_background = false/' "$cfg/btop/btop.conf" 2>/dev/null || true
 if command -v kwriteconfig6 >/dev/null; then
     kwriteconfig6 --file kdeglobals --group General --key ColorScheme CatppuccinMauve
+    # outside Plasma, KDE apps (Dolphin) choose their own scheme and fall back to light Breeze unless told which one
+    kwriteconfig6 --file kdeglobals --group UiSettings --key ColorScheme CatppuccinMauve
     kwriteconfig6 --file kdeglobals --group General --key AccentColor 203,166,247
     kwriteconfig6 --file kdeglobals --group Icons   --key Theme Papirus-Dark
     kwriteconfig6 --file kdeglobals --group KDE     --key widgetStyle Breeze
@@ -85,12 +87,17 @@ if command -v kwriteconfig6 >/dev/null; then
     # KDE apps (Dolphin's file view) read colours from kdeglobals itself, so the scheme's groups have to be copied in
     python3 "$here/qt/apply-scheme.py" "$here/qt/CatppuccinMauve.colors" || true
 fi
+# Qt apps' theme without Plasma (QT_QPA_PLATFORMTHEME=qt6ct in hypr/rice/look.lua): the same colours, Breeze style, Papirus icons
+mkdir -p "$cfg/qt6ct/colors"
+link "$here/qt/qt6ct/YukiShell.conf" "$cfg/qt6ct/colors/YukiShell.conf"
+printf '[Appearance]\ncolor_scheme_path=%s\ncustom_palette=true\nicon_theme=Papirus-Dark\nstandard_dialogs=default\nstyle=Breeze\n\n[Fonts]\ngeneral="Noto Sans,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"\nfixed="JetBrainsMono Nerd Font,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"\n' \
+    "$cfg/qt6ct/colors/YukiShell.conf" > "$cfg/qt6ct/qt6ct.conf"
 if command -v gsettings >/dev/null; then
     gsettings set org.gnome.desktop.interface gtk-theme adw-gtk3-dark || true
     gsettings set org.gnome.desktop.interface icon-theme Papirus-Dark || true
     gsettings set org.gnome.desktop.interface color-scheme prefer-dark || true
 fi
 command -v hyprctl >/dev/null && hyprctl reload || true
-echo "Rice installed. Needs: adw-gtk-theme, papirus-icon-theme, bibata cursor, JetBrainsMono Nerd Font, plasma-integration."
+echo "Rice installed. Needs: adw-gtk-theme, papirus-icon-theme, bibata cursor, JetBrainsMono Nerd Font, qt6ct, breeze."
 echo
 "$here/tools/doctor" || echo "Install the MISSING packages above, then re-run ./install.sh."

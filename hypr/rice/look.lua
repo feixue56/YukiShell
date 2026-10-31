@@ -15,7 +15,7 @@ hl.env("XCURSOR_SIZE", cursorSize)
 hl.env("HYPRCURSOR_SIZE", cursorSize)
 hl.env("XCURSOR_THEME", cursorTheme)
 hl.env("HYPRCURSOR_THEME", cursorTheme)
-hl.env("QT_QPA_PLATFORMTHEME", "kde")
+hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")   -- Qt apps (Dolphin ...): Catppuccin colours, Breeze, Papirus (qt/qt6ct, set up by install.sh); no Plasma needed
 
 hl.config({
     general = {

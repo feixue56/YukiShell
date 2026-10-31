@@ -2,6 +2,9 @@
 -- autostart: yuki-start waits for the compositor and restarts the shell if it crashes.
 hl.on("hyprland.start", function()
     hl.exec_cmd("awww-daemon")
+    -- the password prompt for apps that need admin rights (GParted, Dolphin's root actions, installers, `systemctl start` ...);
+    -- without an agent those requests fail silently
+    hl.exec_cmd("/usr/lib/polkit-kde-authentication-agent-1")
     -- Install/update Hypridle's before_sleep_cmd hook (lid close is covered when it suspends).
     hl.exec_cmd("sh ~/.config/quickshell/YukiLock/enable-sleep-lock.sh")
     -- a YukiLock waiting in the background (warmed up), so Super+L locks at once with the animated wallpaper playing

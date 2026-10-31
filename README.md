@@ -54,7 +54,7 @@ distros should be fine. Package names below are the Arch ones.
 | `kitty`, `fish` | the terminal and the shell the configs are written for |
 
 **Strongly recommended** (the rice looks wrong without them):
-`adw-gtk-theme papirus-icon-theme plasma-integration ttf-jetbrains-mono-nerd` and the **Bibata-Modern-Classic** cursor.
+`adw-gtk-theme papirus-icon-theme qt6ct breeze ttf-jetbrains-mono-nerd` and the **Bibata-Modern-Classic** cursor.
 
 **Optional.** Each one turns on a feature, and if it's missing that feature just switches itself off:
 
