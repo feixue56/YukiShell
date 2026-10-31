@@ -64,9 +64,21 @@ Item {
     readonly property bool isSmall: size === "small"
     readonly property bool isMedium: size === "medium"
     readonly property bool isLarge: size === "large"
+    // a bigger grid block (Settings: drag the corner while editing): `fit` = how much bigger than this design's own block, given
+    // by the desktop. The contents are drawn that much larger (natively, not stretched) in the block bw x bh, placed at ox, oy.
+    property real fit: 1
+    readonly property real aspect: isSmall ? 1 : (isMedium ? 395 / 185 : 395 / 385)
+    // the weather uses the room instead: the whole width (more hours), and the whole height when Large (more days)
+    readonly property real bw: width
+    readonly property real bh: isLarge ? height : Math.min(height, width / aspect)
+    readonly property real ox: 0
+    readonly property real oy: Math.round((height - bh) / 2)
+    // how many hours fit across (each column about as wide as in the original design)
+    readonly property int hoursMedium: Math.max(4, Math.min(hourly.length || 4, Math.floor((bw - 172 * s - pad + 4 * s) / (44 * s))))
+    readonly property int hoursLarge: Math.max(6, Math.min(hourly.length || 6, Math.floor((bw - 2 * pad) / (54 * s))))
     // Small / Medium are slightly enlarged; Large shares the widened footprint without stretching its vertical content.
-    readonly property real s: scaleF * (isSmall ? 168 / 158 : (isMedium ? 358 / 338 : 1.0))
-    readonly property real radiusPx: 28 * s
+    readonly property real s: scaleF * fit * (isSmall ? 168 / 158 : (isMedium ? 358 / 338 : 1.0))
+    readonly property real radiusPx: 28 * s / fit
     readonly property bool glassOn: style === "liquid" && glassReady && !preview && wallUrl != ""
     // the glass is made at once but only shown once its backdrop holds the wallpaper (an empty backdrop refracts as black):
     // until then it sits at 1% opacity (so it still renders and fills its textures) over the plain card, then fades in
@@ -268,8 +280,8 @@ Item {
 
     // city (+ location arrow)
     Row {
-        x: w.pad
-        y: w.pad - 1 * w.s
+        x: w.ox + (w.pad)
+        y: w.oy + (w.pad - 1 * w.s)
         spacing: 4 * w.s
         Text {
             id: cityText
@@ -308,8 +320,8 @@ Item {
 
     // big temperature
     Text {
-        x: w.pad - 1 * w.s
-        y: 30 * w.s
+        x: w.ox + (w.pad - 1 * w.s)
+        y: w.oy + (30 * w.s)
         text: w.hasData ? (w.temp + w.unitSuffix) : "–°"
         color: w.fg
         font.family: w.fam
@@ -321,8 +333,8 @@ Item {
     Column {
         id: condCol
         width: w.isLarge ? 150 * w.s : 158 * w.s - 2 * w.pad
-        x: w.isLarge ? w.width - w.pad - width : w.pad
-        y: w.isLarge ? 36 * w.s : 158 * w.s - w.pad + 1 * w.s - implicitHeight
+        x: w.ox + (w.isLarge ? w.bw - w.pad - width : w.pad)
+        y: w.oy + (w.isLarge ? 36 * w.s : 158 * w.s - w.pad + 1 * w.s - implicitHeight)
         spacing: 1 * w.s
 
         Item {
@@ -360,49 +372,49 @@ Item {
     // --- medium: hourly forecast on the right ---
     Rectangle {   // divider
         visible: w.isMedium
-        x: 164 * w.s; y: 16 * w.s
-        width: 1; height: w.height - 32 * w.s
+        x: w.ox + (164 * w.s); y: w.oy + (16 * w.s)
+        width: 1; height: w.bh - 32 * w.s
         color: w.line
     }
     Row {
         visible: w.isMedium
-        x: 172 * w.s
+        x: w.ox + (172 * w.s)
         anchors.verticalCenter: parent.verticalCenter
         Repeater {
-            model: w.isMedium ? w.hourly.slice(0, 4) : []
+            model: w.isMedium ? w.hourly.slice(0, w.hoursMedium) : []
             delegate: WeatherHourCol {
                 required property var modelData
                 info: modelData
                 wd: w
-                colW: (w.width - 172 * w.s - w.pad + 4 * w.s) / 4
+                colW: (w.bw - 172 * w.s - w.pad + 4 * w.s) / w.hoursMedium
             }
         }
     }
 
     // --- large: hourly strip + 5-day list ---
-    Rectangle { visible: w.isLarge; x: w.pad; y: 134 * w.s; width: w.width - 2 * w.pad; height: 1; color: w.line }
+    Rectangle { visible: w.isLarge; x: w.ox + (w.pad); y: w.oy + (134 * w.s); width: w.bw - 2 * w.pad; height: 1; color: w.line }
     Row {
         visible: w.isLarge
-        x: w.pad
-        y: 142 * w.s
+        x: w.ox + (w.pad)
+        y: w.oy + (142 * w.s)
         Repeater {
-            model: w.isLarge ? w.hourly.slice(0, 6) : []
+            model: w.isLarge ? w.hourly.slice(0, w.hoursLarge) : []
             delegate: WeatherHourCol {
                 required property var modelData
                 info: modelData
                 wd: w
-                colW: (w.width - 2 * w.pad) / 6
+                colW: (w.bw - 2 * w.pad) / w.hoursLarge
             }
         }
     }
-    Rectangle { visible: w.isLarge; x: w.pad; y: 206 * w.s; width: w.width - 2 * w.pad; height: 1; color: w.line }
+    Rectangle { visible: w.isLarge; x: w.ox + (w.pad); y: w.oy + (206 * w.s); width: w.bw - 2 * w.pad; height: 1; color: w.line }
     Column {
         id: dailyCol
         visible: w.isLarge
-        x: w.pad
-        y: 210 * w.s
-        width: w.width - 2 * w.pad
-        readonly property var days: w.daily.slice(0, 5)
+        x: w.ox + (w.pad)
+        y: w.oy + (210 * w.s)
+        width: w.bw - 2 * w.pad
+        readonly property var days: w.daily.slice(0, Math.max(5, Math.min(w.daily.length, Math.floor((w.bh - 210 * w.s - w.pad) / (27 * w.s)))))
         readonly property real minT: { var m = 1e9; for (var i = 0; i < days.length; i++) m = Math.min(m, days[i].lo); return m; }
         readonly property real maxT: { var m = -1e9; for (var i = 0; i < days.length; i++) m = Math.max(m, days[i].hi); return m; }
         Repeater {

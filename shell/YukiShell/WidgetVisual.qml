@@ -25,19 +25,25 @@ Item {
     property string wsize: "small"
     property string wmode: "auto"
     property string wsrc: ""             // image widget: path of the picture
-    property real wscale: 1              // this widget's own size, on top of the "Widget size" slider
     property real sx: 0                  // position on the screen (the glass uses it to find the wallpaper behind the widget)
     property real sy: 0
     property string sname: ""            // screen name
     property real sw: 1920
     property real sh: 1080
+    // how much bigger this widget's grid block is than its design's own block (a 4x2 Calendar draws its 2x2 design larger)
+    readonly property real fit: {
+        if (width <= 0 || height <= 0 || !host || !host.dims) return 1;
+        var d = host.dims(wsize);
+        return Math.max(0.5, Math.min(width / d[0], height / d[1]));
+    }
     property Item wallItem: null         // the window's shared LiveWall (LiveWall.qml / WallSlice.qml), if it has one
         Component {
             id: weatherVisual
             WeatherWidget {
                 accentTint: host.accentTintVec
-                scaleF: host.widgetScale * v.wscale
+                scaleF: host.widgetScale
                 style: wstyle
+                fit: v.fit
                 size: wsize
                 fam: host.fontFamily
                 screenX: v.sx; screenY: v.sy
@@ -75,8 +81,9 @@ Item {
             id: calendarVisual
             CalendarWidget {
                 accentTint: host.accentTintVec
-                scaleF: host.widgetScale * v.wscale
+                scaleF: host.widgetScale
                 style: wstyle
+                fit: v.fit
                 size: wsize
                 mode: wmode
                 fam: host.fontFamily
@@ -105,7 +112,7 @@ Item {
             id: clockVisual
             ClockWidget {
                 accentTint: host.accentTintVec
-                scaleF: host.widgetScale * v.wscale
+                scaleF: host.widgetScale
                 style: wstyle
                 size: wsize
                 fam: host.fontFamily
@@ -135,7 +142,7 @@ Item {
             id: playerVisual
             PlayerWidget {
                 accentTint: host.accentTintVec
-                scaleF: host.widgetScale * v.wscale
+                scaleF: host.widgetScale
                 style: wstyle
                 size: wsize
                 contentScale: host.playerScale
@@ -210,7 +217,7 @@ Item {
             ImageWidget {
                 size: wsize
                 borderTint: host.borderTint
-                scaleF: host.widgetScale * v.wscale
+                scaleF: host.widgetScale
                 fam: host.fontFamily
                 screenX: v.sx; screenY: v.sy
                 source: host.fileUrl(v.wsrc)

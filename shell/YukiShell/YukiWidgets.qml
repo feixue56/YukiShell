@@ -7,6 +7,8 @@
 //
 //   qs -c YukiShell ipc call widgets refresh        re-fetch the weather now
 //   qs -c YukiShell ipc call widgets edit true      start / stop editing
+//   qs -c YukiShell ipc call widgets span 0 4 2   make widget 0 cover 4 x 2 grid cells (drag its corner while editing)
+//   qs -c YukiShell ipc call widgets move 0 40 60  move widget 0 to the free slot nearest to x 40, y 60
 //
 // Hyprland: nothing is required. (No blur layerrule is needed, the Liquid Glass style blurs the wallpaper itself.)
 
@@ -57,13 +59,31 @@ Scope {
     readonly property var styleNames: ({ liquid: "Liquid Glass", normal: "Normal", light: "Light", dark: "Dark" })
     readonly property var typeNames: ({ weather: "Weather", calendar: "Calendar", clock: "Clock", player: "Player", image: "Image" })
     readonly property var sizeNames: ({ small: "Small", medium: "Medium", large: "Large" })
-    // sc: the widget's own size (dragging its corner while editing), on top of the "Widget size" slider for all of them
-    readonly property real minWScale: 0.6
-    readonly property real maxWScale: 1.8
-    function dims(size, sc) {
-        var b = size === "large" ? [375, 385] : (size === "medium" ? [395, 185] : [185, 185]);
-        var f = widgetScale * (sc || 1);
-        return [Math.round(b[0] * f), Math.round(b[1] * f)];
+    // Every widget covers a block of grid cells, its span: columns x rows, 1x1 up to 4x4 ("1x1", "2x1", "2x2", "4x1", "4x2", ...),
+    // changed by dragging its corner while editing. A span also accepts the old size names: small 1x1, medium 2x1, large 2x2.
+    readonly property int maxCols: 4
+    readonly property int maxRows: 4
+    function spanArr(x) {
+        if (Array.isArray(x)) return [x[0], x[1]];
+        if (x === "large") return [2, 2];
+        if (x === "medium") return [2, 1];
+        var m = /^(\d)x(\d)$/.exec(String(x));
+        return m ? [Math.max(1, Math.min(maxCols, +m[1])), Math.max(1, Math.min(maxRows, +m[2]))] : [1, 1];
+    }
+    function spanStr(c, r) { return c + "x" + r; }
+    // which of the three designs a span uses: one column = small (square, or a tall card), at least twice as wide as tall = the
+    // wide (medium) one, anything else = large; the design then grows to fill the card (see the widgets' `fit`). The weather
+    // takes its large design (hours + days) whenever it is two rows or taller: it spreads out instead of growing.
+    function sizeClass(x, type) {
+        var sp = spanArr(x);
+        if (sp[0] === 1) return "small";
+        if (type === "weather" && sp[1] >= 2) return "large";
+        return sp[0] >= 2 * sp[1] ? "medium" : "large";
+    }
+    function dims(x) {
+        var sp = spanArr(x), c = sp[0], r = sp[1];
+        var b = [c === 1 ? 185 : c * 179 + (c - 1) * 28 + 9, r === 1 ? 185 : r * 179 + (r - 1) * 23 + 4];
+        return [Math.round(b[0] * widgetScale), Math.round(b[1] * widgetScale)];
     }
     // Size of the Player's contents (art, text, buttons) relative to the original design. The card itself fills the
     // normal widget footprint, like every other widget. 1.0 = original size.
@@ -103,7 +123,7 @@ Scope {
         return { cols: cols, rows: rows, left: gridLeft + Math.floor(spareW / 2), top: gridTop,
                  pitchX: gridCell + gridGapX, pitchY: gridCell + gridGapY };
     }
-    function spans(size) { return size === "large" ? [2, 2] : (size === "medium" ? [2, 1] : [1, 1]); }
+    function spans(x) { return spanArr(x); }
 
     function recount() {
         var l = false;
@@ -123,13 +143,13 @@ Scope {
         for (var i = 0; i < wmodel.count; i++) {
             var m = wmodel.get(i);
             if (m.wid === skipId) continue;
-            var md = dims(m.wsize, m.wscale);
+            var md = dims(m.wspan);
             if (x < m.wx + md[0] && x + d[0] > m.wx && y < m.wy + md[1] && y + d[1] > m.wy) return true;
         }
         return false;
     }
-    function validSlot(size, col, row, skipId, g, screenW, screenH, sc) {
-        var d = dims(size, sc), p = [g.left + col * g.pitchX, g.top + row * g.pitchY];
+    function validSlot(span, col, row, skipId, g, screenW, screenH) {
+        var d = dims(span), p = [g.left + col * g.pitchX, g.top + row * g.pitchY];
         return p[0] >= gridLeft && p[1] >= gridTop
             && p[0] + d[0] <= screenW - gridRight && p[1] + d[1] <= screenH - gridBottom
             && !overlaps(p[0], p[1], d, skipId) ? p : null;
@@ -143,12 +163,12 @@ Scope {
             }
         return null;
     }
-    function nearestFreeSlot(id, x, y, size, sc) {
+    function nearestFreeSlot(id, x, y, size) {
         var ss = screenSize(), g = gridInfo(ss[0], ss[1]), span = spans(size);
         var best = null, bestDistance = Infinity;
         for (var row = 0; row <= g.rows - span[1]; row++)
             for (var col = 0; col <= g.cols - span[0]; col++) {
-                var p = validSlot(size, col, row, id, g, ss[0], ss[1], sc);
+                var p = validSlot(size, col, row, id, g, ss[0], ss[1]);
                 if (!p) continue;
                 var dx = p[0] - x, dy = p[1] - y, distance = dx * dx + dy * dy;
                 if (distance < bestDistance) { best = p; bestDistance = distance; }
@@ -168,16 +188,16 @@ Scope {
         var old = [];
         for (var i = 0; i < wmodel.count; i++) {
             var m = wmodel.get(i);
-            old.push({ id: m.wid, x: m.wx, y: m.wy, size: m.wsize, sc: m.wscale || 1 });
+            old.push({ id: m.wid, x: m.wx, y: m.wy, size: m.wspan });
             wmodel.setProperty(i, "wx", -100000);
             wmodel.setProperty(i, "wy", -100000);
         }
         var ss = screenSize();
         for (var j = 0; j < old.length; j++) {
-            var item = old[j], p = nearestFreeSlot(item.id, item.x, item.y, item.size, item.sc);
+            var item = old[j], p = nearestFreeSlot(item.id, item.x, item.y, item.size);
             if (!p) p = firstFreeSlot(item.size, item.id);
-            if (!p) p = [Math.max(gridLeft, Math.min(ss[0] - gridRight - dims(item.size, item.sc)[0], item.x)),
-                         Math.max(gridTop, Math.min(ss[1] - gridBottom - dims(item.size, item.sc)[1], item.y))];
+            if (!p) p = [Math.max(gridLeft, Math.min(ss[0] - gridRight - dims(item.size)[0], item.x)),
+                         Math.max(gridTop, Math.min(ss[1] - gridBottom - dims(item.size)[1], item.y))];
             for (var k = 0; k < wmodel.count; k++)
                 if (wmodel.get(k).wid === item.id) { wmodel.setProperty(k, "wx", p[0]); wmodel.setProperty(k, "wy", p[1]); break; }
         }
@@ -187,7 +207,7 @@ Scope {
         var p = firstFreeSlot(sz, "");
         if (!p) return false;
         wmodel.append({ wid: "w" + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36),
-                        wtype: type, wstyle: style, wsize: sz, wmode: "auto", wsrc: src || "", wx: p[0], wy: p[1], wscale: 1 });
+                        wtype: type, wstyle: style, wsize: sz, wmode: "auto", wsrc: src || "", wx: p[0], wy: p[1], wspan: spanStr(spanArr(sz)[0], spanArr(sz)[1]) });
         recount(); scheduleSave();
         if (type === "weather") refreshSoon();
         return true;
@@ -225,9 +245,10 @@ Scope {
     function setSize(id, size) {
         for (var i = 0; i < wmodel.count; i++) {
             if (wmodel.get(i).wid !== id) continue;
-            var p = nearestFreeSlot(id, wmodel.get(i).wx, wmodel.get(i).wy, size, wmodel.get(i).wscale);
+            var p = nearestFreeSlot(id, wmodel.get(i).wx, wmodel.get(i).wy, size);
             if (!p) return;
             wmodel.setProperty(i, "wsize", size);
+            wmodel.setProperty(i, "wspan", spanStr(spanArr(size)[0], spanArr(size)[1]));
             wmodel.setProperty(i, "wx", p[0]);
             wmodel.setProperty(i, "wy", p[1]);
             break;
@@ -237,7 +258,7 @@ Scope {
     function moveWidget(id, x, y) {
         for (var i = 0; i < wmodel.count; i++)
             if (wmodel.get(i).wid === id) {
-                var p = nearestFreeSlot(id, x, y, wmodel.get(i).wsize, wmodel.get(i).wscale);
+                var p = nearestFreeSlot(id, x, y, wmodel.get(i).wspan);
                 if (!p) return;
                 wmodel.setProperty(i, "wx", p[0]);
                 wmodel.setProperty(i, "wy", p[1]);
@@ -245,14 +266,19 @@ Scope {
             }
         recount(); scheduleSave();
     }
-    // resize by the corner handle: keeps the widget where it is (or the nearest free slot); false if it does not fit anywhere
-    function setScale(id, sc) {
-        sc = Math.max(minWScale, Math.min(maxWScale, Math.round(sc * 20) / 20));
+    // resize by the corner handle to c x r cells: keeps the widget where it is (or the nearest free spot); false if it does not fit
+    function canSpan(id, c, r) {
+        for (var i = 0; i < wmodel.count; i++)
+            if (wmodel.get(i).wid === id) return nearestFreeSlot(id, wmodel.get(i).wx, wmodel.get(i).wy, [c, r]) !== null;
+        return false;
+    }
+    function setSpan(id, c, r) {
         for (var i = 0; i < wmodel.count; i++) {
             if (wmodel.get(i).wid !== id) continue;
-            var m = wmodel.get(i), p = nearestFreeSlot(id, m.wx, m.wy, m.wsize, sc);
+            var m = wmodel.get(i), p = nearestFreeSlot(id, m.wx, m.wy, [c, r]);
             if (!p) return false;
-            wmodel.setProperty(i, "wscale", sc);
+            wmodel.setProperty(i, "wspan", spanStr(c, r));
+            wmodel.setProperty(i, "wsize", sizeClass([c, r], m.wtype));
             wmodel.setProperty(i, "wx", p[0]);
             wmodel.setProperty(i, "wy", p[1]);
             break;
@@ -315,7 +341,7 @@ Scope {
         var list = [];
         for (var i = 0; i < wmodel.count; i++) {
             var m = wmodel.get(i);
-            list.push({ id: m.wid, type: m.wtype, style: m.wstyle, size: m.wsize, scale: m.wscale || 1, mode: m.wmode || "auto", src: m.wsrc || "", x: m.wx, y: m.wy });
+            list.push({ id: m.wid, type: m.wtype, style: m.wstyle, size: m.wsize, span: m.wspan, mode: m.wmode || "auto", src: m.wsrc || "", x: m.wx, y: m.wy });
         }
         store.setText(JSON.stringify({ tempUnit: tempUnit, locMode: locMode, cityName: cityName, widgetScale: widgetScale, widgets: list }, null, 2));
     }
@@ -338,7 +364,8 @@ Scope {
                                 wmode: (w.mode === "light" || w.mode === "dark") ? w.mode : "auto",
                                 wsrc: typeof w.src === "string" ? w.src : "",
                                 wx: Number(w.x) || 0, wy: Number(w.y) || 0,
-                                wscale: (typeof w.scale === "number" && isFinite(w.scale)) ? Math.max(minWScale, Math.min(maxWScale, w.scale)) : 1 });
+                                wspan: spanStr.apply(null, spanArr(/^\dx\d$/.test(String(w.span)) ? w.span : w.size)) });
+                wmodel.setProperty(wmodel.count - 1, "wsize", sizeClass(wmodel.get(wmodel.count - 1).wspan, w.type));
             }
         }
         normalizePositions();
@@ -376,7 +403,7 @@ Scope {
         for (var i = 0; i < wmodel.count; i++) {
             var m = wmodel.get(i);
             if (m.wtype !== "player") continue;
-            var d = dims(m.wsize, m.wscale);
+            var d = dims(m.wspan);
             out.push([m.wx, m.wy, d[0], d[1]]);
         }
         return out;
@@ -797,17 +824,19 @@ Scope {
                         required property string wsrc
                         required property real wx
                         required property real wy
-                        required property real wscale
+                        required property string wspan
 
-                        // while the corner is dragged the widget follows the pointer; it snaps to its new size on release
-                        property real liveScale: -1
-                        readonly property real effScale: liveScale > 0 ? liveScale : wscale
+                        // while the corner is dragged the widget snaps live to the grid block under the pointer ("" = not resizing)
+                        property string liveSpan: ""
+                        property bool liveFits: true
+                        readonly property string effSpan: liveSpan !== "" ? liveSpan : wspan
+                        readonly property string effClass: root.sizeClass(effSpan, wtype)
                         property real dragDX: 0
                         property real dragDY: 0
                         x: wx + dragDX
                         y: wy + dragDY
-                        readonly property var baseDims: root.dims(wsize, effScale)
-                        readonly property real radiusPx: 28 * root.widgetScale * effScale * (wsize === "small" ? 168 / 158 : (wsize === "medium" ? 358 / 338 : 1))
+                        readonly property var baseDims: root.dims(effSpan)
+                        readonly property real radiusPx: 28 * root.widgetScale * (effClass === "small" ? 168 / 158 : (effClass === "medium" ? 358 / 338 : 1))
                         width: baseDims[0]
                         height: baseDims[1]
 
@@ -816,15 +845,14 @@ Scope {
                             anchors.fill: parent
                             host: root
                             wallItem: sharedWall
-                            wtype: ww.wtype; wstyle: ww.wstyle; wsize: ww.wsize; wmode: ww.wmode; wsrc: ww.wsrc
-                            wscale: ww.effScale
+                            wtype: ww.wtype; wstyle: ww.wstyle; wsize: ww.effClass; wmode: ww.wmode; wsrc: ww.wsrc
                             sx: ww.x; sy: ww.y
                             sname: win.modelData.name; sw: win.modelData.width; sh: win.modelData.height
                         }
 
                         scale: dragArea.pressed ? 1.03 : 1.0
                         Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
-                        z: dragArea.pressed ? 10 : 1
+                        z: dragArea.pressed || gripMa.pressed ? 10 : 1
 
                         // edit mode: outline + drag + remove
                         Rectangle {
@@ -833,7 +861,7 @@ Scope {
                             radius: ww.radiusPx
                             color: "transparent"
                             border.width: 2
-                            border.color: Qt.rgba(1, 1, 1, 0.55)
+                            border.color: ww.liveFits ? Qt.rgba(1, 1, 1, 0.55) : "#FF453A"
                         }
                         MouseArea {
                             id: dragArea
@@ -867,7 +895,7 @@ Scope {
                             Text { id: chooseText; anchors.centerIn: parent; text: I18n.tr("Choose Image\u2026"); color: "#3A3A3C"; font.family: root.fontFamily; font.pixelSize: 12 }
                             MouseArea { id: chooseMa; anchors.fill: parent; onClicked: root.pickImage(ww.wid, "small") }
                         }
-                        // resize handle (bottom-right corner): drag to make this widget bigger or smaller; it keeps its shape
+                        // resize handle (bottom-right corner): drag it to make the widget cover more or fewer grid cells (2x1, 2x2, 4x1, 4x2...)
                         Rectangle {
                             id: sizeGrip
                             visible: root.editing
@@ -893,40 +921,35 @@ Scope {
                                 anchors.margins: -6
                                 cursorShape: Qt.SizeFDiagCursor
                                 preventStealing: true
-                                property real px: 0
-                                property real py: 0
-                                property var base: [1, 1]
-                                property real s0: 1
-                                onPressed: mouse => {
-                                    var p = mapToItem(ui, mouse.x, mouse.y); px = p.x; py = p.y;
-                                    s0 = ww.wscale; base = root.dims(ww.wsize, 1);
-                                    ww.liveScale = s0;
-                                }
                                 onPositionChanged: mouse => {
                                     if (!pressed) return;
                                     var p = mapToItem(ui, mouse.x, mouse.y);
-                                    // the widget keeps its shape: the size follows whichever way the corner moved further
-                                    var sx = (base[0] * s0 + (p.x - px)) / base[0], sy = (base[1] * s0 + (p.y - py)) / base[1];
-                                    var sc = Math.max(root.minWScale, Math.min(root.maxWScale, Math.max(sx, sy)));
-                                    // never past the screen edge
-                                    sc = Math.min(sc, (ui.width - root.gridRight - ww.wx) / base[0], (ui.height - root.gridBottom - ww.wy) / base[1]);
-                                    ww.liveScale = Math.max(root.minWScale, sc);
+                                    var g = root.gridInfo(ui.width, ui.height);
+                                    // the cell under the pointer becomes the bottom-right cell of the widget
+                                    var c = Math.max(1, Math.min(root.maxCols, Math.ceil((p.x - ww.wx + root.gridGapX / 2) / g.pitchX)));
+                                    var r = Math.max(1, Math.min(root.maxRows, Math.ceil((p.y - ww.wy + root.gridGapY / 2) / g.pitchY)));
+                                    var sp = root.spanStr(c, r);
+                                    if (sp === ww.liveSpan) return;
+                                    ww.liveFits = root.canSpan(ww.wid, c, r);
+                                    ww.liveSpan = sp;
                                 }
                                 onReleased: {
-                                    var sc = ww.liveScale;
-                                    if (!root.setScale(ww.wid, sc)) { }   // no room for that size: it springs back
-                                    ww.liveScale = -1;
+                                    if (ww.liveSpan !== "" && ww.liveFits) {
+                                        var sp = root.spanArr(ww.liveSpan);
+                                        root.setSpan(ww.wid, sp[0], sp[1]);
+                                    }
+                                    ww.liveSpan = ""; ww.liveFits = true;   // no room for that block: it springs back
                                 }
-                                onCanceled: ww.liveScale = -1
+                                onCanceled: { ww.liveSpan = ""; ww.liveFits = true; }
                             }
                         }
-                        Rectangle {   // size badge while resizing
-                            visible: gripMa.pressed
+                        Rectangle {   // the block being picked, while resizing
+                            visible: gripMa.pressed && ww.liveSpan !== ""
                             anchors.centerIn: parent
-                            width: pctText.width + 22; height: 28; radius: 14
-                            color: Qt.rgba(0, 0, 0, 0.55)
+                            width: spanText.width + 24; height: 30; radius: 15
+                            color: ww.liveFits ? Qt.rgba(0, 0, 0, 0.6) : Qt.rgba(0.75, 0.12, 0.1, 0.85)
                             z: 20
-                            Text { id: pctText; anchors.centerIn: parent; text: Math.round(ww.effScale * 100) + "%"; color: "white"; font.family: root.fontFamily; font.pixelSize: 13; font.weight: Font.DemiBold }
+                            Text { id: spanText; anchors.centerIn: parent; text: ww.liveSpan.replace("x", " \u00D7 "); color: "white"; font.family: root.fontFamily; font.pixelSize: 14; font.weight: Font.DemiBold }
                         }
                         Rectangle {   // "−" remove badge
                             visible: root.editing
@@ -948,5 +971,14 @@ Scope {
         target: "widgets"
         function refresh(): void { root.refresh(); }
         function edit(on: bool): void { root.editing = on; }
+        // move the widget at `index` to the free grid slot nearest to x, y (screen pixels)
+        function move(index: int, x: int, y: int): void {
+            if (index >= 0 && index < wmodel.count) root.moveWidget(wmodel.get(index).wid, x, y);
+        }
+        // grid block of the widget at `index` (0 = the first one placed): cols x rows, 1..4 each; false if it does not fit
+        function span(index: int, cols: int, rows: int): bool {
+            if (index < 0 || index >= wmodel.count) return false;
+            return root.setSpan(wmodel.get(index).wid, Math.max(1, Math.min(root.maxCols, cols)), Math.max(1, Math.min(root.maxRows, rows)));
+        }
     }
 }

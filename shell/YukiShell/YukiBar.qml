@@ -5538,13 +5538,14 @@ Scope {
                                 required property string wsrc
                                 required property string wstyle
                                 required property string wsize
+                                required property string wspan
                                 required property string wmode
                                 required property real wx
                                 required property real wy
                                 z: -1
                                 x: wx; y: wy
-                                width: root.hub.widgets.dims(wsize)[0]
-                                height: root.hub.widgets.dims(wsize)[1]
+                                width: root.hub.widgets.dims(wspan)[0]
+                                height: root.hub.widgets.dims(wspan)[1]
                                 WidgetVisual {
                                     anchors.fill: parent
                                     host: root.hub.widgets

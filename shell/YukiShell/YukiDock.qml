@@ -4100,9 +4100,10 @@ Scope {
                             required property string wtype
                             required property string wstyle
                             required property string wsize
+                            required property string wspan
                             t: pal
                             title: (wgPane.wdg ? (wgPane.wdg.typeNames[wtype] || wtype) : wtype)
-                            subtitle: (wgPane.wdg ? (wgPane.wdg.sizeNames[wsize] || wsize) : wsize) + "  \u00B7  " + (wgPane.wdg ? (wgPane.wdg.styleNames[wstyle] || wstyle) : wstyle)
+                            subtitle: wspan.replace("x", " \u00D7 ") + "  \u00B7  " + (wgPane.wdg ? (wgPane.wdg.styleNames[wstyle] || wstyle) : wstyle)
                             SButton { t: pal; text: I18n.tr("Remove"); onClicked: { if (wgPane.wdg) wgPane.wdg.removeWidget(placedRow.wid); } }
                         }
                     }

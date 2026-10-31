@@ -104,7 +104,9 @@ Item {
     readonly property bool isLarge: size === "large"
 
     // RU -> px. It follows the real size of the widget, so it still fits if the host stretches it.
-    readonly property real k0: isSmall ? width / 202 : (isMedium ? height / 202 : width / 446)
+    // On a bigger grid block the side that runs out first decides, and the layout stretches along the other one.
+    readonly property real k0: isSmall ? Math.min(width, height) / 202
+                             : (isMedium ? Math.min(height / 202, width / 430) : Math.min(width / 446, height / 441))
     readonly property real k: contentScale * k0        // RU -> px for the contents
     readonly property real wr: width / k               // card size in RU: the layout stretches to fill the whole card
     readonly property real hr: height / k

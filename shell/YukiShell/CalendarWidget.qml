@@ -58,9 +58,17 @@ Item {
     readonly property bool isSmall: size === "small"
     readonly property bool isMedium: size === "medium"
     readonly property bool isLarge: size === "large"
+    // a bigger grid block (Settings: drag the corner while editing): `fit` = how much bigger than this design's own block, given
+    // by the desktop. The contents are drawn that much larger (natively, not stretched) in the block bw x bh, placed at ox, oy.
+    property real fit: 1
+    readonly property real aspect: isSmall ? 1 : (isMedium ? 395 / 185 : 395 / 385)
+    readonly property real bw: Math.min(width, height * aspect)
+    readonly property real bh: Math.min(height, width / aspect)
+    readonly property real ox: Math.round((width - bw) / 2)
+    readonly property real oy: Math.round((height - bh) / 2)
     // Small / Medium are slightly enlarged; Large shares the widened footprint without stretching its vertical content.
-    readonly property real s: scaleF * (isSmall ? 168 / 158 : (isMedium ? 358 / 338 : 1.0))
-    readonly property real radiusPx: 28 * s
+    readonly property real s: scaleF * fit * (isSmall ? 168 / 158 : (isMedium ? 358 / 338 : 1.0))
+    readonly property real radiusPx: 28 * s / fit
     readonly property bool glassOn: style === "liquid" && glassReady && !preview && wallUrl != ""
     // the glass is made at once but only shown once its backdrop holds the wallpaper (an empty backdrop refracts as black):
     // until then it sits at 1% opacity (so it still renders and fills its textures) over the plain card, then fades in
@@ -285,8 +293,8 @@ Item {
                                               : { x: 15, y: 58, w: 308, wdH: 24, rowH: 44, wdPx: 13, dayPx: 19, circ: 33 })
     Item {
         id: grid
-        x: Math.round(w.gridSpec.x * w.s)
-        y: Math.round(w.gridSpec.y * w.s)
+        x: w.ox + (Math.round(w.gridSpec.x * w.s))
+        y: w.oy + (Math.round(w.gridSpec.y * w.s))
         width: Math.round(w.gridSpec.w * w.s)
         height: wdH + 6 * rowH
         readonly property real cw: width / 7
@@ -346,8 +354,8 @@ Item {
     // --- small: month name above the grid ---
     Text {
         visible: w.isSmall
-        x: 13 * w.s
-        y: 10 * w.s
+        x: w.ox + (13 * w.s)
+        y: w.oy + (10 * w.s)
         text: w.monthNames[w.cal.month].toUpperCase()
         color: w.red
         font.family: Fonts.forWeight(Font.Bold, w.fam)
@@ -358,14 +366,14 @@ Item {
     // --- medium: weekday, big day number and month on the left ---
     Rectangle {   // divider
         visible: w.isMedium
-        x: 164 * w.s; y: 16 * w.s
-        width: 1; height: w.height - 32 * w.s
+        x: w.ox + (164 * w.s); y: w.oy + (16 * w.s)
+        width: 1; height: w.bh - 32 * w.s
         color: w.line
     }
     Text {
         visible: w.isMedium
-        x: w.pad
-        y: 14 * w.s
+        x: w.ox + (w.pad)
+        y: w.oy + (14 * w.s)
         width: 142 * w.s
         elide: Text.ElideRight
         text: w.dayNames[w.cal.weekday].toUpperCase()
@@ -376,8 +384,8 @@ Item {
     }
     Text {
         visible: w.isMedium
-        x: w.pad - 1 * w.s
-        y: 30 * w.s
+        x: w.ox + (w.pad - 1 * w.s)
+        y: w.oy + (30 * w.s)
         text: w.cal.today
         color: w.fg
         font.family: w.fam
@@ -386,8 +394,8 @@ Item {
     }
     Text {
         visible: w.isMedium
-        x: w.pad
-        y: w.height - w.pad + 1 * w.s - implicitHeight
+        x: w.ox + (w.pad)
+        y: w.oy + (w.bh - w.pad + 1 * w.s - implicitHeight)
         width: 142 * w.s
         elide: Text.ElideRight
         text: w.monthNames[w.cal.month] + " " + w.cal.year
@@ -400,8 +408,8 @@ Item {
     // --- large: month + year header, hairline under the weekday row ---
     Row {
         visible: w.isLarge
-        x: w.pad
-        y: 13 * w.s
+        x: w.ox + (w.pad)
+        y: w.oy + (13 * w.s)
         spacing: 7 * w.s
         Text {
             text: w.monthNames[w.cal.month]
@@ -420,9 +428,9 @@ Item {
     }
     Rectangle {
         visible: w.isLarge
-        x: w.pad
+        x: w.ox + (w.pad)
         y: grid.y + grid.wdH
-        width: w.width - 2 * w.pad
+        width: w.bw - 2 * w.pad
         height: 1
         color: w.line
     }
