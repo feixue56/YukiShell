@@ -400,6 +400,10 @@ isn't using the Lua config. `tools/doctor` checks both.
 **How do I restart the shell?**
 `Super+Shift+R`, or `yuki-restart` in a terminal. Please don't use `qs kill`. Quickshell can crash on the way out, and then you end up with two shells.
 
+**Dolphin's terminal.** *Open Terminal* (`Shift+F4`, or right-click a folder) opens kitty in that folder. The terminal panel inside
+Dolphin (`F4`) can only be Konsole: Dolphin embeds Konsole's terminal component there, and no other terminal can be embedded. Install
+`konsole` if you want that panel.
+
 **How much does YukiShell use?**
 `yukishell stats` lists every YukiShell process (the shell, the waiting lock screen, the wallpaper player) and the helpers it
 started, with CPU, RAM, GPU load and video memory each, the shell's CPU split into rendering / QML / video decoding, the programs

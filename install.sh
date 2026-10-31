@@ -78,6 +78,10 @@ if command -v kwriteconfig6 >/dev/null; then
     kwriteconfig6 --file kdeglobals --group General --key AccentColor 203,166,247
     kwriteconfig6 --file kdeglobals --group Icons   --key Theme Papirus-Dark
     kwriteconfig6 --file kdeglobals --group KDE     --key widgetStyle Breeze
+    # "Open Terminal" in Dolphin (Shift+F4, right-click a folder) and other KDE apps opens kitty. Dolphin's built-in terminal
+    # panel (F4) is a different thing: it can only embed Konsole (konsolepart), no other terminal can live inside its window
+    kwriteconfig6 --file kdeglobals --group General --key TerminalApplication kitty
+    kwriteconfig6 --file kdeglobals --group General --key TerminalService kitty.desktop
     # KDE apps (Dolphin's file view) read colours from kdeglobals itself, so the scheme's groups have to be copied in
     python3 "$here/qt/apply-scheme.py" "$here/qt/CatppuccinMauve.colors" || true
 fi
