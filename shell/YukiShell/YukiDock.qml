@@ -417,19 +417,23 @@ Scope {
         required property var t
         property string text: ""
         property bool destructive: false
+        property bool prominent: false        // the main action of a sheet: accent fill, white text
         signal clicked()
-        width: Math.max(64, Math.ceil(lbl.implicitWidth) + 24)
+        width: b.text.length <= 1 ? 28 : Math.max(64, Math.ceil(lbl.implicitWidth) + 24)     // a one-glyph button (▶) is a 28 px square
         height: 28
         radius: 8
-        color: ma.pressed ? t.buttonPressed : (ma.containsMouse ? Qt.tint(t.button, t.hover) : t.button)
-        border.width: 1
+        opacity: enabled ? 1 : 0.4
+        color: prominent ? (ma.pressed ? Qt.darker(t.accent, 1.2) : (ma.containsMouse ? Qt.lighter(t.accent, 1.08) : t.accent))
+                         : (ma.pressed ? t.buttonPressed : (ma.containsMouse ? Qt.tint(t.button, t.hover) : t.button))
+        border.width: prominent ? 0 : 1
         border.color: t.buttonBorder
         Text {
             id: lbl
             anchors.centerIn: parent
             text: b.text
-            color: b.destructive ? b.t.danger : b.t.text
-            font.family: root.fontForWeight(Font.Medium, b.t.fam)
+            color: b.prominent ? "white" : (b.destructive ? b.t.danger : b.t.text)
+            font.family: root.fontForWeight(b.prominent ? Font.DemiBold : Font.Medium, b.t.fam)
+            font.weight: b.prominent ? Font.DemiBold : Font.Medium
             font.pixelSize: 14
         }
         MouseArea { id: ma; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: b.clicked() }
@@ -1722,7 +1726,7 @@ Scope {
                         x: 16; y: 54; width: parent.width - 32; height: parent.height - 54 - 16
                         Rectangle {
                             id: searchBox
-                            width: parent.width; height: 28; radius: 7
+                            width: parent.width; height: 28; radius: 8
                             color: pal.field
                             border.width: 1; border.color: pal.cardBorder
                             TextInput {
@@ -1800,7 +1804,7 @@ Scope {
                             width: parent.width; spacing: 5
                             Text { text: I18n.tr("Name"); color: pal.text2; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12 }
                             Rectangle {
-                                width: parent.width; height: 28; radius: 7; color: pal.field
+                                width: parent.width; height: 28; radius: 8; color: pal.field
                                 border.width: 1; border.color: pal.cardBorder
                                 TextInput {
                                     id: nameField
@@ -1820,7 +1824,7 @@ Scope {
                             width: parent.width; spacing: 5
                             Text { text: I18n.tr("Command"); color: pal.text2; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12 }
                             Rectangle {
-                                width: parent.width; height: 28; radius: 7; color: pal.field
+                                width: parent.width; height: 28; radius: 8; color: pal.field
                                 border.width: 1; border.color: pal.cardBorder
                                 TextInput {
                                     id: cmdField
@@ -1855,7 +1859,7 @@ Scope {
                                     smooth: true; mipmap: true
                                 }
                                 Rectangle {
-                                    width: parent.width - 28 - 8 - chooseIcon.width - 8; height: 28; radius: 7; color: pal.field
+                                    width: parent.width - 28 - 8 - chooseIcon.width - 8; height: 28; radius: 8; color: pal.field
                                     border.width: 1; border.color: pal.cardBorder
                                     TextInput {
                                         id: iconField
@@ -1896,15 +1900,9 @@ Scope {
                         }
                         Row {
                             anchors.right: parent.right
-                            spacing: 10
+                            spacing: 8
                             SButton { t: pal; text: I18n.tr("Cancel"); onClicked: appSheet.open = false }
-                            Rectangle {
-                                width: addLbl.implicitWidth + 26; height: 24; radius: 6
-                                color: addMa.pressed ? Qt.darker(pal.accent, 1.2) : pal.accent
-                                opacity: appSheet.canAdd ? 1 : 0.4
-                                Text { id: addLbl; anchors.centerIn: parent; text: I18n.tr("Add to Dock"); color: "white"; font.family: root.fontForWeight(Font.DemiBold, pal.fam); font.pixelSize: 13; font.weight: Font.DemiBold }
-                                MouseArea { id: addMa; anchors.fill: parent; enabled: appSheet.canAdd; onClicked: appSheet.addCustom() }
-                            }
+                            SButton { t: pal; prominent: true; text: I18n.tr("Add to Dock"); enabled: appSheet.canAdd; onClicked: appSheet.addCustom() }
                         }
                     }
                 }
@@ -2027,19 +2025,9 @@ Scope {
                     Row {
                         anchors.right: parent.right; anchors.rightMargin: 24
                         y: parent.height - 56
-                        spacing: 10
+                        spacing: 8
                         SButton { t: pal; text: I18n.tr("Cancel"); onClicked: cropSheet.open = false }
-                        Rectangle {
-                            width: saveLbl.implicitWidth + 26; height: 24; radius: 6
-                            color: saveMa.pressed ? Qt.darker(pal.accent, 1.2) : pal.accent
-                            Text {
-                                id: saveLbl
-                                anchors.centerIn: parent
-                                text: I18n.tr("Save"); color: "white"
-                                font.family: root.fontForWeight(Font.DemiBold, pal.fam); font.pixelSize: 13; font.weight: Font.DemiBold
-                            }
-                            MouseArea { id: saveMa; anchors.fill: parent; enabled: cimg.status === Image.Ready && !cropProc.running; onClicked: cropSheet.save() }
-                        }
+                        SButton { t: pal; prominent: true; text: I18n.tr("Save"); enabled: cimg.status === Image.Ready && !cropProc.running; onClicked: cropSheet.save() }
                     }
                 }
             }
@@ -2228,7 +2216,7 @@ Scope {
                         Row {
                             spacing: 8
                             Rectangle {
-                                width: 210; height: 26; radius: 6
+                                width: 208; height: 28; radius: 8
                                 color: pal.ctrl
                                 border.width: 1
                                 border.color: pal.cardBorder
@@ -2464,7 +2452,7 @@ Scope {
                         Row {
                             spacing: 8
                             Rectangle {
-                                width: 200; height: 24; radius: 6
+                                width: 208; height: 28; radius: 8
                                 color: pal.ctrl
                                 border.width: 1
                                 border.color: pal.cardBorder
@@ -3079,6 +3067,7 @@ Scope {
                     }
                 }
                 Row {
+                    x: parent.width - width     // right-aligned under the card, with the controls above
                     spacing: 8
                     SButton { t: pal; text: I18n.tr("Scan Again"); onClicked: if (root.bar) root.bar.scanWifi() }
                 }
@@ -3434,6 +3423,7 @@ Scope {
                 }
 
                 Row {
+                    x: parent.width - width     // right-aligned under the card, with the controls above
                     spacing: 8
                     visible: netPane.dev !== ""
                     SButton { t: pal; text: I18n.tr("Copy All Details"); onClicked: netPane.copy(netPane.summary) }
@@ -3587,6 +3577,7 @@ Scope {
                     Quickshell.execDetached(["systemctl", cmd]);
                 }
                 Row {
+                    x: parent.width - width     // right-aligned under the card, with the controls above
                     spacing: 8
                     SButton { t: pal; text: I18n.tr("Sleep"); onClicked: { prefsWindow.visible = false; if (root.bar) root.bar.sleepMachine(); else Quickshell.execDetached(["systemctl", "suspend"]); } }
                     SButton { t: pal; text: batPane.armed === "restart" ? I18n.tr("Click Again to Restart") : I18n.tr("Restart\u2026"); onClicked: batPane.powerAct("restart", "reboot") }
@@ -4107,7 +4098,7 @@ Scope {
                         title: I18n.tr("City")
                         subtitle: I18n.tr("For example: Riyadh, Dubai, London")
                         Rectangle {
-                            width: 210; height: 26; radius: 6
+                            width: 208; height: 28; radius: 8
                             color: pal.ctrl
                             border.width: 1
                             border.color: pal.cardBorder
@@ -4319,6 +4310,7 @@ Scope {
                 }
                 SLabel { t: pal; text: I18n.tr("Apps appear here after their first notification."); visible: notifPane.apps.length > 0 }
                 Row {
+                    x: parent.width - width     // right-aligned under the card, with the controls above
                     spacing: 8
                     SButton { t: pal; text: I18n.tr("Send Test Notification"); onClicked: Quickshell.execDetached(["notify-send", "-a", I18n.tr("Settings"), I18n.tr("Test notification"), I18n.tr("Notifications are working")]) }
                     SButton { t: pal; text: I18n.tr("Clear Notification Center"); onClicked: if (root.bar) root.bar.notifClearAnimated() }
@@ -4724,6 +4716,7 @@ Scope {
                     }
                 }
                 Row {
+                    x: parent.width - width     // right-aligned under the card, with the controls above
                     spacing: 8
                     // a 6-second look at the lock screen (no real lock) with the settings above
                     SButton {
@@ -4818,14 +4811,14 @@ Scope {
                                 Item {
                                     id: capBox
                                     width: scRow.recording ? recPill.width : capRow.width
-                                    height: 26
+                                    height: 28
                                     anchors.verticalCenter: parent.verticalCenter
                                     Rectangle {         // recording: this is where the new shortcut will appear
                                         id: recPill
                                         visible: scRow.recording
-                                        height: 26; width: recText.implicitWidth + 24; radius: 7
+                                        height: 28; width: Math.ceil(recText.implicitWidth) + 24; radius: 8
                                         color: pal.dark ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(0, 0, 0, 0.05)
-                                        border.width: 1.5; border.color: pal.accent
+                                        border.width: 2; border.color: pal.accent
                                         Text {
                                             id: recText
                                             anchors.centerIn: parent
@@ -4844,7 +4837,7 @@ Scope {
                                             Rectangle {
                                                 id: cap
                                                 required property string modelData
-                                                height: 22; width: Math.max(22, capText.implicitWidth + 12); radius: 6
+                                                height: 24; width: Math.max(24, Math.ceil(capText.implicitWidth) + 12); radius: 6
                                                 color: pal.dark ? Qt.rgba(1, 1, 1, capMa.containsMouse ? 0.16 : 0.10) : Qt.rgba(0, 0, 0, capMa.containsMouse ? 0.10 : 0.06)
                                                 border.width: 1; border.color: pal.cardBorder
                                                 Text {
@@ -4859,7 +4852,7 @@ Scope {
                                         }
                                         Rectangle {     // no shortcut
                                             visible: scRow.modelData.keys.length === 0
-                                            height: 22; width: noneText.implicitWidth + 16; radius: 6
+                                            height: 24; width: Math.ceil(noneText.implicitWidth) + 16; radius: 6
                                             color: "transparent"
                                             border.width: 1; border.color: pal.cardBorder
                                             Text { id: noneText; anchors.centerIn: parent; text: I18n.tr("Not set"); color: pal.text3; font.family: root.fontForWeight(Font.Normal, pal.fam); font.pixelSize: 12 }
@@ -5461,8 +5454,8 @@ Scope {
                                 }
                                     Rectangle {
                                         anchors.right: parent.right; anchors.top: parent.top
-                                        anchors.margins: 7
-                                        width: 26; height: 26; radius: 13
+                                        anchors.margins: 8
+                                        width: 28; height: 28; radius: 14
                                         visible: wt.modelData.fav || wtMa.containsMouse || wtFavMa.containsMouse
                                         color: Qt.rgba(0, 0, 0, wtFavMa.containsMouse ? 0.72 : 0.52)
                                         Text {
@@ -7087,65 +7080,14 @@ Scope {
                                     color: root.dockDark ? Qt.rgba(1, 1, 1, 0.28) : Qt.rgba(0, 0, 0, 0.22)
                                 }
 
-                                // everything the icon is made of lives in `face`, so the press squish and the hover tilt move it as one
+                                // everything the icon is made of lives in `face`, so the press squish moves it as one (hovering never tilts or shakes it)
                                 Item {
                                     id: face
                                     anchors.fill: parent
                                     transformOrigin: Item.Bottom
                                     scale: (ma.pressed && !ui.dragging && !ui.tearing) ? 0.86 : 1
                                     Behavior on scale { NumberAnimation { duration: 170; easing.type: Easing.OutBack; easing.overshoot: 3.2 } }
-                                    SequentialAnimation {
-                                        id: wiggle
-                                        NumberAnimation { target: face; property: "rotation"; to: -5; duration: 110; easing.type: Easing.OutQuad }
-                                        NumberAnimation { target: face; property: "rotation"; to: 4; duration: 130; easing.type: Easing.InOutQuad }
-                                        NumberAnimation { target: face; property: "rotation"; to: -2; duration: 110; easing.type: Easing.InOutQuad }
-                                        NumberAnimation { target: face; property: "rotation"; to: 0; duration: 120; easing.type: Easing.OutQuad }
-                                    }
-                                    Connections {
-                                        target: ma
-                                        function onContainsMouseChanged() {
-                                            if (ma.containsMouse && !cell.isSep && !ui.dragging && !ui.tearing && !ui.tucked) wiggle.restart();
-                                        }
-                                    }
-                                    // --- hover plate: a Liquid Glass tile under the pointer, so the hovered icon is unmistakable ---
-                                    GlassHover {
-                                        id: plate
-                                        hot: halo.on
-                                        pressed: halo.on && ma.pressed
-                                        dark: root.darkMode
-                                        area: ma
-                                        x: img.x + (img.width - width) / 2
-                                        y: img.y + (img.height - height) / 2
-                                        width: img.width * 1.16; height: img.height * 1.16
-                                        radius: width * 0.28
-                                    }
-                                    // --- hover glow: a soft light blooms behind the icon ---
-                                    Item {
-                                        id: halo
-                                        readonly property bool on: !cell.isSep && ma.containsMouse && !ui.dragging && !ui.tearing && !ui.menuOpen
-                                        opacity: on ? 1 : 0
-                                        visible: opacity > 0.01
-                                        Behavior on opacity { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
-                                        x: img.x + (img.width - width) / 2
-                                        y: img.y + (img.height - height) / 2
-                                        width: img.width * 1.05; height: width
-                                        Rectangle {
-                                            id: haloCore
-                                            anchors.fill: parent
-                                            radius: width / 2
-                                            color: Qt.rgba(1, 1, 1, 0.5)
-                                            visible: false
-                                        }
-                                        MultiEffect {
-                                            anchors.centerIn: haloCore
-                                            width: haloCore.width; height: haloCore.height
-                                            source: haloCore
-                                            blurEnabled: true
-                                            blurMax: 48
-                                            blur: 1.0
-                                        }
-                                    }
-
+                                    // hovering only lifts and magnifies the icon: no plate or glow behind it
                                     Image {
                                         id: img
                                         visible: false
@@ -7425,30 +7367,38 @@ Scope {
                     onPressed: ui.menuItem = null
                 }
 
-                Rectangle {
+                // the right-click menu: follows Light / Dark mode, the same grid as Settings (28 px rows, 8 px corners, 14 px text)
+                Item {
                     id: menu
                     z: 60
+                    readonly property bool dk: root.darkMode
+                    readonly property color ink: dk ? "#F5F5F7" : "#1D1D1F"
                     visible: opacity > 0
                     opacity: ui.menuOpen ? 1 : 0
-                    scale: ui.menuOpen ? 1 : 0.96
+                    scale: ui.menuOpen ? 1 : 0.94
                     transformOrigin: Item.Bottom
-                    Behavior on opacity { NumberAnimation { duration: 110 } }
-                    Behavior on scale { NumberAnimation { duration: 110; easing.type: Easing.OutCubic } }
+                    Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+                    Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutQuint } }
 
-                    width: 230
-                    height: menuCol.height + 10
-                    x: Math.max(8, Math.min(ui.width - width - 8, ui.menuCx - width / 2))
-                    y: ui.height - root.margin - root.bgHeight - root.iconSize * (root.effMag - 1) - 14 - height
-                    radius: 10
-                    color: Qt.rgba(0.14, 0.14, 0.15, 0.62)
-                    border.width: 1
-                    border.color: Qt.rgba(1, 1, 1, 0.16)
+                    width: 224
+                    height: menuCol.height + 8
+                    x: Math.round(Math.max(8, Math.min(ui.width - width - 8, ui.menuCx - width / 2)))
+                    y: Math.round(ui.height - root.margin - root.bgHeight - root.iconSize * (root.effMag - 1) - 12 - height)
+
+                    RectangularShadow { anchors.fill: parent; radius: 12; blur: 24; offset.y: 8; color: Qt.rgba(0, 0, 0, menu.dk ? 0.40 : 0.18) }
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 12
+                        color: root.accentWash(menu.dk ? Qt.rgba(0.16, 0.16, 0.18, 0.94) : Qt.rgba(0.98, 0.98, 0.99, 0.94), 0.30, menu.dk)
+                        border.width: 1
+                        border.color: menu.dk ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.10)
+                    }
 
                     Column {
                         id: menuCol
-                        x: 5
-                        y: 5
-                        width: parent.width - 10
+                        x: 4
+                        y: 4
+                        width: parent.width - 8
 
                         Repeater {
                             model: ui.menuModel
@@ -7459,32 +7409,34 @@ Scope {
                                 readonly property bool isSep: modelData.kind === "sep"
                                 readonly property bool off: !isSep && modelData.disabled === true
                                 readonly property bool armedNow: !isSep && modelData.confirm === true && ui.armed === modelData.label
+                                readonly property bool hot: !isSep && !off && mia.containsMouse
                                 width: menuCol.width
-                                height: isSep ? 9 : 26
+                                height: isSep ? 8 : 28
 
                                 Rectangle {
                                     visible: mi.isSep
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    x: 6
-                                    width: parent.width - 12
+                                    x: 8; y: 4
+                                    width: parent.width - 16
                                     height: 1
-                                    color: Qt.rgba(1, 1, 1, 0.14)
+                                    color: menu.dk ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.10)
                                 }
                                 Rectangle {
-                                    visible: !mi.isSep && !mi.off && mia.containsMouse
                                     anchors.fill: parent
-                                    radius: 5
+                                    radius: 8
                                     color: mi.armedNow ? "#FF453A" : root.accent
+                                    opacity: mi.hot ? 1 : 0
+                                    Behavior on opacity { NumberAnimation { duration: 90 } }
                                 }
                                 Text {
                                     visible: !mi.isSep
-                                    x: 10
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: parent.width - 20
+                                    x: 12
+                                    y: Math.round((parent.height - height) / 2)
+                                    width: parent.width - 24
                                     elide: Text.ElideRight
                                     text: mi.isSep ? "" : (mi.armedNow ? I18n.tr("Click again to confirm") : I18n.tr(mi.modelData.label))
-                                    color: mi.off ? Qt.rgba(1, 1, 1, 0.4) : "white"
-                                    font.pixelSize: 13
+                                    color: mi.hot ? "white" : menu.ink
+                                    opacity: mi.off ? 0.4 : 1
+                                    font.pixelSize: 14
                                     font.family: root.fontForWeight(Font.Normal, root.fontFamily)
                                 }
                                 MouseArea {
