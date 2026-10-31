@@ -33,7 +33,7 @@ link "$here/shell/bin/yuki-start"              "$HOME/.local/bin/yuki-start"
 link "$here/shell/bin/yuki-restart"            "$HOME/.local/bin/yuki-restart"
 link "$here/shell/bin/yuki-brightness"         "$HOME/.local/bin/yuki-brightness"
 link "$here/shell/scripts"                     "$cfg/hypr-yukishell/scripts"   # wallpaper, Game Mode, wallpaper pause, dynamic wallpaper
-[ -f "$cfg/hypr-rice/env" ] || { mkdir -p "$cfg/hypr-rice"; cp "$here/shell/env.example" "$cfg/hypr-rice/env"; }
+[ -f "$cfg/hypr-yukishell/env" ] || { mkdir -p "$cfg/hypr-yukishell"; cp "$here/shell/env.example" "$cfg/hypr-yukishell/env"; }
 link "$here/qt/CatppuccinMauve.colors" "$HOME/.local/share/color-schemes/CatppuccinMauve.colors"
 link "$here/chromium/chromium-flags.conf" "$cfg/chromium-flags.conf"
 
@@ -47,7 +47,7 @@ lua="$cfg/hypr/hyprland.lua"
 if [ -f "$lua" ] && ! grep -q 'rice.theme\|"rice\.' "$lua"; then
     cp "$lua" "$lua.pre-rice"
     { cat <<'LUA'
--- Rice (managed by ~/hypr-rice)
+-- Rice (managed by ~/hypr-yukishell)
 for _, m in ipairs({ "monitor", "look", "input", "ime", "binds", "rules", "shell" }) do
     local ok, err = pcall(require, "rice." .. m)
     if not ok then hl.exec_cmd("notify-send 'Hyprland rice' 'rice." .. m .. " failed: " .. tostring(err):gsub("'", "") .. "'") end

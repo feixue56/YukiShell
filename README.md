@@ -80,8 +80,8 @@ Don't feel like reading the table? Run `tools/doctor`. It checks your machine an
 ## Installing
 
 ```sh
-git clone https://github.com/xuefeng1331/YukiShell.git ~/hypr-rice
-cd ~/hypr-rice && ./install.sh
+git clone https://github.com/xuefeng1331/YukiShell.git ~/hypr-yukishell
+cd ~/hypr-yukishell && ./install.sh
 ```
 
 What `install.sh` does:
@@ -99,7 +99,7 @@ To undo it, delete the symlinks and rename the `*.pre-rice` files back.
 ### Updating
 
 ```sh
-cd ~/hypr-rice && git pull && hyprctl reload && yuki-restart
+cd ~/hypr-yukishell && git pull && hyprctl reload && yuki-restart
 ```
 
 `hyprctl reload` picks up new shortcuts and the cursor settings, `yuki-restart` the shell. If a release adds new files to link,
@@ -250,7 +250,7 @@ hl.monitor({
 
 ### Environment variables
 
-Copy `shell/env.example` to `~/.config/hypr-rice/env` and uncomment what you need. `yuki-start` reads it before starting the shell:
+Copy `shell/env.example` to `~/.config/hypr-yukishell/env` and uncomment what you need. `yuki-start` reads it before starting the shell:
 
 ```sh
 # icons for the Dock and Spotlight
@@ -342,7 +342,7 @@ If something's autostarting one of these (an old `exec-once`, a systemd user ser
 ## Files
 
 ```
-hypr-rice/
+hypr-yukishell/
 ├── install.sh                 symlinks everything into place
 ├── hypr/
 │   ├── rice/                  Hyprland, in Lua
@@ -379,15 +379,15 @@ Where things end up on your system:
 | --- | --- |
 | `~/.config/quickshell/YukiShell`, `YukiLock` | symlinks to `shell/` |
 | `~/.config/yukibar`, `yukidock`, `yukishell`, `yukilock`, `yukiwidgets` | your settings |
-| `~/.config/hypr-rice/env` | your environment variables |
+| `~/.config/hypr-yukishell/env` | your environment variables |
 | `~/.config/yukishell/cursor` | the cursor theme and size from *Settings → Cursor*, read by `hypr/rice/look.lua` at login |
 | `~/.local/share/icons` | cursor themes you added in *Settings → Cursor* |
-| `~/.local/state/hypr-rice/YukiShell.log` | the shell's log |
+| `~/.local/state/hypr-yukishell/YukiShell.log` | the shell's log |
 
 ## Q&A
 
 **The bar and Dock didn't show up after logging in.**
-Run `yuki-start` in a terminal and read `~/.local/state/hypr-rice/YukiShell.log`. Usually it's a missing `quickshell`, or Hyprland
+Run `yuki-start` in a terminal and read `~/.local/state/hypr-yukishell/YukiShell.log`. Usually it's a missing `quickshell`, or Hyprland
 isn't using the Lua config. `tools/doctor` checks both.
 
 **I got a "keeps crashing" notification.**

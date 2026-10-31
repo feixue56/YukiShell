@@ -1,11 +1,11 @@
 #!/bin/sh
 # yuki-start: starts YukiShell (this repo's fork of MacShell) for the Hyprland session.
 #   yuki-start [ConfigName]      default: YukiShell
-# Your own environment variables go in ~/.config/hypr-rice/env
-# Log: ~/.local/state/hypr-rice/<ConfigName>.log
+# Your own environment variables go in ~/.config/hypr-yukishell/env
+# Log: ~/.local/state/hypr-yukishell/<ConfigName>.log
 NAME="${1:-YukiShell}"
 CONF="${XDG_CONFIG_HOME:-$HOME/.config}"
-STATE="${XDG_STATE_HOME:-$HOME/.local/state}/hypr-rice"
+STATE="${XDG_STATE_HOME:-$HOME/.local/state}/hypr-yukishell"
 LOG="$STATE/$NAME.log"
 AUTO="$STATE/auto-env"
 PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin:$PATH"; export PATH
@@ -46,7 +46,8 @@ export XDG_SESSION_DESKTOP="${XDG_SESSION_DESKTOP:-Hyprland}"
 export QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-wayland}"
 # graphics settings this script picked by itself after crashes (lowest priority), then your own settings, which win
 if [ -f "$AUTO" ]; then set -a; . "$AUTO"; set +a; fi
-if [ -f "$CONF/hypr-rice/env" ]; then set -a; . "$CONF/hypr-rice/env"; set +a; fi
+if [ -f "$CONF/hypr-yukishell/env" ]; then set -a; . "$CONF/hypr-yukishell/env"; set +a
+elif [ -f "$CONF/hypr-rice/env" ]; then set -a; . "$CONF/hypr-rice/env"; set +a; fi     # installs from before the rename
 # icon theme: yours (QS_ICON_THEME or qt6ct), else the GTK one, else the first well-known theme that is installed
 if [ -z "${QS_ICON_THEME:-}" ] && [ -z "${QT_QPA_PLATFORMTHEME:-}" ]; then
     has_theme() { [ -f "/usr/share/icons/$1/index.theme" ] || [ -f "$HOME/.local/share/icons/$1/index.theme" ] || [ -f "$HOME/.icons/$1/index.theme" ]; }

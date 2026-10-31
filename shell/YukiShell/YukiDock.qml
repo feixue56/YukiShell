@@ -4902,7 +4902,7 @@ Scope {
                 SLabel {
                     t: pal; visible: prefsWindow.shortcuts.length > 0
                     text: prefsWindow.kbCanEdit ? I18n.tr("Click a shortcut to change it. Shortcuts that belong to a group of keys (the workspace numbers, the arrows) and Alt + Tab stay as they are.")
-                                                : I18n.tr("Read from Hyprland as it is running. Change them in ~/hypr-rice/hypr/rice/binds.lua and shell.lua.")
+                                                : I18n.tr("Read from Hyprland as it is running. Change them in ~/hypr-yukishell/hypr/rice/binds.lua and shell.lua.")
                 }
                 Component.onCompleted: prefsWindow.loadShortcuts()
             }
@@ -5608,11 +5608,11 @@ Scope {
                     SRow {
                         t: pal
                         title: I18n.tr("Rice")
-                        subtitle: "~/hypr-rice"
+                        subtitle: "~/hypr-yukishell"
                         SButton {
                             t: pal
                             text: I18n.tr("Open")
-                            onClicked: Quickshell.execDetached(["xdg-open", Quickshell.env("HOME") + "/hypr-rice"])
+                            onClicked: Quickshell.execDetached(["xdg-open", Quickshell.env("HOME") + "/hypr-yukishell"])
                         }
                     }
                     SRow {
