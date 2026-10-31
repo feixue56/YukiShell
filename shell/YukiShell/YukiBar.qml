@@ -408,7 +408,7 @@ Scope {
     property bool clipHistory: true           // keep a clipboard history for Spotlight -> Clipboard (needs wl-clipboard + cliphist)
     property bool clipAutoPaste: true         // after picking a clipboard entry / emoji, paste it into the focused app
     property var emojiRecent: []              // recently used emoji, newest first
-    property string screenshotDir: ""         // where screenshots are saved ("" = ~/Pictures/Screenshots)
+    property string screenshotDir: Quickshell.env("HOME") + "/Screenshots"   // where screenshots are saved ("" = ~/Pictures/Screenshots)
     property bool screenshotSave: true        // save the PNG to screenshotDir
     property bool screenshotClipboard: true   // also copy it to the clipboard
     property bool screenshotNotify: true      // "Screenshot saved" notification
@@ -418,10 +418,10 @@ Scope {
     // audio visualizer (the Now Playing widget and the Control Center tile; Settings -> Widgets)
     property bool visOn: true
     property string visStyle: "mirror"          // bars | mirror | wave
-    property string visColor: "white"           // art (from the cover) | white | accent
+    property string visColor: "art"             // art (from the cover) | white | accent
     property real visGain: 2.0                // how tall the bars get
-    property int visCount: 64                 // how many columns (the music widget and the Control Center tile)
-    property real visWidth: 0.5              // bar width as a share of its column (0.2 thin .. 1 touching)
+    property int visCount: 128                // how many columns (the music widget and the Control Center tile)
+    property real visWidth: 0.7              // bar width as a share of its column (0.2 thin .. 1 touching)
     // the Now Playing widget (Settings -> Widgets -> Music Widget)
     property real mwGlow: 0.6                 // the album art lights the card from behind (0 = off)
     property bool mwMotion: true              // living artwork: the cover settles back when paused, the glow drifts while playing

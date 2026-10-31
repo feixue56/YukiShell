@@ -392,7 +392,17 @@ Scope {
             root.scheduleSave();
             root.refresh();
         }
-        onLoadFailed: { root.ready = true; }
+        // first start (no settings yet): the Now Playing widget top-left and the weather top-right, both Liquid Glass
+        onLoadFailed: {
+            var ss = root.screenSize();
+            root.applySettings({ widgets: [
+                { id: "wplayer", type: "player", style: "liquid", size: "large", span: "2x2", x: root.gridLeft, y: root.gridTop },
+                { id: "wweather", type: "weather", style: "liquid", size: "medium", span: "2x1",
+                  x: ss[0] - root.gridRight - root.dims("2x1")[0], y: root.gridTop } ] });
+            root.ready = true;
+            root.scheduleSave();
+            root.refresh();
+        }
     }
     Timer { id: saveTimer; interval: 400; onTriggered: root.saveSettings() }
 

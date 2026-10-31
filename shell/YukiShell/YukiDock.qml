@@ -214,10 +214,9 @@ Scope {
         { name: "White",    c: "#ffffff" }, { name: "Black",  c: "#1c1c1e" }
     ]
     readonly property var defaultPinned: [
-        "org.gnome.Nautilus", "org.kde.dolphin", "thunar",
-        "firefox", "zen", "chromium", "google-chrome",
-        "kitty", "com.mitchellh.ghostty", "Alacritty", "foot",
-        "code", "discord", "spotify", "steam", "obsidian"
+        "org.gnome.Nautilus", "thunar", "firefox", "zen", "google-chrome",
+        "com.mitchellh.ghostty", "foot", "code", "spotify", "obsidian",
+        "com.spotify.Client", "com.microsoft.VSCode", "org.polymc.PolyMC", "com.obsproject.Studio"
     ]   // used until you change pins from the dock; unknown ids are skipped
     property var pinned: defaultPinned
     // ----------------------------------------
