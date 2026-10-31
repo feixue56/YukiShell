@@ -160,6 +160,9 @@ Canvas {
         } else if (k === "mouse") {
             rrect(5, 2, 8, 14, 4); ctx.stroke();
             line(9, 3.5, 9, 7);
+        } else if (k === "cursor") {
+            // the arrow pointer
+            poly([5, 2.5, 5, 14.5, 8.2, 11.4, 10.4, 16, 12.4, 15.1, 10.3, 10.6, 14.5, 10.6], true);
         } else if (k === "trackpad") {
             rrect(2, 3.5, 14, 11, 2.2); ctx.stroke();
             line(2.6, 11.6, 15.4, 11.6); line(9, 11.6, 9, 14);

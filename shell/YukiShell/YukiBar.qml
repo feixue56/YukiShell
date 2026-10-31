@@ -181,6 +181,29 @@ Scope {
     readonly property string inputSig: [kbRepeatRate, kbRepeatDelay, mouseSens, mouseNatural, mouseAccel, tpNatural, tpTap, tpDwt, tpScroll].join("|")
     onInputSigChanged: if (settingsReady) inputApplyT.restart()
     Timer { id: inputApplyT; interval: 150; onTriggered: root.applyInput() }
+    // --- Cursor (Settings -> Cursor) ---
+    // The theme and size go through assets/cursors.py (Hyprland, GTK, KDE/Qt and X apps, and ~/.config/yukishell/cursor, which
+    // hypr/rice/look.lua reads at login); the behaviours are applied live with `hyprctl eval`, like the input settings.
+    property string cursorTheme: "Bibata-Modern-Classic"
+    property int cursorSize: 24
+    property bool cursorHideTyping: true    // hide the pointer while typing
+    property real cursorHideIdle: 5         // hide it after this many seconds without moving (0 = never)
+    property bool cursorFollowFocus: true   // focus follows the mouse (off: click a window to focus it)
+    property bool cursorWarpWs: false       // switching workspace puts the pointer on the window that gets the focus
+    property real cursorZoom: 1.0           // magnify the screen around the pointer (1 = off)
+    readonly property string cursorScript: decodeURIComponent(String(Qt.resolvedUrl("assets/cursors.py")).replace(/^file:\/\//, ""))
+    readonly property string cursorLook: cursorTheme + "|" + cursorSize
+    onCursorLookChanged: if (settingsReady) cursorLookT.restart()
+    Timer { id: cursorLookT; interval: 250; onTriggered: Quickshell.execDetached([root.cursorScript, "apply", root.cursorTheme, String(root.cursorSize)]) }
+    readonly property string cursorSig: [cursorHideTyping, cursorHideIdle, cursorFollowFocus, cursorWarpWs, cursorZoom].join("|")
+    onCursorSigChanged: if (settingsReady) cursorApplyT.restart()
+    Timer { id: cursorApplyT; interval: 120; onTriggered: root.applyCursor() }
+    function applyCursor() {
+        function b(v) { return v ? "true" : "false"; }
+        Quickshell.execDetached(["hyprctl", "eval", "hl.config({ cursor = { hide_on_key_press = " + b(cursorHideTyping) + ", inactive_timeout = " + cursorHideIdle.toFixed(1)
+            + ", warp_on_change_workspace = " + (cursorWarpWs ? 1 : 0) + ", zoom_factor = " + Math.max(1, cursorZoom).toFixed(2)
+            + " }, input = { follow_mouse = " + (cursorFollowFocus ? 1 : 0) + " } })"]);
+    }
     function applyInput() {
         function b(v) { return v ? "true" : "false"; }
         Quickshell.execDetached(["hyprctl", "eval", "hl.config({ input = { repeat_rate = " + Math.round(kbRepeatRate) + ", repeat_delay = " + Math.round(kbRepeatDelay)
@@ -403,7 +426,8 @@ Scope {
         "lockClockStyle", "switcherStyle", "lockClockFont", "lockClockWeight", "lockClockMaterial", "lockClockIntensity", "lockClockTint", "lockClockDate", "autoContrast", "wallpaperAppearance", "wpPairLight", "wpPairDark",
         "notifDnd", "dnd", "nightOn", "keepAwake", "notifBannerSecs", "notifMutedApps", "notifAppsSeen", "focusSchedule", "focusFrom", "focusTo",
         "focusFullscreen", "focusAllowUrgent", "lockShowNotifs", "lockWallpaper", "uiSoundVolume", "alertSound",
-        "kbRepeatRate", "kbRepeatDelay", "mouseSens", "mouseNatural", "mouseAccel", "tpNatural", "tpTap", "tpDwt", "tpScroll"]
+        "kbRepeatRate", "kbRepeatDelay", "mouseSens", "mouseNatural", "mouseAccel", "tpNatural", "tpTap", "tpDwt", "tpScroll",
+        "cursorTheme", "cursorSize", "cursorHideTyping", "cursorHideIdle", "cursorFollowFocus", "cursorWarpWs", "cursorZoom"]
     // Optional bar widgets; tray and Spotlight use their existing showTray/showSearch settings.
     property var barWidgets: ["appleMenu", "appMenus", "workspaces", "volume", "keyboard", "notifications", "wifi", "bluetooth", "privacy", "controlCenter", "clock"]
     function barWidgetEnabled(id) { return barWidgets.indexOf(id) >= 0; }
@@ -4135,6 +4159,7 @@ Scope {
             }
             root.settingsReady = true;
             inputApplyT.restart();
+            cursorApplyT.restart();
             if (root.barStyle === "liquid") root.startGlass();
         }
         onLoadFailed: { root.ccMigRec = true; root.settingsReady = true; if (root.barStyle === "liquid") root.startGlass(); }

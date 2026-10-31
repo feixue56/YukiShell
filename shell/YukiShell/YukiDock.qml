@@ -709,6 +709,7 @@ Scope {
             // 6 · Input
             { id: "keyboard",   sec: 6, name: "Keyboard",        wg: "keyboard",   c1: "#A7A7AD", c2: "#7C7C82", keys: "repeat rate delay layout typing" },
             { id: "mouse",      sec: 6, name: "Mouse",           wg: "mouse",      c1: "#A7A7AD", c2: "#7C7C82", keys: "tracking speed scroll natural acceleration" },
+            { id: "cursor",     sec: 6, name: "Cursor",          wg: "cursor",     c1: "#A7A7AD", c2: "#7C7C82", keys: "pointer mouse theme size hide typing idle focus follows magnify zoom warp custom" },
             { id: "trackpad",   sec: 6, name: "Trackpad",        wg: "trackpad",   c1: "#A7A7AD", c2: "#7C7C82", keys: "tap click natural scroll touchpad gestures" },
             // 7 · Apps & About
             { id: "apps",       sec: 7, name: "Applications",    glyph: "apps",     c1: "#FFB340", c2: "#FF9500", keys: "pinned apps keep remove add custom dock" },
@@ -1631,7 +1632,7 @@ Scope {
                         general: paneGeneral, appearance: paneAppearance, controlcenter: paneCC, dock: paneDesktopDock,
                         displays: paneDisplays, menubar: paneMenuBar, wallpaper: paneWallpaper,
                         notifications: paneNotif, sound: paneSound, focus: paneFocus,
-                        widgets: paneWidgets, lockscreen: paneLock, users: paneUsers, keyboard: paneKeyboard, mouse: paneMouse, trackpad: paneTrackpad,
+                        widgets: paneWidgets, lockscreen: paneLock, users: paneUsers, keyboard: paneKeyboard, mouse: paneMouse, cursor: paneCursor, trackpad: paneTrackpad,
                         apps: paneApps, about: paneAbout
                     })[prefsWindow.panes[prefsWindow.cur].id]
                     onLoaded: fadeIn.restart()
@@ -4958,6 +4959,182 @@ Scope {
                         t: pal; title: I18n.tr("Mouse acceleration")
                         subtitle: I18n.tr("The pointer goes further when you move the mouse faster; off moves it the same distance at any speed")
                         SSwitch { t: pal; checked: root.bar ? root.bar.mouseAccel : true; onToggled: v => { if (root.bar) root.bar.mouseAccel = v; } }
+                    }
+                }
+            }
+        }
+
+        // --- Cursor ---
+        // The installed cursor themes come from assets/cursors.py (with a picture of each one's arrow); picking one applies it to
+        // Hyprland, GTK, KDE/Qt and X apps at once. "Add Cursor Theme..." copies a theme folder into ~/.local/share/icons.
+        Component {
+            id: paneCursor
+            Column {
+                id: curPane
+                spacing: 10
+                property var themes: []
+                property string msg: ""
+                readonly property string script: root.bar ? root.bar.cursorScript : ""
+                function reload() { curList.running = false; curList.running = true; }
+                Process {
+                    id: curList
+                    command: [curPane.script, "list"]
+                    stdout: StdioCollector { onStreamFinished: { try { curPane.themes = JSON.parse(text); } catch (e) {} } }
+                }
+                Process {
+                    id: curInstall
+                    property string dir: ""
+                    command: [curPane.script, "install", dir]
+                    stdout: StdioCollector {
+                        onStreamFinished: {
+                            var id = text.trim();
+                            if (id !== "" && root.bar) { root.bar.cursorTheme = id; curPane.msg = ""; }
+                            curPane.reload();
+                        }
+                    }
+                    stderr: StdioCollector { onStreamFinished: if (text.trim() !== "") curPane.msg = I18n.tr("That folder has no cursor theme in it.") }
+                }
+                Component.onCompleted: reload()
+
+                SLabel { t: pal; header: true; text: I18n.tr("Cursor Theme") }
+                SCard {
+                    t: pal
+                    Flow {
+                        id: curFlow
+                        width: parent.width
+                        padding: 12
+                        spacing: 10
+                        Repeater {
+                            model: curPane.themes
+                            delegate: Item {
+                                id: ct
+                                required property var modelData
+                                readonly property bool sel: root.bar && root.bar.cursorTheme === modelData.id
+                                width: 104; height: 104
+                                Rectangle {
+                                    width: 104; height: 78
+                                    radius: 10
+                                    color: ctMa.containsMouse ? pal.buttonPressed : pal.button
+                                    border.width: 1
+                                    border.color: pal.sep
+                                    Behavior on color { ColorAnimation { duration: 140 } }
+                                    Image {
+                                        anchors.centerIn: parent
+                                        width: 40; height: 40
+                                        source: ct.modelData.preview ? "file://" + ct.modelData.preview : ""
+                                        visible: source != ""
+                                        fillMode: Image.PreserveAspectFit
+                                        smooth: true; mipmap: true
+                                        cache: false
+                                        scale: ctMa.containsMouse ? 1.12 : 1
+                                        Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack } }
+                                    }
+                                    WGlyph {
+                                        anchors.centerIn: parent
+                                        visible: !ct.modelData.preview
+                                        width: 30; height: 30
+                                        kind: "cursor"
+                                        color: pal.text2
+                                    }
+                                }
+                                GlassRing { x: -1; y: -1; width: 106; height: 80; radius: 11; on: ct.sel; dark: pal.dark }
+                                Text {
+                                    y: 84
+                                    width: parent.width
+                                    horizontalAlignment: Text.AlignHCenter
+                                    text: ct.modelData.name
+                                    elide: Text.ElideRight
+                                    color: ct.sel ? pal.text : pal.text2
+                                    font.family: root.fontForWeight(ct.sel ? Font.DemiBold : Font.Normal, pal.fam)
+                                    font.pixelSize: 12
+                                }
+                                MouseArea {
+                                    id: ctMa
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    onClicked: if (root.bar) root.bar.cursorTheme = ct.modelData.id
+                                }
+                            }
+                        }
+                    }
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Use a custom cursor")
+                        subtitle: curPane.msg !== "" ? curPane.msg : I18n.tr("Choose the folder of a cursor theme you downloaded (unpack it first). It is copied to ~/.local/share/icons.")
+                        SButton {
+                            t: pal
+                            text: I18n.tr("Add Cursor Theme…")
+                            onClicked: root.filePicker.pick({ mode: "folder", title: I18n.tr("Choose a cursor theme folder"), startDir: Quickshell.env("HOME") + "/Downloads" }, function (path) {
+                                if (path === "") return;
+                                curInstall.dir = path;
+                                curInstall.running = true;
+                            })
+                        }
+                    }
+                }
+
+                SCard {
+                    t: pal
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Size")
+                        subtitle: I18n.tr("Apps that are already open pick up the new size when they restart")
+                        SSlider {
+                            t: pal
+                            from: 16; to: 64; stepSize: 4
+                            value: root.bar ? root.bar.cursorSize : 24
+                            leftLabel: I18n.tr("Small"); rightLabel: I18n.tr("Large")
+                            resetValue: 24
+                            onMoved: v => { if (root.bar) root.bar.cursorSize = Math.round(v / 4) * 4; }
+                        }
+                    }
+                }
+
+                SLabel { t: pal; header: true; text: I18n.tr("Behavior") }
+                SCard {
+                    t: pal
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Hide while typing")
+                        SSwitch { t: pal; checked: root.bar ? root.bar.cursorHideTyping : true; onToggled: v => { if (root.bar) root.bar.cursorHideTyping = v; } }
+                    }
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Hide when idle")
+                        subtitle: !root.bar || root.bar.cursorHideIdle < 0.5 ? I18n.tr("Never") : I18n.tr("After %1 s without moving").arg(Math.round(root.bar.cursorHideIdle))
+                        SSlider {
+                            t: pal
+                            from: 0; to: 30; stepSize: 1
+                            value: root.bar ? root.bar.cursorHideIdle : 5
+                            leftLabel: I18n.tr("Never"); rightLabel: "30 s"
+                            resetValue: 5
+                            onMoved: v => { if (root.bar) root.bar.cursorHideIdle = Math.round(v); }
+                        }
+                    }
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Focus follows the mouse")
+                        subtitle: I18n.tr("A window gets the focus when the pointer moves over it; off: click a window to focus it")
+                        SSwitch { t: pal; checked: root.bar ? root.bar.cursorFollowFocus : true; onToggled: v => { if (root.bar) root.bar.cursorFollowFocus = v; } }
+                    }
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Jump to the focused window")
+                        subtitle: I18n.tr("Switching workspace moves the pointer onto the window that gets the focus")
+                        SSwitch { t: pal; checked: root.bar ? root.bar.cursorWarpWs : false; onToggled: v => { if (root.bar) root.bar.cursorWarpWs = v; } }
+                    }
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Magnifier")
+                        subtitle: I18n.tr("Zooms the screen in around the pointer")
+                        SSlider {
+                            t: pal
+                            from: 1; to: 4; stepSize: 0.25
+                            value: root.bar ? root.bar.cursorZoom : 1
+                            leftLabel: I18n.tr("Off"); rightLabel: "4×"
+                            resetValue: 1
+                            onMoved: v => { if (root.bar) root.bar.cursorZoom = Math.round(v * 4) / 4; }
+                        }
                     }
                 }
             }

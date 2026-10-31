@@ -1,8 +1,20 @@
 local c = require("rice.theme")
 
-hl.env("XCURSOR_SIZE", "24")
-hl.env("HYPRCURSOR_SIZE", "24")
-hl.env("XCURSOR_THEME", "Bibata-Modern-Classic")
+-- The cursor: Settings -> Cursor saves its theme and size in ~/.config/yukishell/cursor (two lines), read here at login.
+local cursorTheme, cursorSize = "Bibata-Modern-Classic", "24"
+do
+    local f = io.open((os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")) .. "/yukishell/cursor", "r")
+    if f then
+        local t, s = f:read("l"), f:read("l")
+        f:close()
+        if t and t ~= "" then cursorTheme = t end
+        if s and tonumber(s) then cursorSize = s end
+    end
+end
+hl.env("XCURSOR_SIZE", cursorSize)
+hl.env("HYPRCURSOR_SIZE", cursorSize)
+hl.env("XCURSOR_THEME", cursorTheme)
+hl.env("HYPRCURSOR_THEME", cursorTheme)
 hl.env("QT_QPA_PLATFORMTHEME", "kde")
 
 hl.config({
