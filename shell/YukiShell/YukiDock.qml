@@ -140,6 +140,7 @@ Scope {
     // --- Config --- Lachowski
     property string monitor: ""          // "" = every monitor, or e.g. "DP-1"
     property int iconSize: 52
+    readonly property real labelK: Math.max(0.7, Math.min(2.2, iconSize / 52))     // the hover label and menu grow with the Dock
     property real magnification: 1.7     // peak icon scale
     property int spacing: 6
     property int hPad: 10
@@ -6999,6 +7000,54 @@ Scope {
                         outline: false      // no dark hairline / shade around the dock
                     }
 
+                    // The dark hairline of the real macOS Dock: ~1.5 px wide, centred ON the edge of the glass (half outside, half inside),
+                    // about 12% dark along the straight left and right sides, easing out around the corners until it is gone where the
+                    // top and bottom edges start (those carry the bright line from the glass shader instead). Plain black with alpha, so it
+                    // darkens whatever is behind it and follows the wallpaper. The canvas is 3 px larger than the Dock on every side so
+                    // the outer half of the line can be drawn; it only repaints when the Dock's size, corner radius or mode changes.
+                    Canvas {
+                        id: sideBorder
+                        anchors.fill: parent
+                        anchors.margins: -3
+                        antialiasing: true
+                        readonly property real strength: root.dockDark ? 0.14 : 0.12
+                        onStrengthChanged: requestPaint()
+                        onWidthChanged: requestPaint()
+                        onHeightChanged: requestPaint()
+                        Connections { target: root; function onCornerRadiusChanged() { sideBorder.requestPaint(); } }
+                        onPaint: {
+                            var ctx = getContext("2d");
+                            ctx.reset();
+                            var m = 3, W = width, H = height;
+                            var w = W - 2 * m, h = H - 2 * m;          // the Dock itself
+                            if (w < 4 || h < 4) return;
+                            var r = Math.max(2, Math.min(root.cornerRadius, h / 2, w / 2));
+                            // fully dark at the very left / right, easing out (smootherstep) over one corner radius: gone by the straight top / bottom
+                            var fade = Math.min(w / 2, r * 1.05);
+                            var g = ctx.createLinearGradient(m, 0, m + w, 0);
+                            var N = 24;
+                            for (var k = 0; k <= N; k++) {
+                                var u = k / N, sm = u * u * u * (u * (u * 6 - 15) + 10), al = (strength * (1 - sm)).toFixed(4);
+                                g.addColorStop(u * fade / w, "rgba(0,0,0," + al + ")");
+                                g.addColorStop(1 - u * fade / w, "rgba(0,0,0," + al + ")");
+                            }
+                            ctx.strokeStyle = g;
+                            ctx.lineWidth = 1.6;
+                            ctx.beginPath();
+                            ctx.moveTo(m + r, m);
+                            ctx.lineTo(m + w - r, m);
+                            ctx.arc(m + w - r, m + r, r, 1.5 * Math.PI, 2 * Math.PI, false);
+                            ctx.lineTo(m + w, m + h - r);
+                            ctx.arc(m + w - r, m + h - r, r, 0, 0.5 * Math.PI, false);
+                            ctx.lineTo(m + r, m + h);
+                            ctx.arc(m + r, m + h - r, r, 0.5 * Math.PI, Math.PI, false);
+                            ctx.lineTo(m, m + r);
+                            ctx.arc(m + r, m + r, r, Math.PI, 1.5 * Math.PI, false);
+                            ctx.closePath();
+                            ctx.stroke();
+                        }
+                    }
+
                     // Natural edge: with Liquid Glass (dockglass.frag) the edge light is drawn by the shader, so this Canvas is not even created.
                     // It stays for Normal Blur and as the fallback when the Dock's own shader is unavailable (a faint line in the wallpaper colour).
                     Loader {
@@ -7283,42 +7332,43 @@ Scope {
                                     onFinished: cell.bounceStep()              // relaunched while settling: bounce again
                                 }
 
-                                Rectangle {
+                                // hover label: a frosted Liquid Glass bubble with a pointer tail (DockGlassPanel), light / dark with the
+                                // appearance, sized from the Dock. It is only built while it is shown.
+                                readonly property bool tipOn: root.showLabels && !cell.isSep && ma.containsMouse && !ma.pressed && !ui.menuOpen && !ui.dragging
+                                Loader {
                                     id: tip
-                                    visible: opacity > 0
-                                    readonly property bool shown: root.showLabels && !cell.isSep && ma.containsMouse && !ma.pressed && !ui.menuOpen && !ui.dragging
-                                    opacity: shown ? 1 : 0
-                                    Behavior on opacity { NumberAnimation { duration: 140 } }
-                                    scale: shown ? 1 : 0.78
-                                    transformOrigin: Item.Bottom
-                                    Behavior on scale { NumberAnimation { duration: 240; easing.type: Easing.OutBack; easing.overshoot: 2.6 } }
                                     z: 10
-                                    width: label.implicitWidth + 22
-                                    height: label.implicitHeight + 10
-                                    radius: 9
-                                    color: Qt.rgba(0.12, 0.12, 0.13, 0.72)
-                                    border.width: 1
-                                    border.color: root.darkMode ? Qt.rgba(1, 1, 1, 0.26) : Qt.rgba(0, 0, 0, 0.14)
-                                    // dark hairline just outside, so the label keeps its edge over a bright window behind it
-                                    Rectangle {
-                                        anchors.fill: parent
-                                        anchors.margins: -1
-                                        z: -1
-                                        radius: parent.radius + 1
-                                        color: "transparent"
-                                        border.width: 1
-                                        border.color: Qt.rgba(0, 0, 0, 0.22)
-                                    }
+                                    opacity: cell.tipOn ? 1 : 0
+                                    Behavior on opacity { NumberAnimation { duration: 120 } }
+                                    active: cell.tipOn || opacity > 0
                                     anchors.horizontalCenter: parent.horizontalCenter
-                                    y: cell.height - img.height - img.lift - cell.hoverUp - height - 10
-
-                                    Text {
-                                        id: label
-                                        anchors.centerIn: parent
-                                        text: cell.isSep ? "" : ((cell.modelData.kind === "win" && cell.modelData.tl && cell.modelData.tl.title) ? cell.modelData.tl.title : (cell.modelData.special ? I18n.tr(cell.modelData.name) : cell.modelData.name))
-                                        color: "white"
-                                        font.pixelSize: 13
-                                        font.family: root.fontForWeight(Font.Normal, root.fontFamily)
+                                    // the tail's tip sits just above the (magnified / bouncing) icon
+                                    y: Math.round(cell.height - img.height - img.lift - cell.hoverUp - height - 8 * root.labelK)
+                                    sourceComponent: DockGlassPanel {
+                                        id: lp
+                                        readonly property string title: cell.isSep ? "" : ((cell.modelData.kind === "win" && cell.modelData.tl && cell.modelData.tl.title) ? cell.modelData.tl.title : (cell.modelData.special ? I18n.tr(cell.modelData.name) : cell.modelData.name))
+                                        backdrop: glassBackdrop.item
+                                        live: root.liquidActive && glassBackdrop.item !== null
+                                        dark: root.darkMode
+                                        tinted: root.accentUi
+                                        accent: root.accent
+                                        k: root.labelK
+                                        radius: Math.round(12 * k)
+                                        bodyH: Math.round(28 * k)
+                                        tailW: Math.round(20 * k)
+                                        tailH: Math.round(6 * k)
+                                        tailTipR: 2.4 * k
+                                        width: Math.ceil(tt.width) + 2 * Math.round(12 * k)
+                                        Text {
+                                            id: tt
+                                            text: lp.title
+                                            width: Math.min(implicitWidth, Math.round(320 * lp.k))
+                                            elide: Text.ElideRight
+                                            anchors.centerIn: parent
+                                            color: lp.dark ? Qt.rgba(1, 1, 1, 0.92) : Qt.rgba(0, 0, 0, 0.86)
+                                            font.pixelSize: Math.max(10, Math.round(13 * lp.k))
+                                            font.family: root.fontForWeight(Font.Normal, root.fontFamily)
+                                        }
                                     }
                                 }
 
@@ -7390,8 +7440,9 @@ Scope {
                     onPressed: ui.menuItem = null
                 }
 
-                // the right-click menu: follows Light / Dark mode, the same grid as Settings (28 px rows, 8 px corners, 14 px text)
-                Item {
+                // the right-click menu: the same frosted glass bubble as the hover label, light / dark with the appearance, its tail
+                // pointing at the icon. Settings' grid: 28 px rows, 8 px row corners, 14 px text; 6 px padding inside a 14 px corner.
+                DockGlassPanel {
                     id: menu
                     z: 60
                     readonly property bool dk: root.darkMode
@@ -7403,25 +7454,27 @@ Scope {
                     Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
                     Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutQuint } }
 
-                    width: 224
-                    height: menuCol.height + 8
-                    x: Math.round(Math.max(8, Math.min(ui.width - width - 8, ui.menuCx - width / 2)))
-                    y: Math.round(ui.height - root.margin - root.bgHeight - root.iconSize * (root.effMag - 1) - 12 - height)
+                    backdrop: glassBackdrop.item
+                    live: root.liquidActive && glassBackdrop.item !== null
+                    dark: dk
+                    tinted: root.accentUi
+                    accent: root.accent
+                    radius: 14
+                    tailW: 24
+                    tailH: 8
+                    tailTipR: 3.6
 
-                    RectangularShadow { anchors.fill: parent; radius: 12; blur: 24; offset.y: 8; color: Qt.rgba(0, 0, 0, menu.dk ? 0.40 : 0.18) }
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: 12
-                        color: root.accentWash(menu.dk ? Qt.rgba(0.16, 0.16, 0.18, 0.94) : Qt.rgba(0.98, 0.98, 0.99, 0.94), 0.30, menu.dk)
-                        border.width: 1
-                        border.color: menu.dk ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.10)
-                    }
+                    width: 224
+                    bodyH: menuCol.height + 12
+                    x: Math.round(Math.max(8, Math.min(ui.width - width - 8, ui.menuCx - width / 2)))
+                    y: Math.round(ui.height - root.margin - root.bgHeight - root.iconSize * (root.effMag - 1) - 8 - height)
+                    tailX: ui.menuCx - x
 
                     Column {
                         id: menuCol
-                        x: 4
-                        y: 4
-                        width: parent.width - 8
+                        x: 6
+                        y: 6
+                        width: parent.width - 12
 
                         Repeater {
                             model: ui.menuModel
