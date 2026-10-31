@@ -2770,12 +2770,31 @@ Scope {
     // or, for one not listed, the first letters of its name (the tray tooltip). A plain keyboard layout -> "" (keyboard glyph).
     function imLabelFor(icon, name) {
         var i = icon.toLowerCase(), n = name.toLowerCase();
-        if (i.indexOf("keyboard") >= 0 || n.indexOf("keyboard") === 0 || n === "") return "";
+        if (i.indexOf("keyboard") >= 0 || n.indexOf("keyboard") === 0 || (i === "" && n === "")) return "";
         var known = [["pinyin", "\u62fc"], ["shuangpin", "\u53cc"], ["rime", "\u4e2d"], ["chewing", "\u6ce8"], ["zhuyin", "\u6ce8"],
                      ["mozc", "\u3042"], ["anthy", "\u3042"], ["kkc", "\u3042"], ["skk", "\u3042"], ["hangul", "\ud55c"],
                      ["bamboo", "VI"], ["unikey", "VI"], ["telex", "VI"]];
         for (var k = 0; k < known.length; k++) if (i.indexOf(known[k][0]) >= 0 || n.indexOf(known[k][0]) >= 0) return known[k][1];
-        return name.replace(/[^A-Za-z]/g, "").substring(0, 2).toUpperCase() || name.substring(0, 1);
+        var w = name || icon;
+        return w.replace(/[^A-Za-z]/g, "").substring(0, 2).toUpperCase() || w.substring(0, 1);
+    }
+    // fcitx5 doesn't tell anyone when Ctrl+Space switches the input method (no D-Bus signal, and its tray item keeps the old
+    // icon), so assets/imwatch.py asks it a few times a second over one D-Bus connection and prints the input method when it
+    // changes. Runs only while fcitx5's item is on the bar; "" = no answer (then the tray item's own data is used).
+    property string fcitxIM: ""
+    readonly property bool imTrayShown: {
+        if (!barEnabled || !showTray) return false;
+        var v = SystemTray.items.values;
+        for (var k = 0; k < v.length; k++) if (String(v[k].id).toLowerCase() === "fcitx") return true;
+        return false;
+    }
+    readonly property string imWatchScript: decodeURIComponent(String(Qt.resolvedUrl("assets/imwatch.py")).replace(/^file:\/\//, ""))
+    OwnedProcess {
+        id: imWatch
+        cmd: ["python3", "-I", root.imWatchScript]
+        running: root.imTrayShown
+        onRunningChanged: if (!running) root.fcitxIM = ""
+        stdout: SplitParser { onRead: data => root.fcitxIM = data.trim() }
     }
     function refreshKeyboardLayout() { if (!kbdProc.running) kbdProc.running = true; }
     Timer {
@@ -2978,6 +2997,7 @@ Scope {
             'for p in $(pgrep -x systemd-inhibit); do has "$p" "--who=yukibar" && orph "$p" && { pkill -P "$p"; kill "$p"; }; done',
             'for p in $(pgrep -x inotifywait); do has "$p" "%e|%w%f" && orph "$p" && kill "$p"; done',
             'for p in $(pgrep -x cava); do has "$p" "yukishell-cava.conf" && orph "$p" && kill "$p"; done',
+            'for p in $(pgrep -x python3); do has "$p" "assets/imwatch.py" && orph "$p" && kill "$p"; done',
             'exit 0'].join("\n")]
     }
     function recTime() {
@@ -6172,7 +6192,9 @@ Scope {
                                 // keyboard, a coloured Pinyin icon, the Bamboo logo), so the bar draws it in its own colour instead:
                                 // a keyboard while typing plain letters, a short label while an input method is on
                                 readonly property bool isIM: String(modelData.id).toLowerCase() === "fcitx"
-                                readonly property string imLabel: isIM ? root.imLabelFor(String(modelData.icon), String(modelData.tooltipTitle)) : ""
+                                readonly property string imLabel: !isIM ? ""
+                                    : root.fcitxIM !== "" ? root.imLabelFor(root.fcitxIM, "")
+                                    : root.imLabelFor(String(modelData.icon), String(modelData.tooltipTitle))
                                 Glyph {
                                     visible: tray.isIM && tray.imLabel === ""
                                     anchors.centerIn: parent

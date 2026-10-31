@@ -34,6 +34,7 @@ LEFTOVER_SIGS = [
     ("inotifywait", "%e|%w%f", "wallpaper folder watcher"),
     ("cava", "yukishell-cava.conf", "music visualizer"),
     ("wl-paste", ".cache/yukibar", "clipboard watcher"),
+    ("python3", "assets/imwatch.py", "input method watcher"),
 ]
 WALLPAPER_COMMS = {"mpvpaper": "animated wallpaper", "awww-daemon": "still wallpaper", "swww-daemon": "still wallpaper"}
 HELPER_NAMES = {
@@ -416,7 +417,8 @@ def sample(seconds):
             continue
         r = row(pid, "helper", s["comm"])
         if r:
-            r["state"] = HELPER_NAMES.get(s["comm"], "")
+            r["state"] = HELPER_NAMES.get(s["comm"], "") or (
+                "input method watcher" if any(x.endswith("imwatch.py") for x in argv_of(pid)) else "")
             r["parent"] = "YukiLock" if pid in descendants(found["lock"], parent_map()) else "YukiShell"
             helpers.append(r)
 
