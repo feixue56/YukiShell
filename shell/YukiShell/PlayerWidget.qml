@@ -65,13 +65,6 @@ Item {
     property string barStyle: "slim"         // progress bar: slim | bold
     property string visMode: "ambient"       // visualizer: ambient (soft glowing wave along the bottom) | strip (bars behind the controls)
 
-    // lyrics (fetched by YukiWidgets): [{ t: seconds (-1 = not synced), text: "..." }]
-    property var lyrics: []
-    property string lyricsState: "idle"      // idle | loading | ok | none
-    property bool lyricsSynced: false
-    property bool lyricsOn: false            // the lyrics view is open
-    signal lyricsToggled(bool on)
-
     signal seek(real seconds)
     signal raiseRequested()                  // click on the artwork: bring the player's window forward
     signal togglePlaying()
@@ -471,19 +464,6 @@ Item {
         return Math.floor(m / 60) + ":" + ("0" + (m % 60)).slice(-2) + ":" + ss;
     }
     readonly property real progress: length > 0 ? Math.max(0, Math.min(1, position / length)) : 0
-    // lyrics view is only for the wide cards (the small one has no room)
-    readonly property bool lyricsView: lyricsOn && !isSmall && !isTall
-    // index of the line being sung (-1 = before the first line / not synced)
-    readonly property int lyricIdx: {
-        var L = lyrics;
-        if (!lyricsSynced || !L || L.length === 0) return -1;
-        var p = position + 0.3, lo = 0, hi = L.length - 1, r = -1;
-        while (lo <= hi) {
-            var mid = (lo + hi) >> 1;
-            if (L[mid].t <= p) { r = mid; lo = mid + 1; } else hi = mid - 1;
-        }
-        return r;
-    }
     // while the bar is dragged (and a moment after, until the player reports the new position) show the dragged value
     property bool seeking: false
     property bool seekHold: false
@@ -549,8 +529,7 @@ Item {
         ScriptAction { script: { w.dispTitle = w.shownTitle; w.dispSub = w.shownSub; } }
         NumberAnimation { target: w; property: "txtT"; to: 1; duration: 420; easing.type: Easing.OutCubic }
     }
-    property real textVis: lyricsView ? 0 : 1           // the lyrics view hides title / subtitle / bar / times
-    Behavior on textVis { NumberAnimation { duration: 380; easing.type: Easing.OutCubic } }
+    readonly property real textVis: 1
     // Living artwork: the cover sinks back a little while paused and springs forward when the music starts
     readonly property real artRest: (motion && hasPlayer && !playing && !preview) ? 0.88 : 1
     property real artB: artRest
@@ -618,21 +597,12 @@ Item {
             width: w.artS * w.k
             height: width
             r: (w.isLarge ? 11 : (w.isSmall ? 11 : 12)) * w.k
-            opacity: w.lyricsView ? 0 : 1
-            visible: opacity > 0
-            scale: w.lyricsView ? 0.9 : 1
-            transformOrigin: Item.TopLeft
-            Behavior on opacity { NumberAnimation { duration: 420; easing.type: Easing.OutCubic } }
-            Behavior on scale { NumberAnimation { duration: 480; easing.type: Easing.OutCubic } }
-            layer.enabled: opacity > 0 && opacity < 0.999
-            layer.sourceRect: Qt.rect(-16, -16, width + 32, height + 32)
-            layer.effect: MultiEffect { blurEnabled: true; blurMax: 32; blur: Math.min(1, (1 - artItem.opacity) * 0.9) }
         }
 
         // click the artwork: bring the player (browser tab, Spotify, ...) to the front
         MouseArea {
             x: artItem.x; y: artItem.y; width: artItem.width; height: artItem.height
-            enabled: w.hasPlayer && !w.preview && !w.editing && !w.lyricsView
+            enabled: w.hasPlayer && !w.preview && !w.editing
             cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
             onClicked: w.raiseRequested()
         }
@@ -709,111 +679,6 @@ Item {
             onClicked: w.togglePlaying()
         }
 
-        // --- lyrics: plain text straight on the card (no panel, no glass); the current line is big and sharp,
-        //    the others shrink, dim and blur with their distance, and everything glides when the song moves on
-        Item {
-            id: lyr
-            x: w.mx * w.k
-            y: 16 * w.k
-            width: (w.wr - 2 * w.mx - 52) * w.k
-            height: ((w.lyricsView ? w.ctlCY - 40 : w.barCY - 14) - 16) * w.k
-            Behavior on height { NumberAnimation { duration: 480; easing.type: Easing.OutCubic } }
-            opacity: w.lyricsView ? 1 : 0
-            visible: opacity > 0
-            scale: w.lyricsView ? 1 : 0.94
-            transformOrigin: Item.Left
-            Behavior on opacity { NumberAnimation { duration: 420; easing.type: Easing.OutCubic } }
-            Behavior on scale { NumberAnimation { duration: 480; easing.type: Easing.OutCubic } }
-            layer.enabled: opacity > 0 && opacity < 0.999
-            layer.sourceRect: Qt.rect(-16, -16, width + 32, height + 32)
-            layer.effect: MultiEffect { blurEnabled: true; blurMax: 32; blur: Math.min(1, (1 - lyr.opacity) * 0.9) }
-
-            // feathered top and bottom edge: the lines melt away smoothly instead of being cut off
-            Rectangle {
-                id: lyrMask
-                anchors.fill: lyrList
-                visible: false
-                layer.enabled: true
-                readonly property real fp: Math.min(0.32, 46 * w.k / Math.max(1, height))      // feather depth: 46 reference px at each end (raise for a longer fade)
-                gradient: Gradient {
-                    GradientStop { position: 0.0;                  color: Qt.rgba(0, 0, 0, 0.0) }
-                    GradientStop { position: lyrMask.fp * 0.25;    color: Qt.rgba(0, 0, 0, 0.04) }
-                    GradientStop { position: lyrMask.fp * 0.50;    color: Qt.rgba(0, 0, 0, 0.30) }
-                    GradientStop { position: lyrMask.fp * 0.75;    color: Qt.rgba(0, 0, 0, 0.72) }
-                    GradientStop { position: lyrMask.fp;           color: Qt.rgba(0, 0, 0, 1.0) }
-                    GradientStop { position: 1 - lyrMask.fp;       color: Qt.rgba(0, 0, 0, 1.0) }
-                    GradientStop { position: 1 - lyrMask.fp * 0.75; color: Qt.rgba(0, 0, 0, 0.72) }
-                    GradientStop { position: 1 - lyrMask.fp * 0.50; color: Qt.rgba(0, 0, 0, 0.30) }
-                    GradientStop { position: 1 - lyrMask.fp * 0.25; color: Qt.rgba(0, 0, 0, 0.04) }
-                    GradientStop { position: 1.0;                  color: Qt.rgba(0, 0, 0, 0.0) }
-                }
-            }
-            ListView {
-                id: lyrList
-                anchors.fill: parent
-                clip: true
-                interactive: !w.lyricsSynced
-                boundsBehavior: Flickable.StopAtBounds
-                model: w.lyrics
-                currentIndex: Math.max(0, w.lyricIdx)
-                highlightRangeMode: w.lyricsSynced ? ListView.StrictlyEnforceRange : ListView.NoHighlightRange
-                preferredHighlightBegin: height * 0.30
-                preferredHighlightEnd: height * 0.30
-                highlightMoveDuration: 650
-                highlightMoveVelocity: -1
-                layer.enabled: true
-                layer.effect: MultiEffect { maskEnabled: true; maskSource: lyrMask }
-
-                delegate: Item {
-                    id: ln
-                    required property var modelData
-                    required property int index
-                    readonly property real dist: w.lyricsSynced ? Math.abs(index - w.lyricIdx) : 0
-                    readonly property bool cur: w.lyricsSynced && index === w.lyricIdx
-                    property real bl: (!w.lyricsSynced || cur) ? 0 : Math.min(1, 0.22 + dist * 0.16)
-                    Behavior on bl { NumberAnimation { duration: 480; easing.type: Easing.OutCubic } }
-                    width: ListView.view.width
-                    height: txt.implicitHeight + 12 * w.k
-                    Text {
-                        id: txt
-                        width: parent.width
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: ln.modelData.text !== "" ? ln.modelData.text : "\u266A"
-                        wrapMode: Text.Wrap
-                        color: w.fg
-                        font.family: Fonts.forWeight(Font.Bold, w.fam)
-                        font.pixelSize: 25 * w.k
-                        font.weight: Font.Bold
-                        opacity: !w.lyricsSynced ? 0.9 : (ln.cur ? 1 : Math.max(0.16, 0.46 - ln.dist * 0.08))
-                        scale: (!w.lyricsSynced || ln.cur) ? 1 : 0.86
-                        transformOrigin: Item.Left
-                        Behavior on opacity { NumberAnimation { duration: 480; easing.type: Easing.OutCubic } }
-                        Behavior on scale { NumberAnimation { duration: 480; easing.type: Easing.OutCubic } }
-                        layer.enabled: ln.bl > 0.01
-                        layer.sourceRect: Qt.rect(-12, -8, width + 24, height + 16)
-                        layer.effect: MultiEffect { blurEnabled: true; blurMax: 24; blur: ln.bl }
-                    }
-                    MouseArea {
-                        anchors.fill: parent
-                        enabled: w.lyricsSynced && w.canSeek && !w.preview && !w.editing
-                        cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                        onClicked: w.seek(ln.modelData.t)       // tap a line to jump to it
-                    }
-                }
-            }
-            Text {   // searching / nothing found
-                anchors.centerIn: parent
-                width: parent.width
-                horizontalAlignment: Text.AlignHCenter
-                visible: w.lyrics.length === 0
-                text: w.lyricsState === "none" ? I18n.tr("No lyrics found") : I18n.tr("Searching for lyrics\u2026")
-                color: w.fg2
-                font.family: w.fam
-                font.pixelSize: 20 * w.k
-                font.weight: Font.Medium
-            }
-        }
-
         // --- progress bar: click or drag to seek ---
         Rectangle {
             id: bar
@@ -884,12 +749,7 @@ Item {
         }
         Text {
             id: timeL
-            visible: !w.isSmall && opacity > 0
-            opacity: w.lyricsView ? 0 : 1
-            Behavior on opacity { NumberAnimation { duration: 380; easing.type: Easing.OutCubic } }
-            layer.enabled: opacity > 0 && opacity < 0.999
-            layer.sourceRect: Qt.rect(-8, -8, width + 16, height + 16)
-            layer.effect: MultiEffect { blurEnabled: true; blurMax: 16; blur: Math.min(1, (1 - timeL.opacity) * 0.9) }
+            visible: !w.isSmall
             x: w.barL * w.k
             y: w.timeCY * w.k - height / 2
             height: 18 * w.k
@@ -902,12 +762,7 @@ Item {
         }
         Text {
             id: timeR
-            visible: !w.isSmall && (w.length > 0 || w.live) && opacity > 0
-            opacity: w.lyricsView ? 0 : 1
-            Behavior on opacity { NumberAnimation { duration: 380; easing.type: Easing.OutCubic } }
-            layer.enabled: opacity > 0 && opacity < 0.999
-            layer.sourceRect: Qt.rect(-8, -8, width + 16, height + 16)
-            layer.effect: MultiEffect { blurEnabled: true; blurMax: 16; blur: Math.min(1, (1 - timeR.opacity) * 0.9) }
+            visible: !w.isSmall && (w.length > 0 || w.live)
             x: w.barR * w.k - width
             y: w.timeCY * w.k - height / 2
             height: 18 * w.k
@@ -989,23 +844,6 @@ Item {
             badge: w.loop === 1 ? "1" : ""
             enabledBtn: w.canLoop
             onClicked: w.cycleLoop()
-        }
-
-        // --- lyrics button (top right corner) ---
-        PlayerBtn {
-            visible: !w.isSmall && !w.isTall
-            wd: w
-            x: (w.wr - w.mx - 40) * w.k
-            y: 18 * w.k
-            width: 40 * w.k
-            height: width
-            kind: "lyrics"
-            col: w.lyricsOn ? w.fg : w.fgBtn
-            gw: 22 * w.k
-            gh: 20 * w.k
-            on: w.lyricsOn
-            idleFill: true
-            onClicked: { w.lyricsOn = !w.lyricsOn; w.lyricsToggled(w.lyricsOn); }
         }
     }
 }

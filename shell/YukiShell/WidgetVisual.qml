@@ -182,10 +182,6 @@ Item {
                 motion: host.mwMotion
                 barStyle: host.mwBar
                 visMode: host.mwVisMode
-                lyrics: host.lyricsLines
-                lyricsState: host.lyricsState
-                lyricsSynced: host.lyricsSynced
-                onLyricsToggled: on => host.lyricsWanted = on
                 glassReady: host.glassState === "ready" && (!host.hub || host.hub.wallpaperReady)
                 shaderUrl: "file://" + host.glassShaderOut
                 wallUrl: host.fileUrl(host.wallpaperFor(v.sname))
