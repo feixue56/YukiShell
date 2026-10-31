@@ -2,7 +2,8 @@
 """Hide windows one by one, and bring them all back, with one key (Super+Alt+S).
 
   hide-window          the toggle: a window is focused -> hide it (press again to hide the next one too);
-                       no window focused (everything on this workspace is hidden, or it was empty) -> show ALL hidden windows
+                       no window focused (everything on this workspace is hidden, or it was empty), or the pointer resting on the
+                       empty desktop while focus follows the mouse -> show ALL hidden windows
   hide-window hide     always hide the focused window (the menu bar's "Hide <app>")
   hide-window show     show all hidden windows (the menu bar's "Show Hidden Windows")
 
@@ -73,6 +74,30 @@ def restore(entry, focus):
         dispatch(f'hl.dsp.window.fullscreen({{ mode = "{"maximized" if fs == 1 else "fullscreen"}", action = "set" }})')
 
 
+def pointer_on_desktop():
+    """With focus following the mouse, Hyprland keeps the keyboard focus on the last window when the pointer moves onto the empty
+    desktop (it only ever moves focus INTO a window). The pointer resting on the desktop, over no window, therefore counts as
+    "nothing focused" here."""
+    try:
+        if int(json.loads(hc("getoption", "input:follow_mouse", "-j") or "{}").get("int", 1)) == 0:
+            return False
+        cx, cy = (float(v) for v in hc("cursorpos").replace(" ", "").split(","))
+    except (ValueError, TypeError):
+        return False
+    shown = set()
+    for m in hj("monitors"):
+        shown.add(m.get("activeWorkspace", {}).get("id"))
+        if m.get("specialWorkspace", {}).get("id"):
+            shown.add(m["specialWorkspace"]["id"])
+    for c in hj("clients"):
+        if not c.get("mapped") or c.get("hidden") or c.get("workspace", {}).get("id") not in shown:
+            continue
+        (x, y), (w, h) = c.get("at", [0, 0]), c.get("size", [0, 0])
+        if x <= cx < x + w and y <= cy < y + h:
+            return False
+    return True
+
+
 def focused_window():
     """The focused window, if it is a normal one (not on a special workspace such as "hidden" itself)."""
     win = hj("activewindow")
@@ -124,7 +149,7 @@ def main(mode):
     save(entries)
 
     if mode in ("hide", "toggle"):
-        win = focused_window()
+        win = None if (mode == "toggle" and pointer_on_desktop()) else focused_window()
         if win:
             hide(win, entries)
             return
