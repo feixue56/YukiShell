@@ -155,7 +155,7 @@ Item {
             readonly property real margin: 72           // backdrop captured around the widget (blur + refraction reach)
             readonly property real padPx: 10            // shader item padding (soft shadow)
             readonly property real ds: w.glassBlur >= 8 ? 0.5 : 1.0
-            readonly property real bn: Math.min(1.0, w.glassBlur * 1.4 * ds / 64.0)
+            readonly property real bn: Math.min(1.0, w.glassBlur * 1.5 * ds / 64.0)
 
             // the part of the wallpaper behind the widget, laid out exactly like the screen
             Item {
@@ -253,9 +253,9 @@ Item {
                 property real dispersion: 0.06 * w.glassLiquid
                 property real magnify: 0.08 * w.glassLiquid * Math.min(1, 90 / w.height)
                 property real rim: w.glassRim
-                property real grain: w.glassGrain * 0.15   // much finer / quieter than the Dock's noise
-                property real blurPx: 1.0            // tiny residual smoothing; the real blur is the MultiEffect pre-pass
-                property real tintMix: w.tint
+                property real grain: w.glassGrain * 0.3     // the Dock's glass
+                property real blurPx: 1.5            // tiny residual smoothing; the real blur is the MultiEffect pre-pass
+                property real tintMix: w.glassOpacity * 0.55     // the Dock's light, adaptive tint (no heavy widget tint)
                 property vector4d accentTint: w.accentTint
                 property real saturation: 1.25
                 property real dark: w.dark ? 1 : 0
@@ -268,9 +268,10 @@ Item {
         }
     }
 
-    // Control Center border (all styles): thin, fades out at the top-right / bottom-left corners, in the wallpaper's colour
+    // Control Center border (the solid styles; Liquid Glass has the Dock's edge light from the shader instead)
     CornerBorder {
         z: 2
+        visible: w.style !== "liquid"
         anchors.fill: parent
         cornerR: w.radiusPx
         dark: w.dark

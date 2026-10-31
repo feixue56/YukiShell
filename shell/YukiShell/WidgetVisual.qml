@@ -69,7 +69,7 @@ Item {
                 screenW: v.sw
                 screenH: v.sh
                 glassOpacity: host.glassOpacity
-                glassBlur: host.glassBlur
+                glassBlur: host.dockGlassBlur       // the Dock's glass: its blur, not the widgets' heavier one
                 glassLiquid: host.glassLiquid
                 glassRim: host.glassRim
                 borderTint: host.borderTint
@@ -101,7 +101,7 @@ Item {
                 screenW: v.sw
                 screenH: v.sh
                 glassOpacity: host.glassOpacity
-                glassBlur: host.glassBlur
+                glassBlur: host.dockGlassBlur       // the Dock's glass: its blur, not the widgets' heavier one
                 glassLiquid: host.glassLiquid
                 glassRim: host.glassRim
                 borderTint: host.borderTint
@@ -131,7 +131,7 @@ Item {
                 screenW: v.sw
                 screenH: v.sh
                 glassOpacity: host.glassOpacity
-                glassBlur: host.glassBlur
+                glassBlur: host.dockGlassBlur       // the Dock's glass: its blur, not the widgets' heavier one
                 glassLiquid: host.glassLiquid
                 glassRim: host.glassRim
                 borderTint: host.borderTint
