@@ -20,7 +20,8 @@ Item {
 
     property var model: []
     property int current: 0
-    property real segWidth: 0                 // 0: every option is as wide as its label; > 0: fixed width per option
+    property real segWidth: 0                 // 0: every option is as wide as its label; > 0: fixed width per option;
+                                              // < 0: all as wide as the widest label (rounded up to an even number of px)
     property real labelPad: 14
     property string fontFamily: "Open Runde"
     property real fontSize: 12
@@ -50,6 +51,12 @@ Item {
     opacity: enabled ? 1 : 0.45
 
     readonly property real inset: 2
+    FontMetrics { id: segFm; font.family: Fonts.forWeight(Font.DemiBold, g.fontFamily); font.pixelSize: g.fontSize; font.weight: Font.DemiBold }
+    readonly property real eqWidth: {
+        var w = 0;
+        for (var i = 0; i < count; i++) w = Math.max(w, segFm.advanceWidth(I18n.tr(String(model[i]))));
+        return 2 * Math.ceil((w + 2 * labelPad) / 2);
+    }
     readonly property real kh0: height - 2 * inset
     readonly property int count: model ? model.length : 0
 
@@ -193,7 +200,7 @@ Item {
                 id: seg
                 required property var modelData
                 required property int index
-                width: g.segWidth > 0 ? g.segWidth : lbl.implicitWidth + 2 * g.labelPad
+                width: g.segWidth > 0 ? g.segWidth : (g.segWidth < 0 ? g.eqWidth : Math.ceil(lbl.implicitWidth) + 2 * g.labelPad)
                 height: g.kh0
                 onWidthChanged: g.geoTick++
                 onXChanged: g.geoTick++

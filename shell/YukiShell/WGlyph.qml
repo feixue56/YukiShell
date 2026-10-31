@@ -270,6 +270,9 @@ Canvas {
         } else if (k === "restart") {
             ctx.beginPath(); ctx.arc(9, 9, 5.8, -1.0, 4.4, false); ctx.stroke();
             poly([9.7, 2.7, 6.6, 1.6, 7.8, 5.4], true);
+        } else if (k === "reset") {     // counter-clockwise arrow: back to the default
+            ctx.beginPath(); ctx.arc(9, 9, 5.5, -PI * 5 / 6, PI * 5 / 6, false); ctx.stroke();
+            poly([2.6, 9.0, 2.0, 4.8, 6.4, 6.9], true);
         } else if (k === "logout") {
             poly([9, 3, 3.5, 3, 3.5, 15, 9, 15], false);
             line(7.5, 9, 15.5, 9);

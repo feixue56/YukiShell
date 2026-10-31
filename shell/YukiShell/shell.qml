@@ -435,6 +435,8 @@ ShellRoot {
         function toggle(): void { yukiDock.togglePrefs("general"); }
         // qs -c YukiShell ipc call settings pane wallpaper   (general, dock, menubar, appearance, wallpaper, behavior, apps, about)
         function pane(id: string): void { yukiDock.openPrefs(id); }
+        // qs -c YukiShell ipc call settings shot /path/to/file.png   (renders the open Settings window to a PNG, even on another workspace)
+        function shot(path: string): void { yukiDock.shotPrefs(path); }
     }
     // qs -c YukiShell ipc call clock open | tab alarms | stop | snooze
     IpcHandler {
