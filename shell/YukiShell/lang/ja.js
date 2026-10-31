@@ -284,6 +284,8 @@ var strings = {
     "Hides only while a tiled window needs the space": "タイル表示のウインドウが場所を必要とするときだけ隠す",
     "Hides whenever the workspace has a window open": "ウインドウがあるときは常に隠す",
     "Windows": "ウインドウ",
+    "Border thickness": "枠線の太さ",
+    "The outline around every window, in the accent colour": "すべてのウインドウの輪郭（アクセントカラー）",
     "High Power": "高パワー",
     "Highlights in the Dock menu and this window": "Dock のメニューとこのウインドウのハイライト",
     "Tint the interface": "インターフェイスに色を付ける",

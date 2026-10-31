@@ -207,12 +207,14 @@ Scope {
     // --- Window borders follow the accent colour (Settings -> Appearance -> Accent) ---
     // Every window, the terminals included, gets the same border: the accent on the focused window, a faint accent on the others.
     // hypr/rice/theme.lua only sets the colours used before the shell starts; this is re-applied after every Hyprland config reload.
+    property int windowBorder: 2            // border thickness in px (Settings -> Desktop & Dock -> Windows), 0 = no border
     onAccentChanged: if (settingsReady) borderApplyT.restart()
+    onWindowBorderChanged: if (settingsReady) borderApplyT.restart()
     Timer { id: borderApplyT; interval: 150; onTriggered: root.applyBorders() }
     function applyBorders() {
         function hx(v) { var s = Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16); return s.length < 2 ? "0" + s : s; }
         var a = root.accent, rgb = hx(a.r) + hx(a.g) + hx(a.b);
-        Quickshell.execDetached(["hyprctl", "eval", "hl.config({ general = { col = { active_border = \"rgba(" + rgb + "ff)\", inactive_border = \"rgba(" + rgb + "40)\" } } })"]);
+        Quickshell.execDetached(["hyprctl", "eval", "hl.config({ general = { border_size = " + Math.max(0, Math.min(8, Math.round(windowBorder))) + ", col = { active_border = \"rgba(" + rgb + "ff)\", inactive_border = \"rgba(" + rgb + "40)\" } } })"]);
     }
     function applyInput() {
         function b(v) { return v ? "true" : "false"; }
@@ -437,7 +439,7 @@ Scope {
         "notifDnd", "dnd", "nightOn", "keepAwake", "notifBannerSecs", "notifMutedApps", "notifAppsSeen", "focusSchedule", "focusFrom", "focusTo",
         "focusFullscreen", "focusAllowUrgent", "lockShowNotifs", "lockWallpaper", "uiSoundVolume", "alertSound",
         "kbRepeatRate", "kbRepeatDelay", "mouseSens", "mouseNatural", "mouseAccel", "tpNatural", "tpTap", "tpDwt", "tpScroll",
-        "cursorTheme", "cursorSize", "cursorHideTyping", "cursorHideIdle", "cursorFollowFocus", "cursorWarpWs", "cursorZoom"]
+        "cursorTheme", "cursorSize", "cursorHideTyping", "cursorHideIdle", "cursorFollowFocus", "cursorWarpWs", "cursorZoom", "windowBorder"]
     // Optional bar widgets; tray and Spotlight use their existing showTray/showSearch settings.
     property var barWidgets: ["appleMenu", "appMenus", "workspaces", "volume", "keyboard", "notifications", "wifi", "bluetooth", "privacy", "controlCenter", "clock"]
     function barWidgetEnabled(id) { return barWidgets.indexOf(id) >= 0; }

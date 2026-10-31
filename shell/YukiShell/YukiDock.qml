@@ -705,7 +705,7 @@ Scope {
             { id: "displays",   sec: 2, name: "Displays",        wg: "sun",        c1: "#3D9BFF", c2: "#0A6CFF", keys: "brightness night shift monitor resolution refresh scale" },
             { id: "battery",    sec: 2, name: (root.bar && !root.bar.hasBattery) ? "Power" : "Battery",         wg: "bolt",       c1: "#4CD964", c2: "#28A745", keys: "power energy charge profile performance game mode gaming fullscreen" },
             // 3 · Desktop
-            { id: "dock",       sec: 3, name: "Desktop & Dock",  glyph: "dock",     c1: "#2C2C2E", c2: "#1C1C1E", keys: "size icon magnification zoom spacing margin distance corner radius round square edge hide auto labels indicators bounce settings gear monitor preview app switcher alt tab" },
+            { id: "dock",       sec: 3, name: "Desktop & Dock",  glyph: "dock",     c1: "#2C2C2E", c2: "#1C1C1E", keys: "window border thickness outline size icon magnification zoom spacing margin distance corner radius round square edge hide auto labels indicators bounce settings gear monitor preview app switcher alt tab" },
             { id: "menubar",    sec: 3, name: "Menu Bar",        glyph: "menubar",  c1: "#3D9BFF", c2: "#0A6CFF", keys: "panel bar height clock date seconds 24 hour battery tray search spotlight week monday style liquid bluetooth screenshots" },
             { id: "controlcenter", sec: 3, name: "Control Center", wg: "cc",       c1: "#8E8E93", c2: "#636366", keys: "modules tiles controls" },
             { id: "widgets",    sec: 3, name: "Widgets",         glyph: "widgets",  c1: "#FF9F0A", c2: "#FF7A00", keys: "desktop widgets weather clock calendar player image photo add remove arrange edit size temperature fahrenheit celsius city location" },
@@ -3752,6 +3752,23 @@ Scope {
                             model: ["Liquid Glass", "Frosted", "Opaque"]
                             current: Math.max(0, ["glass", "frosted", "opaque"].indexOf(root.bar ? root.bar.switcherStyle : "glass"))
                             onPicked: i => { if (root.bar) root.bar.switcherStyle = ["glass", "frosted", "opaque"][i]; }
+                        }
+                    }
+                }
+                SLabel { t: pal; header: true; text: I18n.tr("Windows") }
+                SCard {
+                    t: pal
+                    SRow {
+                        t: pal
+                        title: I18n.tr("Border thickness")
+                        subtitle: I18n.tr("The outline around every window, in the accent colour")
+                        SSlider {
+                            t: pal
+                            from: 0; to: 8; stepSize: 1
+                            value: root.bar ? root.bar.windowBorder : 2
+                            leftLabel: I18n.tr("Off"); rightLabel: "8 px"
+                            resetValue: 2
+                            onMoved: v => { if (root.bar) root.bar.windowBorder = Math.round(v); }
                         }
                     }
                 }

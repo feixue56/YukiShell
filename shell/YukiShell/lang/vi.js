@@ -284,6 +284,8 @@ var strings = {
     "Hides only while a tiled window needs the space": "Chỉ ẩn khi một cửa sổ xếp ô cần không gian",
     "Hides whenever the workspace has a window open": "Ẩn khi không gian làm việc có cửa sổ đang mở",
     "Windows": "Cửa sổ",
+    "Border thickness": "Độ dày viền",
+    "The outline around every window, in the accent colour": "Đường viền quanh mọi cửa sổ, theo màu nhấn",
     "High Power": "Hiệu năng cao",
     "Highlights in the Dock menu and this window": "Phần được tô sáng trong menu Dock và cửa sổ này",
     "Tint the interface": "Tô màu giao diện",

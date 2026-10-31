@@ -284,6 +284,8 @@ var strings = {
     "Hides only while a tiled window needs the space": "타일 윈도우에 공간이 필요할 때만 가리기",
     "Hides whenever the workspace has a window open": "작업 공간에 윈도우가 열려 있으면 가리기",
     "Windows": "윈도우",
+    "Border thickness": "테두리 두께",
+    "The outline around every window, in the accent colour": "모든 윈도우의 윤곽선(강조 색상)",
     "High Power": "고성능",
     "Highlights in the Dock menu and this window": "Dock 메뉴 및 이 윈도우의 하이라이트",
     "Tint the interface": "인터페이스에 색 입히기",
