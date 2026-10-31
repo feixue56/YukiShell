@@ -25,7 +25,9 @@ done
 # video-sync=display-resample + interpolation: a 60 fps clip on a 100 / 144 Hz monitor is blended to the monitor's own rate instead of
 # holding each frame for 1 or 2 refreshes (a visible judder). Measured: +2 % of a core, no extra GPU load. The monitor's rate is
 # handed to each player as display-fps-override (below), since mpvpaper's render loop does not report it to mpv by itself.
-MPV_OPTS="no-audio loop-file=inf profile=fast panscan=1.0 hwdec=vaapi${igpu:+ vaapi-device=$igpu} vd-lavc-threads=2 framedrop=vo video-sync=display-resample interpolation=yes tscale=oversample"
+# load-scripts=no: mpv plugins (mpv-mpris above all) are for the mpv you watch and listen with; the wallpaper must not show up as
+# a media player in the Now Playing widget, the media keys or playerctl
+MPV_OPTS="no-audio load-scripts=no loop-file=inf profile=fast panscan=1.0 hwdec=vaapi${igpu:+ vaapi-device=$igpu} vd-lavc-threads=2 framedrop=vo video-sync=display-resample interpolation=yes tscale=oversample"
 
 is_video() { case "$(printf %s "$1" | tr 'A-Z' 'a-z')" in *.mp4|*.webm|*.mkv|*.mov|*.m4v) return 0 ;; esac; return 1; }
 key_of() { printf '%s:%s' "$1" "$(stat -c %Y "$1" 2>/dev/null)" | md5sum | cut -c1-16; }

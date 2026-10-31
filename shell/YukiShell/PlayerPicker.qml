@@ -16,6 +16,12 @@ Scope {
 
     property string lastPlayed: ""         // D-Bus name of the player that most recently started playing
 
+    // the animated wallpaper (mpvpaper is mpv) is not music: with the mpv-mpris plugin loaded anyway it would register as a player
+    function isWallpaper(p) {
+        var u = "";
+        try { u = String((p.metadata && p.metadata["xesam:url"]) || ""); } catch (e) { }
+        return u.indexOf("/.cache/yukishell/") >= 0 || p.identity === "mpvpaper";
+    }
     function score(p) {
         var s = 0;
         if (p.isPlaying) s += 100;
@@ -31,7 +37,7 @@ Scope {
         var ps = Mpris.players.values, best = null, bs = -1;
         for (var i = 0; i < ps.length; i++) {
             // playerctld only mirrors the other players and stays registered when none is open: alone it is not a player
-            if (ps[i].dbusName === "org.mpris.MediaPlayer2.playerctld") continue;
+            if (ps[i].dbusName === "org.mpris.MediaPlayer2.playerctld" || isWallpaper(ps[i])) continue;
             var s = score(ps[i]);
             if (s > bs) { bs = s; best = ps[i]; }
         }

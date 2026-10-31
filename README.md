@@ -65,6 +65,7 @@ distros should be fine. Package names below are the Arch ones.
 | `awww`, `mpvpaper`, `ffmpeg`, `jq` | still and animated wallpapers |
 | `wl-clipboard`, `cliphist` | copying, clipboard history (`Super+V`) |
 | `playerctl`, `cava` | Now Playing widget, media keys, the audio visualizer |
+| `mpv-mpris` | mpv in the Now Playing widget and on the media keys (mpv has no MPRIS support of its own) |
 | `networkmanager`, `bluez-utils` | Wi-Fi and Bluetooth menus |
 | `wireplumber`, `pipewire` | volume, UI sounds |
 | `brightnessctl`, `ddcutil` | brightness for laptops / for external monitors over DDC/CI |
