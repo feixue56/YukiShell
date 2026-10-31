@@ -805,6 +805,7 @@ var strings = {
     "Screenshot the Screen": "Chụp toàn màn hình",
     "Send Window to Scratchpad": "Gửi cửa sổ đến bảng nháp",
     "Hide Window": "Ẩn cửa sổ",
+    "Hide or Show Window": "Ẩn hoặc hiện cửa sổ",
     "Maximize Window": "Phóng to cửa sổ",
     "Minimize Window": "Thu nhỏ cửa sổ",
     "Move Window to Next Monitor": "Chuyển cửa sổ sang màn hình kế tiếp",

@@ -847,6 +847,7 @@ var strings = {
     "Screenshot the Screen": "전체 화면 스크린샷",
     "Send Window to Scratchpad": "윈도우를 스크래치패드로 보내기",
     "Hide Window": "윈도우 가리기",
+    "Hide or Show Window": "윈도우 가리기 또는 보기",
     "Maximize Window": "윈도우 최대화",
     "Minimize Window": "윈도우 최소화",
     "Move Window to Next Monitor": "윈도우를 다음 모니터로 이동",

@@ -847,6 +847,7 @@ var strings = {
     "Screenshot the Screen": "擷取整個螢幕",
     "Send Window to Scratchpad": "將視窗傳送到暫存區",
     "Hide Window": "隱藏視窗",
+    "Hide or Show Window": "隱藏或顯示視窗",
     "Maximize Window": "最大化視窗",
     "Minimize Window": "最小化視窗",
     "Move Window to Next Monitor": "將視窗移到下一個顯示器",

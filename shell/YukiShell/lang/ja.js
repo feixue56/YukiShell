@@ -847,6 +847,7 @@ var strings = {
     "Screenshot the Screen": "画面全体をスクリーンショット",
     "Send Window to Scratchpad": "ウインドウをスクラッチパッドへ送る",
     "Hide Window": "ウインドウを隠す",
+    "Hide or Show Window": "ウインドウを隠す/表示",
     "Maximize Window": "ウインドウを最大化",
     "Minimize Window": "ウインドウをしまう",
     "Move Window to Next Monitor": "ウインドウを次のディスプレイへ移動",

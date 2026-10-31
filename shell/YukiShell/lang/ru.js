@@ -857,6 +857,7 @@ var strings = {
     "Screenshot the Screen": "Снимок экрана",
     "Send Window to Scratchpad": "Отправить окно в скретчпад",
     "Hide Window": "Скрыть окно",
+    "Hide or Show Window": "Скрыть или показать окно",
     "Maximize Window": "Развернуть окно",
     "Minimize Window": "Свернуть окно",
     "Move Window to Next Monitor": "Переместить окно на следующий монитор",

@@ -3516,8 +3516,9 @@ Scope {
                         m.push((files ? mi("Preferences\u2026", "Ctrl+Shift+,", keys(["ctrl", "shift"], "comma")) : mi("Preferences\u2026", "Ctrl+,", keys(["ctrl"], "comma"))));
                     }
                     m.push(msep());
-                    m.push(mi(I18n.tr("Hide ") + n, hk("Hide Window"), disp('hl.dsp.window.move({ workspace = "special:hidden", follow = false })')));
-                    m.push(mi("Show Hidden Windows", hk("Show Hidden Windows"), disp('hl.dsp.workspace.toggle_special("hidden")')));
+                    // hide-window remembers where the window was, so showing it puts it back exactly there (Super+Alt+H toggles)
+                    m.push(mi(I18n.tr("Hide ") + n, hk("Hide or Show Window"), function () { root.sh("~/.config/hypr/bin/hide-window hide"); }));
+                    m.push(mi("Show Hidden Windows", "", function () { root.sh("~/.config/hypr/bin/hide-window show"); }));
                     m.push(msep());
                     m.push(mi(I18n.tr("Quit ") + n, (term || (browser && !/firefox|librewolf|floorp|zen|waterfox/.test(id))) ? "Ctrl+Shift+Q" : "Ctrl+Q", function () { root.quitActive(); }));
                     m.push(mc(I18n.tr("Force Quit ") + n, function () { root.forceQuitActive(aw); }));
@@ -3612,7 +3613,7 @@ Scope {
                     m.push(mi("Move to Previous Workspace", hk("Move Window to Previous Workspace"), disp('hl.dsp.window.move({ workspace = "-1" })')));
                     m.push(msep());
                 }
-                m.push(mi("Show Hidden Windows", hk("Show Hidden Windows"), disp('hl.dsp.workspace.toggle_special("hidden")')));
+                m.push(mi("Show Hidden Windows", "", function () { root.sh("~/.config/hypr/bin/hide-window show"); }));
                 m.push(mi("Show Minimized Windows", hk("Show Minimized Windows"), disp('hl.dsp.workspace.toggle_special("minimized")')));
                 var tls = ToplevelManager.toplevels.values;
                 if (tls.length > 0) m.push(msep());
