@@ -12,7 +12,8 @@
 // Dock style (Dock Preferences -> Appearance):
 //   Normal Blur         - the original translucent tint; blur comes from the Hyprland layer rule below.
 //   Liquid Glass        - real-time refraction shader (liquidglass.frag, next to this file). It is compiled
-//                         with `qsb` (package qt6-shadertools) on first use and cached in ~/.config/yukidock/.
+//                         with `qsb` (package qt6-shadertools) when available, else the ready-built liquidglass.frag.qsb
+//                         is used; either way it is cached in ~/.config/yukidock/.
 //                         The backdrop it refracts is the wallpaper + the live windows behind the Dock;
 //                         set "wallpaperPath" in settings.json if the wallpaper isn't auto-detected.
 //
@@ -2072,7 +2073,7 @@ Scope {
                         t: pal
                         title: I18n.tr("Menu Bar style")
                         subtitle: (root.bar && root.bar.barStyle === "liquid" && root.bar.glassState === "failed")
-                                  ? I18n.tr("Liquid Glass couldn't start (install qt6-shadertools)")
+                                  ? I18n.tr("Liquid Glass couldn't start (details in the shell's log)")
                                   : I18n.tr("Style of the menus and popovers")
                         SSegmented {
                             t: pal
@@ -2743,7 +2744,7 @@ Scope {
                         t: pal
                         title: I18n.tr("Dock style")
                         subtitle: root.dockStyle === "liquid" && root.glassState === "failed"
-                                  ? I18n.tr("Liquid Glass couldn't start (install qt6-shadertools) – using Normal Blur")
+                                  ? I18n.tr("Liquid Glass couldn't start (details in the shell's log) – using Normal Blur")
                                   : (root.dockStyle === "liquid" && root.glassState === "building"
                                      ? I18n.tr("Preparing the Liquid Glass shader…")
                                      : I18n.tr("Blur of the desktop, or refracting Liquid Glass"))

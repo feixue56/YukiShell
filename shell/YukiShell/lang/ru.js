@@ -717,8 +717,8 @@ var strings = {
     // two-line texts and status lines
     "Drag a widget to move it, or − to remove it.": "Перетащите виджет, чтобы переместить, или нажмите −, чтобы удалить.",
     "Editing is on: drag a widget to move it, use the − badge to remove it, then click Stop Editing.": "Правка включена: перетаскивайте виджеты, значок − удаляет виджет, затем нажмите «Завершить правку».",
-    "Liquid Glass couldn't start (install qt6-shadertools)": "Liquid Glass не запустился (установите qt6-shadertools)",
-    "Liquid Glass couldn't start (install qt6-shadertools) – using Normal Blur": "Liquid Glass не запустился (установите qt6-shadertools) – используется обычное размытие",
+    "Liquid Glass couldn't start (details in the shell's log)": "Liquid Glass не запустился (подробности в журнале оболочки)",
+    "Liquid Glass couldn't start (details in the shell's log) – using Normal Blur": "Liquid Glass не запустился (подробности в журнале оболочки) – используется обычное размытие",
     "Preparing the Liquid Glass shader…": "Подготовка шейдера Liquid Glass…",
     "Blur of the desktop, or refracting Liquid Glass": "Размытие рабочего стола или преломляющий Liquid Glass",
     "How frosted the Dock's glass looks": "Насколько матовое стекло у Dock",

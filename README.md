@@ -7,6 +7,12 @@
   Forked and maintained by <a href="https://github.com/xuefeng1331">雪風 (@xuefeng1331)</a>
 </p>
 
+<p align="center">
+  <a href="https://github.com/xuefeng1331/YukiShell/wiki"><b>📖 Wiki</b></a> ·
+  <a href="https://github.com/xuefeng1331/YukiShell/releases">Releases</a> ·
+  <a href="https://github.com/xuefeng1331/YukiShell/issues">Issues</a>
+</p>
+
 ---
 
 This is the setup I use every day. It started as a fork of [MacShell](https://github.com/0-ss/MacShell) by
@@ -28,6 +34,9 @@ clock, Qt theming without KDE Plasma, and a `yukishell stats` command. See
 [what's new](https://github.com/xuefeng1331/YukiShell/releases/tag/v1.5).
 
 ## Contents
+
+This README covers the essentials. The **[YukiShell Wiki](https://github.com/xuefeng1331/YukiShell/wiki)** goes further, with a page
+for every part of the desktop, every Settings pane, every command, and troubleshooting.
 
 - [Requirements](#requirements)
 - [Installing](#installing)
