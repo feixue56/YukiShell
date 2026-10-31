@@ -37,7 +37,7 @@ end
 -- the Window menu's actions (the menu bar shows these keys next to them)
 bind(mod .. " + M",              hl.dsp.window.move({ workspace = "special:minimized", follow = false }), "Minimize Window")
 bind(mod .. " + SHIFT + M",      hl.dsp.workspace.toggle_special("minimized"), "Show Minimized Windows")
--- one key: hides the focused window, or brings back the one hidden last exactly where and how it was (bin/hide-window)
+-- one key: hides the focused window; with none focused (or the pointer on the desktop) brings them all back as they were (bin/hide-window)
 bind(mod .. " + ALT + S",        hl.dsp.exec_cmd("~/.config/hypr/bin/hide-window"), "Hide or Show Window")
 bind(mod .. " + SHIFT + F",      hl.dsp.window.fullscreen({ mode = "maximized", action = "toggle" }), "Maximize Window")
 bind(mod .. " + SHIFT + P",      hl.dsp.window.pin({ action = "toggle" }), "Pin Window to All Workspaces")

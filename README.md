@@ -22,8 +22,9 @@ What you get:
 
 Mauve and pink accents, a lot of glass, and an animated wallpaper if you want one.
 
-The current version is **v1.3**: resizable widgets with a design for every shape, a much nicer music widget, the whole interface
-in your accent colour, and a Cursor settings pane. See [what's new](https://github.com/xuefeng1331/YukiShell/releases/tag/v1.3).
+The current version is **v1.4**: the Dock's liquid glass everywhere (widgets, menu bar, Settings, terminals), accent-coloured
+window borders, a hide-window key that hides one window after another, and a shell that cleans up after itself and uses far less
+in the background. See [what's new](https://github.com/xuefeng1331/YukiShell/releases/tag/v1.4).
 
 ## Contents
 
