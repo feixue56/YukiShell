@@ -22,9 +22,10 @@ What you get:
 
 Mauve and pink accents, a lot of glass, and an animated wallpaper if you want one.
 
-The current version is **v1.4**: the Dock's liquid glass everywhere (widgets, menu bar, Settings, terminals), accent-coloured
-window borders, a hide-window key that hides one window after another, and a shell that cleans up after itself and uses far less
-in the background. See [what's new](https://github.com/xuefeng1331/YukiShell/releases/tag/v1.4).
+The current version is **v1.5**: windows open floating, focus follows the pointer onto the desktop and after closing a window, the
+lock screen locks at once with its video playing, a smarter music widget (mpv support, no lyrics), a calendar that grows out of the
+clock, Qt theming without KDE Plasma, and a `yukishell stats` command. See
+[what's new](https://github.com/xuefeng1331/YukiShell/releases/tag/v1.5).
 
 ## Contents
 
