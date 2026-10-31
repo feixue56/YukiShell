@@ -966,7 +966,7 @@ var strings = {
     "Plays on every display, in the Liquid Glass and on the lock screen.": "모든 디스플레이, Liquid Glass, 잠금 화면에서 재생됩니다.",
     "Open a Floating Files Explorer": "떠 있는 파일 탐색기 열기",
     "Open a Floating Browser": "떠 있는 브라우저 열기",
-    "Terminal and Files Transparency": "터미널 및 파일 투명도",
+    "Terminal Transparency": "터미널 투명도",
     "Type a hex code (#0A84FF) or an RGB code (10, 132, 255), or pick a color above.": "16진수 코드(#0A84FF)나 RGB 코드(10, 132, 255)를 입력하거나 위에서 색을 고르세요.",
     "Add to Dock": "Dock에 추가",
     "Choose an app": "앱 선택",

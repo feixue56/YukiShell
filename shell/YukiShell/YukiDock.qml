@@ -6748,7 +6748,7 @@ Scope {
                             for (var i = 0; i < root.monData.length; i++)
                                 if (root.monData[i].name === win.modelData.name) mon = root.monData[i];
                             if (!mon) return;
-                            // workspaces on screen, by NAME: since Hyprland 0.57 a special workspace (special:hidden, where Super+Alt+H
+                            // workspaces on screen, by NAME: since Hyprland 0.57 a special workspace (special:hidden, where Super+Alt+S
                             // keeps hidden windows) has no "id" in the JSON, and an empty monitor slot matched those windows (undefined ===
                             // undefined), so hidden windows showed up in the glass
                             var ws = [mon.activeWorkspace && mon.activeWorkspace.name ? mon.activeWorkspace.name : "\u0000none"];

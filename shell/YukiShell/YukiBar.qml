@@ -3584,7 +3584,7 @@ Scope {
                         m.push((files ? mi("Preferences\u2026", "Ctrl+Shift+,", keys(["ctrl", "shift"], "comma")) : mi("Preferences\u2026", "Ctrl+,", keys(["ctrl"], "comma"))));
                     }
                     m.push(msep());
-                    // hide-window remembers where the window was, so showing it puts it back exactly there (Super+Alt+H toggles)
+                    // hide-window remembers where the window was, so showing it puts it back exactly there (Super+Alt+S toggles)
                     m.push(mi(I18n.tr("Hide ") + n, hk("Hide or Show Window"), function () { root.sh("~/.config/hypr/bin/hide-window hide"); }));
                     m.push(mi("Show Hidden Windows", "", function () { root.sh("~/.config/hypr/bin/hide-window show"); }));
                     m.push(msep());
@@ -5701,7 +5701,7 @@ Scope {
                             for (i = 0; i < root.monData.length; i++)
                                 if (root.monData[i].name === win.modelData.name) mon = root.monData[i];
                             if (!mon) return;
-                            // workspaces on screen, by NAME: since Hyprland 0.57 a special workspace (special:hidden, where Super+Alt+H
+                            // workspaces on screen, by NAME: since Hyprland 0.57 a special workspace (special:hidden, where Super+Alt+S
                             // keeps hidden windows) has no "id" in the JSON, and an empty monitor slot matched those windows (undefined ===
                             // undefined), so hidden windows showed up in the glass
                             var ws = [mon.activeWorkspace && mon.activeWorkspace.name ? mon.activeWorkspace.name : "\u0000none"];

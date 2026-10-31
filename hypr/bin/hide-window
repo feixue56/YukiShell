@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hide or show a window with one key (Super+Alt+H).
+"""Hide or show a window with one key (Super+Alt+S).
 
   hide-window          the toggle: nothing hidden -> hide the focused window; something hidden -> show the window hidden last
   hide-window hide     always hide the focused window (the menu bar's "Hide <app>"), so several can be hidden

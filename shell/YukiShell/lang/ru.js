@@ -976,7 +976,7 @@ var strings = {
     "Plays on every display, in the Liquid Glass and on the lock screen.": "Играет на всех дисплеях, в Liquid Glass и на экране блокировки.",
     "Open a Floating Files Explorer": "Открыть плавающий проводник",
     "Open a Floating Browser": "Открыть плавающий браузер",
-    "Terminal and Files Transparency": "Прозрачность терминала и файлов",
+    "Terminal Transparency": "Прозрачность терминала",
     "Type a hex code (#0A84FF) or an RGB code (10, 132, 255), or pick a color above.": "Введите HEX-код (#0A84FF) или RGB-код (10, 132, 255) либо выберите цвет выше.",
     "Add to Dock": "Добавить в Dock",
     "Choose an app": "Выбрать приложение",

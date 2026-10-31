@@ -966,7 +966,7 @@ var strings = {
     "Plays on every display, in the Liquid Glass and on the lock screen.": "在所有显示器、Liquid Glass 和锁定屏幕上播放。",
     "Open a Floating Files Explorer": "打开浮动文件资源管理器",
     "Open a Floating Browser": "打开浮动浏览器",
-    "Terminal and Files Transparency": "终端和文件透明度",
+    "Terminal Transparency": "终端透明度",
     "Type a hex code (#0A84FF) or an RGB code (10, 132, 255), or pick a color above.": "输入十六进制代码（#0A84FF）或 RGB 代码（10, 132, 255），或在上方选择颜色。",
     "Add to Dock": "添加到程序坞",
     "Choose an app": "选择应用",

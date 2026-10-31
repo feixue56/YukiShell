@@ -924,7 +924,7 @@ var strings = {
     "Plays on every display, in the Liquid Glass and on the lock screen.": "Phát trên mọi màn hình, trong Liquid Glass và trên màn hình khóa.",
     "Open a Floating Files Explorer": "Mở trình khám phá tệp nổi",
     "Open a Floating Browser": "Mở trình duyệt nổi",
-    "Terminal and Files Transparency": "Độ trong suốt của terminal và tệp",
+    "Terminal Transparency": "Độ trong suốt của terminal",
     "Type a hex code (#0A84FF) or an RGB code (10, 132, 255), or pick a color above.": "Nhập mã hex (#0A84FF) hoặc mã RGB (10, 132, 255), hoặc chọn một màu ở trên.",
     "Add to Dock": "Thêm vào Dock",
     "Choose an app": "Chọn một ứng dụng",

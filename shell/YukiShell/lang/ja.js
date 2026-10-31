@@ -966,7 +966,7 @@ var strings = {
     "Plays on every display, in the Liquid Glass and on the lock screen.": "すべてのディスプレイ、Liquid Glass、ロック画面で再生されます。",
     "Open a Floating Files Explorer": "フローティングのファイルエクスプローラを開く",
     "Open a Floating Browser": "フローティングのブラウザを開く",
-    "Terminal and Files Transparency": "ターミナルとファイルの透明度",
+    "Terminal Transparency": "ターミナルの透明度",
     "Type a hex code (#0A84FF) or an RGB code (10, 132, 255), or pick a color above.": "16進コード（#0A84FF）かRGBコード（10, 132, 255）を入力するか、上から色を選びます。",
     "Add to Dock": "Dock に追加",
     "Choose an app": "アプリを選ぶ",

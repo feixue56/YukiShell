@@ -966,7 +966,7 @@ var strings = {
     "Plays on every display, in the Liquid Glass and on the lock screen.": "在所有顯示器、Liquid Glass 和鎖定畫面上播放。",
     "Open a Floating Files Explorer": "開啟浮動檔案總管",
     "Open a Floating Browser": "開啟浮動瀏覽器",
-    "Terminal and Files Transparency": "終端機與檔案透明度",
+    "Terminal Transparency": "終端機透明度",
     "Type a hex code (#0A84FF) or an RGB code (10, 132, 255), or pick a color above.": "輸入十六進位代碼（#0A84FF）或 RGB 代碼（10, 132, 255），或在上方選擇顏色。",
     "Add to Dock": "加入 Dock",
     "Choose an app": "選擇 App",
