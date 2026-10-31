@@ -158,16 +158,11 @@ Item {
     ShaderEffectSource {
         id: sceneTex
         sourceItem: scene
-        // with a video wallpaper the scene changes every frame: the glass copy refreshes at 12 fps instead
-        // (blur + every glass shader re-running 30-60x a second was the main GPU cost on the lock screen)
-        live: !wallVideo.active && !canvasLoader.active
+        // live: with a video wallpaper the glass follows it at the video's own frame rate (it used to refresh at 12 fps to save GPU
+        // time, which made everything seen through the glass judder). The copy is half resolution, so it stays cheap.
+        live: true
         visible: false
         textureSize: Qt.size(Math.max(1, Math.round(ls.width / 2)), Math.max(1, Math.round(ls.height / 2)))
-    }
-    Timer {
-        interval: 83; repeat: true
-        running: (wallVideo.active || canvasLoader.active) && ls.shown && !ls.leaving
-        onTriggered: sceneTex.scheduleUpdate()
     }
     MultiEffect {
         id: sceneBlurFx
