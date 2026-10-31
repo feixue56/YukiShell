@@ -10,6 +10,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Effects
+import "Version.js" as Version
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
@@ -316,7 +317,7 @@ Scope {
                     width: parent.width
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.Wrap
-                    text: "Linux® is a registered trademark of Linus Torvalds.\nYukiShell v1.3, based on MacShell 0.3.9"
+                    text: "Linux® is a registered trademark of Linus Torvalds.\nYukiShell " + Version.label + ", based on MacShell 0.3.9"
                     color: pal.text3
                     font.family: root.fontForWeight(Font.Normal, root.fam); font.pixelSize: 10
                     lineHeight: 1.1

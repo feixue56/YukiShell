@@ -16,6 +16,7 @@ var strings = {
     "About": "정보",
     "About ": "정보: ",
     "About This Linux": "이 컴퓨터에 관하여",
+    "About YukiShell": "YukiShell 정보",
     "Above Password": "암호 위",
     "Accent color": "강조 색상",
     "The terminal, launcher, files and clipboard commands are in ~/.config/yukibar/settings.json.": "터미널, 런처, 파일, 클립보드 명령은 ~/.config/yukibar/settings.json에 있습니다.",

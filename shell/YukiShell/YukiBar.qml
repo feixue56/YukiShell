@@ -77,6 +77,7 @@ import Quickshell.Services.Mpris
 import Quickshell.Services.Notifications
 import "EmojiData.js" as EmojiData
 import "I18n.js" as I18n
+import "Version.js" as Version
 import "Fonts.js" as Fonts
 
 Scope {
@@ -3516,7 +3517,7 @@ Scope {
     function menuModelFor(name) {
         var m = [], i;
         if (name === "apple") {
-            m.push(ico(mi("About This Linux", "", function () {
+            m.push(ico(mi(I18n.tr("About YukiShell") + " " + Version.label, "", function () {
                 if (hub && hub.about) hub.about.open();
                 else sh(terminal + " -e sh -c 'fastfetch || neofetch; echo; read -p \"Press Enter\" _'");
             }), "m_about"));

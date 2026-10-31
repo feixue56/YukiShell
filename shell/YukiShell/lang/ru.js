@@ -43,6 +43,7 @@ var strings = {
 
     // Apple menu, app menus, session
     "About This Linux": "Об этом компьютере",
+    "About YukiShell": "О YukiShell",
     "Apple menu": "Меню Apple",
     "Application menus": "Меню приложений",
     "System Settings…": "Системные настройки…",

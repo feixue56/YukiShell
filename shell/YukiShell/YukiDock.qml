@@ -30,6 +30,7 @@ import Quickshell.Wayland
 import Quickshell.Services.Pipewire
 import Quickshell.Services.UPower
 import "I18n.js" as I18n
+import "Version.js" as Version
 import "Fonts.js" as Fonts
 
 Scope {
@@ -5548,7 +5549,7 @@ Scope {
                             y: 110
                             width: parent.width
                             horizontalAlignment: Text.AlignHCenter
-                            text: "YukiShell v1.3"
+                            text: "YukiShell " + Version.label
                             color: pal.text
                             font.family: root.fontForWeight(Font.DemiBold, pal.fam)
                             font.pixelSize: 21

@@ -16,6 +16,7 @@ var strings = {
     "About": "Giới thiệu",
     "About ": "Giới thiệu ",
     "About This Linux": "Giới thiệu về máy Linux này",
+    "About YukiShell": "Giới thiệu về YukiShell",
     "Above Password": "Phía trên mật khẩu",
     "Accent color": "Màu nhấn",
     "The terminal, launcher, files and clipboard commands are in ~/.config/yukibar/settings.json.": "Lệnh cho terminal, trình khởi chạy, tệp và bộ nhớ tạm nằm trong ~/.config/yukibar/settings.json.",
