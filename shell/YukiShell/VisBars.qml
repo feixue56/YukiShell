@@ -19,11 +19,23 @@ Item {
     property real gain: 1.0
     property int count: 32                    // how many bars (the wave always uses all 32 points)
     property real barFill: 0.62               // width of a bar as a share of its slot
+    // paused: the bars stay where they were when the music stopped (and stop listening); they move again when it resumes
+    property bool hold: false
+    property var held: []
+    // the last frame that had sound in it: pausing lets the bars fall for a moment before `hold` turns on, so that is what is kept
+    property var lastLoud: []
+    onLvChanged: {
+        if (hold || !lv || lv.length === 0) return;
+        var sum = 0;
+        for (var i = 0; i < lv.length; i++) sum += lv[i];
+        if (sum / lv.length > 0.04) lastLoud = lv.slice();
+    }
+    onHoldChanged: if (hold) held = lastLoud.length > 0 ? lastLoud : (lv ? lv.slice() : [])
 
-    readonly property bool live: active && visible
+    readonly property bool live: active && visible && !hold
     readonly property string key: "vb" + Math.random().toString(36).slice(2)
     property var fake: []
-    readonly property var lv: demo ? fake : (src ? src.bars : [])
+    readonly property var lv: hold ? held : (demo ? fake : (src ? src.bars : []))
     opacity: active ? 1 : 0
     Behavior on opacity { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
 

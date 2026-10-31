@@ -393,7 +393,8 @@ Item {
             anchors.bottom: parent.bottom
             height: parent.height * (w.isSmall ? 0.3 : 0.34)
             src: w.visSrc
-            active: w.visOn && w.visMode === "ambient" && w.hasPlayer && (w.playing || w.preview) && !w.editing
+            active: w.visOn && w.visMode === "ambient" && w.hasPlayer && !w.editing
+            hold: !w.playing && !w.preview          // paused: frozen where the music stopped
             demo: w.preview
             style: w.visStyle
             gain: w.visGain
@@ -416,7 +417,8 @@ Item {
         y: (w.isSmall ? 77 : w.hr - 58) * w.k
         height: (w.isSmall ? w.artY + w.artS - 77 : 46) * w.k
         src: w.visSrc
-        active: w.visOn && w.visMode === "strip" && w.hasPlayer && (w.playing || w.preview) && !w.editing
+        active: w.visOn && w.visMode === "strip" && w.hasPlayer && !w.editing
+        hold: !w.playing && !w.preview
         demo: w.preview
         style: w.visStyle
         gain: w.visGain

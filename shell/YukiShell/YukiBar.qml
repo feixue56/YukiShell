@@ -8422,7 +8422,8 @@ Scope {
                                 x: art.x + art.width + 14; y: art.y
                                 width: parent.width - x - 14; height: art.height
                                 src: root.hub ? root.hub.vis : null
-                                active: root.visOn && root.visInCC && np.pl !== null && np.pl !== undefined && np.pl.isPlaying
+                                active: root.visOn && root.visInCC && np.pl !== null && np.pl !== undefined
+                                hold: !np.pl || !np.pl.isPlaying     // paused: frozen where the music stopped
                                 style: root.visStyle
                                 gain: root.visGain
                                 count: Math.max(6, Math.round(root.visCount * 0.75))     // the tile is narrower than the widget

@@ -25,6 +25,7 @@ Item {
     property string wsize: "small"
     property string wmode: "auto"
     property string wsrc: ""             // image widget: path of the picture
+    property real wscale: 1              // this widget's own size, on top of the "Widget size" slider
     property real sx: 0                  // position on the screen (the glass uses it to find the wallpaper behind the widget)
     property real sy: 0
     property string sname: ""            // screen name
@@ -35,7 +36,7 @@ Item {
             id: weatherVisual
             WeatherWidget {
                 accentTint: host.accentTintVec
-                scaleF: host.widgetScale
+                scaleF: host.widgetScale * v.wscale
                 style: wstyle
                 size: wsize
                 fam: host.fontFamily
@@ -74,7 +75,7 @@ Item {
             id: calendarVisual
             CalendarWidget {
                 accentTint: host.accentTintVec
-                scaleF: host.widgetScale
+                scaleF: host.widgetScale * v.wscale
                 style: wstyle
                 size: wsize
                 mode: wmode
@@ -104,7 +105,7 @@ Item {
             id: clockVisual
             ClockWidget {
                 accentTint: host.accentTintVec
-                scaleF: host.widgetScale
+                scaleF: host.widgetScale * v.wscale
                 style: wstyle
                 size: wsize
                 fam: host.fontFamily
@@ -134,7 +135,7 @@ Item {
             id: playerVisual
             PlayerWidget {
                 accentTint: host.accentTintVec
-                scaleF: host.widgetScale
+                scaleF: host.widgetScale * v.wscale
                 style: wstyle
                 size: wsize
                 contentScale: host.playerScale
@@ -209,7 +210,7 @@ Item {
             ImageWidget {
                 size: wsize
                 borderTint: host.borderTint
-                scaleF: host.widgetScale
+                scaleF: host.widgetScale * v.wscale
                 fam: host.fontFamily
                 screenX: v.sx; screenY: v.sy
                 source: host.fileUrl(v.wsrc)

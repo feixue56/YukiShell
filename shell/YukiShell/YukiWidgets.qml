@@ -57,9 +57,13 @@ Scope {
     readonly property var styleNames: ({ liquid: "Liquid Glass", normal: "Normal", light: "Light", dark: "Dark" })
     readonly property var typeNames: ({ weather: "Weather", calendar: "Calendar", clock: "Clock", player: "Player", image: "Image" })
     readonly property var sizeNames: ({ small: "Small", medium: "Medium", large: "Large" })
-    function dims(size) {
+    // sc: the widget's own size (dragging its corner while editing), on top of the "Widget size" slider for all of them
+    readonly property real minWScale: 0.6
+    readonly property real maxWScale: 1.8
+    function dims(size, sc) {
         var b = size === "large" ? [375, 385] : (size === "medium" ? [395, 185] : [185, 185]);
-        return [Math.round(b[0] * widgetScale), Math.round(b[1] * widgetScale)];
+        var f = widgetScale * (sc || 1);
+        return [Math.round(b[0] * f), Math.round(b[1] * f)];
     }
     // Size of the Player's contents (art, text, buttons) relative to the original design. The card itself fills the
     // normal widget footprint, like every other widget. 1.0 = original size.
@@ -119,13 +123,13 @@ Scope {
         for (var i = 0; i < wmodel.count; i++) {
             var m = wmodel.get(i);
             if (m.wid === skipId) continue;
-            var md = dims(m.wsize);
+            var md = dims(m.wsize, m.wscale);
             if (x < m.wx + md[0] && x + d[0] > m.wx && y < m.wy + md[1] && y + d[1] > m.wy) return true;
         }
         return false;
     }
-    function validSlot(size, col, row, skipId, g, screenW, screenH) {
-        var d = dims(size), p = [g.left + col * g.pitchX, g.top + row * g.pitchY];
+    function validSlot(size, col, row, skipId, g, screenW, screenH, sc) {
+        var d = dims(size, sc), p = [g.left + col * g.pitchX, g.top + row * g.pitchY];
         return p[0] >= gridLeft && p[1] >= gridTop
             && p[0] + d[0] <= screenW - gridRight && p[1] + d[1] <= screenH - gridBottom
             && !overlaps(p[0], p[1], d, skipId) ? p : null;
@@ -139,12 +143,12 @@ Scope {
             }
         return null;
     }
-    function nearestFreeSlot(id, x, y, size) {
+    function nearestFreeSlot(id, x, y, size, sc) {
         var ss = screenSize(), g = gridInfo(ss[0], ss[1]), span = spans(size);
         var best = null, bestDistance = Infinity;
         for (var row = 0; row <= g.rows - span[1]; row++)
             for (var col = 0; col <= g.cols - span[0]; col++) {
-                var p = validSlot(size, col, row, id, g, ss[0], ss[1]);
+                var p = validSlot(size, col, row, id, g, ss[0], ss[1], sc);
                 if (!p) continue;
                 var dx = p[0] - x, dy = p[1] - y, distance = dx * dx + dy * dy;
                 if (distance < bestDistance) { best = p; bestDistance = distance; }
@@ -164,16 +168,16 @@ Scope {
         var old = [];
         for (var i = 0; i < wmodel.count; i++) {
             var m = wmodel.get(i);
-            old.push({ id: m.wid, x: m.wx, y: m.wy, size: m.wsize });
+            old.push({ id: m.wid, x: m.wx, y: m.wy, size: m.wsize, sc: m.wscale || 1 });
             wmodel.setProperty(i, "wx", -100000);
             wmodel.setProperty(i, "wy", -100000);
         }
         var ss = screenSize();
         for (var j = 0; j < old.length; j++) {
-            var item = old[j], p = nearestFreeSlot(item.id, item.x, item.y, item.size);
+            var item = old[j], p = nearestFreeSlot(item.id, item.x, item.y, item.size, item.sc);
             if (!p) p = firstFreeSlot(item.size, item.id);
-            if (!p) p = [Math.max(gridLeft, Math.min(ss[0] - gridRight - dims(item.size)[0], item.x)),
-                         Math.max(gridTop, Math.min(ss[1] - gridBottom - dims(item.size)[1], item.y))];
+            if (!p) p = [Math.max(gridLeft, Math.min(ss[0] - gridRight - dims(item.size, item.sc)[0], item.x)),
+                         Math.max(gridTop, Math.min(ss[1] - gridBottom - dims(item.size, item.sc)[1], item.y))];
             for (var k = 0; k < wmodel.count; k++)
                 if (wmodel.get(k).wid === item.id) { wmodel.setProperty(k, "wx", p[0]); wmodel.setProperty(k, "wy", p[1]); break; }
         }
@@ -183,7 +187,7 @@ Scope {
         var p = firstFreeSlot(sz, "");
         if (!p) return false;
         wmodel.append({ wid: "w" + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36),
-                        wtype: type, wstyle: style, wsize: sz, wmode: "auto", wsrc: src || "", wx: p[0], wy: p[1] });
+                        wtype: type, wstyle: style, wsize: sz, wmode: "auto", wsrc: src || "", wx: p[0], wy: p[1], wscale: 1 });
         recount(); scheduleSave();
         if (type === "weather") refreshSoon();
         return true;
@@ -221,7 +225,7 @@ Scope {
     function setSize(id, size) {
         for (var i = 0; i < wmodel.count; i++) {
             if (wmodel.get(i).wid !== id) continue;
-            var p = nearestFreeSlot(id, wmodel.get(i).wx, wmodel.get(i).wy, size);
+            var p = nearestFreeSlot(id, wmodel.get(i).wx, wmodel.get(i).wy, size, wmodel.get(i).wscale);
             if (!p) return;
             wmodel.setProperty(i, "wsize", size);
             wmodel.setProperty(i, "wx", p[0]);
@@ -233,13 +237,28 @@ Scope {
     function moveWidget(id, x, y) {
         for (var i = 0; i < wmodel.count; i++)
             if (wmodel.get(i).wid === id) {
-                var p = nearestFreeSlot(id, x, y, wmodel.get(i).wsize);
+                var p = nearestFreeSlot(id, x, y, wmodel.get(i).wsize, wmodel.get(i).wscale);
                 if (!p) return;
                 wmodel.setProperty(i, "wx", p[0]);
                 wmodel.setProperty(i, "wy", p[1]);
                 break;
             }
         recount(); scheduleSave();
+    }
+    // resize by the corner handle: keeps the widget where it is (or the nearest free slot); false if it does not fit anywhere
+    function setScale(id, sc) {
+        sc = Math.max(minWScale, Math.min(maxWScale, Math.round(sc * 20) / 20));
+        for (var i = 0; i < wmodel.count; i++) {
+            if (wmodel.get(i).wid !== id) continue;
+            var m = wmodel.get(i), p = nearestFreeSlot(id, m.wx, m.wy, m.wsize, sc);
+            if (!p) return false;
+            wmodel.setProperty(i, "wscale", sc);
+            wmodel.setProperty(i, "wx", p[0]);
+            wmodel.setProperty(i, "wy", p[1]);
+            break;
+        }
+        recount(); scheduleSave();
+        return true;
     }
 
     // --- image widgets ---
@@ -296,7 +315,7 @@ Scope {
         var list = [];
         for (var i = 0; i < wmodel.count; i++) {
             var m = wmodel.get(i);
-            list.push({ id: m.wid, type: m.wtype, style: m.wstyle, size: m.wsize, mode: m.wmode || "auto", src: m.wsrc || "", x: m.wx, y: m.wy });
+            list.push({ id: m.wid, type: m.wtype, style: m.wstyle, size: m.wsize, scale: m.wscale || 1, mode: m.wmode || "auto", src: m.wsrc || "", x: m.wx, y: m.wy });
         }
         store.setText(JSON.stringify({ tempUnit: tempUnit, locMode: locMode, cityName: cityName, widgetScale: widgetScale, widgets: list }, null, 2));
     }
@@ -318,7 +337,8 @@ Scope {
                                 wsize: (w.size === "medium" || w.size === "large") ? w.size : "small",
                                 wmode: (w.mode === "light" || w.mode === "dark") ? w.mode : "auto",
                                 wsrc: typeof w.src === "string" ? w.src : "",
-                                wx: Number(w.x) || 0, wy: Number(w.y) || 0 });
+                                wx: Number(w.x) || 0, wy: Number(w.y) || 0,
+                                wscale: (typeof w.scale === "number" && isFinite(w.scale)) ? Math.max(minWScale, Math.min(maxWScale, w.scale)) : 1 });
             }
         }
         normalizePositions();
@@ -356,7 +376,7 @@ Scope {
         for (var i = 0; i < wmodel.count; i++) {
             var m = wmodel.get(i);
             if (m.wtype !== "player") continue;
-            var d = dims(m.wsize);
+            var d = dims(m.wsize, m.wscale);
             out.push([m.wx, m.wy, d[0], d[1]]);
         }
         return out;
@@ -777,13 +797,17 @@ Scope {
                         required property string wsrc
                         required property real wx
                         required property real wy
+                        required property real wscale
 
+                        // while the corner is dragged the widget follows the pointer; it snaps to its new size on release
+                        property real liveScale: -1
+                        readonly property real effScale: liveScale > 0 ? liveScale : wscale
                         property real dragDX: 0
                         property real dragDY: 0
                         x: wx + dragDX
                         y: wy + dragDY
-                        readonly property var baseDims: root.dims(wsize)
-                        readonly property real radiusPx: 28 * root.widgetScale * (wsize === "small" ? 168 / 158 : (wsize === "medium" ? 358 / 338 : 1))
+                        readonly property var baseDims: root.dims(wsize, effScale)
+                        readonly property real radiusPx: 28 * root.widgetScale * effScale * (wsize === "small" ? 168 / 158 : (wsize === "medium" ? 358 / 338 : 1))
                         width: baseDims[0]
                         height: baseDims[1]
 
@@ -793,6 +817,7 @@ Scope {
                             host: root
                             wallItem: sharedWall
                             wtype: ww.wtype; wstyle: ww.wstyle; wsize: ww.wsize; wmode: ww.wmode; wsrc: ww.wsrc
+                            wscale: ww.effScale
                             sx: ww.x; sy: ww.y
                             sname: win.modelData.name; sw: win.modelData.width; sh: win.modelData.height
                         }
@@ -841,6 +866,67 @@ Scope {
                             border.color: Qt.rgba(0, 0, 0, 0.18)
                             Text { id: chooseText; anchors.centerIn: parent; text: I18n.tr("Choose Image\u2026"); color: "#3A3A3C"; font.family: root.fontFamily; font.pixelSize: 12 }
                             MouseArea { id: chooseMa; anchors.fill: parent; onClicked: root.pickImage(ww.wid, "small") }
+                        }
+                        // resize handle (bottom-right corner): drag to make this widget bigger or smaller; it keeps its shape
+                        Rectangle {
+                            id: sizeGrip
+                            visible: root.editing
+                            x: parent.width - width + 8; y: parent.height - height + 8
+                            width: 26; height: 26; radius: 13
+                            color: gripMa.pressed ? "#D8D8DC" : "#F2F2F5"
+                            border.width: 1
+                            border.color: Qt.rgba(0, 0, 0, 0.18)
+                            z: 20
+                            Canvas {   // two diagonal arrow heads
+                                anchors.fill: parent
+                                onPaint: {
+                                    var c = getContext("2d"); c.reset();
+                                    c.strokeStyle = "#3A3A3C"; c.lineWidth = 1.6; c.lineCap = "round"; c.lineJoin = "round";
+                                    c.beginPath(); c.moveTo(8, 18); c.lineTo(18, 8); c.stroke();
+                                    c.beginPath(); c.moveTo(8, 13); c.lineTo(8, 18); c.lineTo(13, 18); c.stroke();
+                                    c.beginPath(); c.moveTo(13, 8); c.lineTo(18, 8); c.lineTo(18, 13); c.stroke();
+                                }
+                            }
+                            MouseArea {
+                                id: gripMa
+                                anchors.fill: parent
+                                anchors.margins: -6
+                                cursorShape: Qt.SizeFDiagCursor
+                                preventStealing: true
+                                property real px: 0
+                                property real py: 0
+                                property var base: [1, 1]
+                                property real s0: 1
+                                onPressed: mouse => {
+                                    var p = mapToItem(ui, mouse.x, mouse.y); px = p.x; py = p.y;
+                                    s0 = ww.wscale; base = root.dims(ww.wsize, 1);
+                                    ww.liveScale = s0;
+                                }
+                                onPositionChanged: mouse => {
+                                    if (!pressed) return;
+                                    var p = mapToItem(ui, mouse.x, mouse.y);
+                                    // the widget keeps its shape: the size follows whichever way the corner moved further
+                                    var sx = (base[0] * s0 + (p.x - px)) / base[0], sy = (base[1] * s0 + (p.y - py)) / base[1];
+                                    var sc = Math.max(root.minWScale, Math.min(root.maxWScale, Math.max(sx, sy)));
+                                    // never past the screen edge
+                                    sc = Math.min(sc, (ui.width - root.gridRight - ww.wx) / base[0], (ui.height - root.gridBottom - ww.wy) / base[1]);
+                                    ww.liveScale = Math.max(root.minWScale, sc);
+                                }
+                                onReleased: {
+                                    var sc = ww.liveScale;
+                                    if (!root.setScale(ww.wid, sc)) { }   // no room for that size: it springs back
+                                    ww.liveScale = -1;
+                                }
+                                onCanceled: ww.liveScale = -1
+                            }
+                        }
+                        Rectangle {   // size badge while resizing
+                            visible: gripMa.pressed
+                            anchors.centerIn: parent
+                            width: pctText.width + 22; height: 28; radius: 14
+                            color: Qt.rgba(0, 0, 0, 0.55)
+                            z: 20
+                            Text { id: pctText; anchors.centerIn: parent; text: Math.round(ww.effScale * 100) + "%"; color: "white"; font.family: root.fontFamily; font.pixelSize: 13; font.weight: Font.DemiBold }
                         }
                         Rectangle {   // "−" remove badge
                             visible: root.editing
