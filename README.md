@@ -139,7 +139,7 @@ menu bar show each item's shortcut next to it.
 | --- | --- |
 | `Super+Enter` | terminal |
 | `Super+Shift+Enter` | floating terminal |
-| `Super+W` / `Super+E` | Chromium / Dolphin (Dolphin opens maximized) |
+| `Super+W` / `Super+E` | Chromium / Dolphin (Dolphin opens tiled: full screen on an empty workspace, beside your other windows otherwise) |
 | `Super+Shift+W` / `Super+Shift+E` | floating Chromium / Dolphin, centred |
 | `Super+Q` | close window |
 | `Super+F` | fullscreen (press again to go back) |
